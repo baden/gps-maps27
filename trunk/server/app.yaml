@@ -5,5 +5,18 @@ api_version: 1
 threadsafe: true
 
 handlers:
+- url: /js
+  static_dir: js
+
+- url: /
+  static_files: html/main.html
+  upload: html/main.html
+
+- url: /api.*
+  script: api.app
+
+- url: /bingps.*
+  script: bingps.app
+
 - url: /.*
-  script: helloworld.app
+  script: main.app

@@ -4,33 +4,28 @@
 	Все что касается GPS точек
 """
 
-from google.appengine.ext.db import Key, Model, DateTimeProperty, BlobProperty, IntegerProperty, ListProperty
+from google.appengine.ext import db
 from datetime import datetime, timedelta
 import struct
 #import zlib
 import logging
-#import pickle
 
 
 """
  Гео-данные
 
  Данные хранятся пачками.
- Каждатя пачка данных содержит точки за 8 часов времени.
- Запись имеет ключ вида: YYYYMMDDHH
+ Каждатя пачка данных содержит точки за сутки.
+ Запись имеет ключ вида: YYYYMMDD
  где
 	YYYY - год
 	MM - месяц
 	DD - день
-	HH - часы [00,08,16]
- Максимальное количество точек в одной записи = 60*60*8 = 28800 точек (*36 = 1036800 байт ~ 0.99МБ)
+ Максимальное количество точек в одной записи = 28800 точек (*36 = 1036800 байт ~ 0.99МБ)
+ Т.е. при сохранении каждую секунду - всего на треть суток.
+ Поэтому использование столь частой записи запрещено (!!!)
 
- !Предложение!
- По результатам реальных тестов, оказывается что очень много пакетов содержит всего 48 точки (6 точек в час).
- Предлагается переделать процедуру сохранения точек по принципу:
- создается один пакет для точек за сутки:
-  ключ вида: geo_YYYYMMDD
- В него добавляются точки как обычно.
+ !Предложение! (TBD!!!)
  Если при очередном добавлении количество точек достигает 28800 штук, то создаются пакеты
   geo_YYYYMMDDHH (столько сколько нужно с шагом 8 часов) и работа с ними идет как обычно.
 
@@ -77,15 +72,14 @@ MAX_RECS = 1024*1024//PACK_LEN		# Максимальное количество 
 assert(struct.calcsize(PACK_STR) == PACK_LEN)
 # !!! time должен всегда! идти первым и иметь тип int(i)
 
-class DBGeo(Model):
-	date = DateTimeProperty()				# Дата/время смещения
-	bin = BlobProperty(default=None)			# Упакованные данные
+class DBGeo(db.Model):
+	date = db.DateTimeProperty()				# Дата/время смещения
+	bin = db.BlobProperty(default=None)			# Упакованные данные
 	# Остальные параметры, возможно будут использоваться только на этапе отладки и в продакшине будут убраны.
-	i_count = IntegerProperty(default=0)			# Кол-во точек в пакете
-	i_first = DateTimeProperty()				# Время первой точки
-	i_last = DateTimeProperty()				# Время последней точки
-
-	extend = ListProperty(unicode, default=None)		# Дополнительная информация за текущий период
+	i_count = db.IntegerProperty(default=0)			# Кол-во точек в пакете
+	i_first = db.DateTimeProperty()				# Время первой точки
+	i_last = db.DateTimeProperty()				# Время последней точки
+	extend = db.ListProperty(unicode, default=None)		# Дополнительная информация за текущий период
 
 	@property
 	def count(self):
@@ -204,12 +198,14 @@ class DBGeo(Model):
 		return True
 
 	def get_item_by_dt(self, pdt):
-		t = (pdt.hour & 7)*60*60 + pdt.minute * 60 + pdt.second
+		#t = (pdt.hour & 7)*60*60 + pdt.minute * 60 + pdt.second
+		t = pdt.hour*60*60 + pdt.minute*60 + pdt.second
 		return self.get_item(self.find_item_index(t))
 
 	@classmethod
 	def key_by_date(cls, pdate):
-		return pdate.strftime("geo_%Y%m%d") + "%02d" % (pdate.hour & ~7)
+		#return pdate.strftime("%Y%m%d") + "%02d" % (pdate.hour & ~7)
+		return pdate.strftime("%Y%m%d")
 
 	@classmethod
 	def get_by_date(cls, skey, pdate):
@@ -228,8 +224,10 @@ class DBGeo(Model):
 
 	@classmethod
 	def get_items_by_range(cls, system_key, dtfrom, dtto, maxp):
-		dhfrom = datetime(dtfrom.year, dtfrom.month, dtfrom.day, dtfrom.hour & ~7, 0, 0)
-		dhto = datetime(dtto.year, dtto.month, dtto.day, dtto.hour & ~7, 0, 0)
+		#dhfrom = datetime(dtfrom.year, dtfrom.month, dtfrom.day, dtfrom.hour & ~7, 0, 0)
+		dhfrom = datetime(dtfrom.year, dtfrom.month, dtfrom.day, 0, 0, 0)
+		#dhto = datetime(dtto.year, dtto.month, dtto.day, dtto.hour & ~7, 0, 0)
+		dhto = datetime(dtto.year, dtto.month, dtto.day, 0, 0, 0)
 		recs = DBGeo.all().ancestor(system_key).filter("date >=", dhfrom).filter("date <=", dhto).order("date")#.fetch(1000)
 		for rec in recs:
 			logging.info('==> API:GEO:GET  fetch DBGeo[%s]' % rec.key().name())
@@ -297,14 +295,16 @@ class PointWorker(object):
 				self.rec = DBGeo(
 					parent = self.system_key,
 					key_name = pkey,
-					date = datetime(point['time'].year, point['time'].month, point['time'].day, point['time'].hour & ~7, 0, 0)
+					#date = datetime(point['time'].year, point['time'].month, point['time'].day, point['time'].hour & ~7, 0, 0)
+					date = datetime(point['time'].year, point['time'].month, point['time'].day, 0, 0, 0)
 				)
 				self.nrecs = 0
 			else:
 				self.nrecs = self.rec.count
 
 		#point['seconds'] = point['time'].minute * 60 + point['time'].second
-		point['seconds'] = (point['time'].hour & 7)*60*60 + point['time'].minute * 60 + point['time'].second
+		#point['seconds'] = (point['time'].hour & 7)*60*60 + point['time'].minute * 60 + point['time'].second
+		point['seconds'] = point['time'].hour*60*60 + point['time'].minute*60 + point['time'].second
 
 		change = self.rec.add_point(point)
 		if change:

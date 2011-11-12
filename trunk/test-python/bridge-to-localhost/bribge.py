@@ -14,13 +14,14 @@ from datetime import datetime, date
 #GETFROM = "127.0.0.1:80"
 GETFROM = "gps-maps.appspot.com:80"
 
+COUNT = 1
 # Where send to...
 
-HOST = "127.0.0.1"
-PORT = 8080
+#HOST = "127.0.0.1"
+#PORT = 8080
 
-#HOST = "gps-maps27.appspot.com"
-#PORT = 80
+HOST = "gps-maps27.appspot.com"
+PORT = 80
 
 HOSTNAME = "gps-maps27.appspot.com"
 
@@ -109,7 +110,7 @@ def main():
 	print("Request for new data...")
 
 	conn = httplib.HTTPConnection(GETFROM)
-	conn.request("GET", "/binbackup?cmd=pack&cnt=1000&imei=%s&after=%s&asc=yes" % (IMEI, urllib.quote(aftercdate)))
+	conn.request("GET", "/binbackup?cmd=pack&cnt=%d&imei=%s&after=%s&asc=yes" % (COUNT, IMEI, urllib.quote(aftercdate)))
 	response = conn.getresponse()
 	#print response.status, response.reason
 	data = response.read()

@@ -4,19 +4,51 @@ runtime: python27
 api_version: 1
 threadsafe: true
 
+libraries:
+- name: jinja2
+  version: "2.6"
+
+inbound_services:
+- channel_presence
+
 handlers:
+#- url: /_ah/queue/deferred
+#  script: libs.deferred.app
+#  #script: google.appengine.ext.deferred.application
+#  #login: admin
+
+- url: /stats.*
+  script: google.appengine.ext.appstats.ui.app
+
+#- url: /prodeagle/
+#  script: prodeagle.harvest.application
+
+- url: /prodeagle/.*
+  static_files: static/blanks.html
+  upload: static/blanks.html
+
+- url: /stylesheets
+  static_dir: stylesheets
+
 - url: /js
   static_dir: js
 
-- url: /
-  static_files: html/main.html
-  upload: html/main.html
+- url: /fonts
+  static_dir: fonts
 
-- url: /api.*
-  script: api.app
+- url: /html
+  static_dir: html
 
-- url: /bingps.*
-  script: bingps.app
+- url: /svg
+  static_dir: svg
+  mime_type: image/svg+xml
+
+- url: /images/(.*\.(gif|png|jpg|ico))
+  static_files: images/\1
+  upload: images/(.*\.(gif|png|jpg|ico))
+
+#- url: /_ah/channel/.*
+#  script: channel.app
 
 - url: /.*
-  script: main.app
+  script: application.app

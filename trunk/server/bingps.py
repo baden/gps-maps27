@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-from webapp2 import WSGIApplication, RequestHandler
+import webapp2
 import logging
-from google.appengine.ext.db import Key, Model, IntegerProperty, BlobProperty, DateTimeProperty, BooleanProperty, delete
-#from google.appengine.ext.db import delete as db_delete
+from google.appengine.ext import db
 from google.appengine.api import memcache
 from zlib import compress, decompress
+import cPickle as pickle
+#from libs import deferred
 
 from utils import CRC16
 
@@ -15,15 +16,17 @@ USE_BACKUP = False
 IMEI_BLACK_LIST = ('000')
 SERVER_NAME = os.environ['SERVER_NAME']
 
-class DBGPSBin(Model):
-	dataid = IntegerProperty()
-	data = BlobProperty()		# Пакет данных (размер ориентировочно до 64кбайт)
+glogal_counter = 0
 
-class DBGPSBinBackup(Model):
-	cdate = DateTimeProperty(auto_now_add=True)
-	dataid = IntegerProperty()
-	crcok = BooleanProperty(default=False)
-	data = BlobProperty()		# Пакет данных (размер ориентировочно до 64кбайт)
+class DBGPSBin(db.Model):
+	dataid = db.IntegerProperty()
+	data = db.BlobProperty()		# Пакет данных (размер ориентировочно до 64кбайт)
+
+class DBGPSBinBackup(db.Model):
+	cdate = db.DateTimeProperty(auto_now_add=True)
+	dataid = db.IntegerProperty()
+	crcok = db.BooleanProperty(default=False)
+	data = db.BlobProperty()		# Пакет данных (размер ориентировочно до 64кбайт)
 
 def SaveGPSPointFromBin(pdata, result):
 	from datetime import datetime, timedelta
@@ -190,7 +193,7 @@ def SaveGPSPointFromBin(pdata, result):
 		'fsource': fsource 
 	}
 
-class BinGpsParse(RequestHandler):
+class BinGpsParse(webapp2.RequestHandler):
 	def post(self):
 		from datamodel.geo import PointWorker
 
@@ -205,16 +208,16 @@ class BinGpsParse(RequestHandler):
 		crc = 0
 		key = None
 
-		payload = eval(decompress(self.request.body))
+		payload = pickle.loads(decompress(self.request.body))
 		#logging.info('payload: %s' % repr(payload))
-		skey = Key(payload['skey'])
+		skey = db.Key(payload['skey'])
 		crc = payload['crc']
 
 		if 'key' not in payload:
-			payload = eval(decompress(self.request.body))
+			#payload = pickle.loads(decompress(self.request.body))
 			pdata = payload['pdata']
 		else:
-			key = Key(payload['key'])
+			key = db.Key(payload['key'])
 			pdata = memcache.get("DBGPSBin:%s" % key)
 			if pdata is None:
 				logging.warning('!!! Fail caching data by memcache! Using datastore.')
@@ -251,7 +254,7 @@ class BinGpsParse(RequestHandler):
 					offset += 1
 					continue
 
-				logging.warning(pdata[offset:offset+32].encode('hex'))
+				#logging.warning(pdata[offset:offset+32].encode('hex'))
 
 				#try:
 				if True:
@@ -297,20 +300,25 @@ class BinGpsParse(RequestHandler):
 			if result is not None:
 				result.delete()
 			elif key is not None:
-				delete(key)
+				db.delete(key)
 
 			#_log += '\nData deleted.\n'
 			_log += '\nOk\n'
 			
-			self.response.out.write('BINGPS/PARSE: OK\r\n')
+			self.response.write('BINGPS/PARSE: OK\r\n')
 			
 		else:
-			self.response.out.write('BINGPS/PARSE: NODATA\r\n')
+			self.response.write('BINGPS/PARSE: NODATA\r\n')
 
 		logging.info(_log)
 
-class BinGps(RequestHandler):
+#def parce_gps(skey):
+#	logging.info('CALL parcer')
+#	pass
+
+class BinGps(webapp2.RequestHandler):
 	def post(self):
+		global glogal_counter
 		import os
 		from datamodel.system import DBSystem
 		from google.appengine.api.labs import taskqueue
@@ -323,13 +331,14 @@ class BinGps(RequestHandler):
 		logging.info("arguments: %s" % self.request.arguments())
 		logging.info("body: %s" % len(self.request.body))
 
-		_log = "\n== BINGPS ["
+		glogal_counter = glogal_counter + 1
+		_log = "\n== BINGPS(%d) [" % glogal_counter
 
 		imei = self.request.get('imei', '000000000000000')
 
 		if imei in IMEI_BLACK_LIST:
 			logging.error("IMEI in black list. Denied.")
-			self.response.out.write('BINGPS: DENIED\r\n')
+			self.response.write('BINGPS: DENIED\r\n')
 			return
 
 		#skey = DBSystem.getkey_or_create(imei)
@@ -349,7 +358,7 @@ class BinGps(RequestHandler):
 
 		if len(pdata) < 3:
 			logging.error('Data packet is too small or miss.')
-			self.response.out.write('BINGPS: CRCERROR\r\n')
+			self.response.write('BINGPS: CRCERROR\r\n')
 			return
 
 		crc = ord(pdata[-1])*256 + ord(pdata[-2])
@@ -378,20 +387,26 @@ class BinGps(RequestHandler):
 			for data in pdata:
 				_log += ' %02X' % ord(data)
 			logging.info(_log)
-			self.response.out.write('BINGPS: CRCERROR\r\n')
+			self.response.write('BINGPS: CRCERROR\r\n')
 			return
 		else:
 			_log += '\n==\tCRC OK %04X' % crc
 
 		_log += '\nCreating tasque'
 
+		# (!TBD!) Это вполне можно переделать на использование google.appengine.ext.deffered, но пока не получается. То задачи не запускаются, то непонятки с отличиями библиотек
+		#deferred.defer(parce_gps, "123")
+		#logging.info(_log)
+		#self.response.write('BINGPS: OK\r\n')
+		#return
+
 		no_task_data = False
 		if USE_TASK_DATA:
-			payload = compress(repr({
+			payload = compress(pickle.dumps({
 				'skey': str(skey),
 				'crc': crc,
 				'pdata': pdata,
-			}), 9)
+			}, protocol=pickle.HIGHEST_PROTOCOL), 9)
 			if len(payload) < 10200:
 				try:
 					taskqueue.add(url='/bingps/parse', method="POST", payload=payload, headers={'Content-Type': 'application/octet-stream'})
@@ -413,11 +428,11 @@ class BinGps(RequestHandler):
 			newbin.put()
 
 			memcache.set("DBGPSBin:%s" % newbin.key(), pdata, time = 30)
-			payload = compress(repr({
+			payload = compress(pickle.dumps({
 				'skey': str(skey),
 				'crc': crc,
 				'key': str(newbin.key())
-			}), 9)
+			}, protocol=pickle.HIGHEST_PROTOCOL), 9)
 			taskqueue.add(url='/bingps/parse', method="POST", payload=payload, headers={'Content-Type': 'application/octet-stream'})
 
 		#del payload
@@ -425,16 +440,20 @@ class BinGps(RequestHandler):
 
 		logging.info(_log)
 
-		self.response.out.write('BINGPS: OK\r\n')
+		self.response.write('BINGPS: OK\r\n')
 
+"""
 app = WSGIApplication([
 	('/bingps/parse.*', BinGpsParse),
 	('/bingps.*', BinGps),
 ], debug=True)
 
 
-#def main():
-#    run_wsgi_app(app)
+def main():
+	#run_wsgi_app(app)
+	app.run()
+	#run_wsgi_app(app)
 
-#if __name__ == '__main__':
-#    main()
+if __name__ == '__main__':
+	main()
+"""

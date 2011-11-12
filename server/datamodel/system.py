@@ -4,17 +4,17 @@
 	Процедуры работы с системой.
 """
 
-from google.appengine.ext.db import Key, Model, StringProperty, DateTimeProperty
+from google.appengine.ext import db
 
 #DEFAULT_COLLECT = 'default_collect'
 FAKE_IMEI = '000000000000000'
 
-class DBSystem(Model):
-	imei = StringProperty(multiline=False)					# IMEI
-	phone = StringProperty(multiline=False, default=u"Не определен")	# Phone number, for example: +380679332332
-	date = DateTimeProperty(auto_now_add=True)				# Дата регистрации системы
-	desc = StringProperty(multiline=False, default=u"Нет описания")		# Описание
-	premium = DateTimeProperty(auto_now_add=True)				# Дата окончания премиум-подписки (абон-плата).
+class DBSystem(db.Model):
+	imei = db.StringProperty(multiline=False)				# IMEI
+	phone = db.StringProperty(multiline=False, default=u"Не определен")	# Phone number, for example: +380679332332
+	date = db.DateTimeProperty(auto_now_add=True)				# Дата регистрации системы
+	desc = db.StringProperty(multiline=False, default=u"Нет описания")	# Описание
+	premium = db.DateTimeProperty(auto_now_add=True)			# Дата окончания премиум-подписки (абон-плата).
 										# Без премиум-подписки функционал ограничен.
 	#@classmethod
 	#def collect_key(cls, collect_name=None):
@@ -27,7 +27,7 @@ class DBSystem(Model):
 		from google.appengine.api import memcache
 		value = memcache.get("DBSystem:%s" % imei)
 		if value is not None:
-			return Key(value)
+			return db.Key(value)
 		else:
 			#model = cls.get_or_insert(imei, parent = cls.collect_key(collect_name), imei=imei)
 			model = cls.get_or_insert(imei, imei=imei)

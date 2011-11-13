@@ -11,6 +11,11 @@ libraries:
 inbound_services:
 - channel_presence
 
+admin_console:
+  pages:
+  - name: Appstats
+    url: /stats
+
 handlers:
 #- url: /_ah/queue/deferred
 #  script: libs.deferred.app

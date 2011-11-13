@@ -20,7 +20,7 @@
 	$(document).ready(function() {
 		var uuid = new Date().getTime();
 		console.log('UUID=', uuid);
-		$.getJSON('/api/chanel/gettoken?uuid={{ user.user_id() }}_' + uuid, function (data) {
+		$.getJSON('/api/channel/gettoken?uuid={{ user.user_id() }}_' + uuid, function (data) {
 			if(data.token){
 				var token = data.token;
 				log("Token goted:" + token, 'uuid={{ user.user_id() }}');
@@ -30,18 +30,21 @@
 				}
 
 				var onMessage = function(m) {
-					var msg = JSON.parse(m.data);
-					
-					log('goog.appengine.Channel: onMessage', msg);
-					//config.updater.process(msg);
+					var msgs = JSON.parse(m.data);
+					log('goog.appengine.Channel: onMessage', msgs);
+					for(var i in msgs){
+						var msg = msgs[i];
+						//config.updater.process(msg);
+						$('#channel_messages').append(msg.text + '<br />');
+					}
 				}
 
 				var onError = function() {
-					log("goog.appengine.Channel: onError");
+					log("goog.appengine.Channel: onError.");
 				}
 
 				var onClose = function() {
-					log("goog.appengine.Channel: onClose");
+					log("goog.appengine.Channel: onClose. TBD! Reconnect?");
 					//connected = false;
 				}
 
@@ -52,6 +55,18 @@
 				socket.onerror = onError;
 				socket.onclose = onClose;
 			}
+		});
+
+		$('#btn_get_secure_list').click(function(){
+			$.getJSON('/api/sys/secure_list', function (data) {
+				log('Secure list:', data);
+				var div=$('#list_secure_list');
+				div.empty();
+				for(var i in data.info.systems){
+					var sys = data.info.systems[i];
+					div.append('<div>' + sys.imei + '</div>');
+				}
+			});
 		});
 	});
   </script>
@@ -69,5 +84,13 @@ Session: {{ session['run_counter'] }}<br />
 User: {{ user }}<br />
 UserID: {{ user.user_id() }}<br />
 NickName: {{ user.nickname() }}<br />
+Сообщения: <div id="channel_messages" style="color: green;"></div>
+
+Список систем:
+
+Отладочные функции:
+<div>
+	<button id="btn_get_secure_list">Секретный список</button><div id="list_secure_list"></div>
+</div>
 </body>
 </html>

@@ -11,9 +11,12 @@ app = webapp2.WSGIApplication([
 	(r'/bingps.*', 'bingps.BinGps'),
 
 	(r'/api/version', 'api.Version'),
+	(r'/api/sys/secure_list', 'api.Sys_SecureList'),
 
-	(r'/api/chanel/gettoken', 'channel.Chanel_GetToken'),
-	(r'/api/chanel/message', 'channel.Message'),
+
+	(r'/api/channel/gettoken', 'channel.Chanel_GetToken'),
+	(r'/api/channel/message', 'channel.Message'),
+	(r'/channel/message', 'channel.MessagePost'),
 	(r'/_ah/channel/connected/.*', 'channel.ChannelConnectHandler'),
 	(r'/_ah/channel/disconnected/.*', 'channel.ChannelDisconnectHandler'),
 

@@ -16,6 +16,13 @@ class DBSystem(db.Model):
 	desc = db.StringProperty(multiline=False, default=u"Нет описания")	# Описание
 	premium = db.DateTimeProperty(auto_now_add=True)			# Дата окончания премиум-подписки (абон-плата).
 										# Без премиум-подписки функционал ограничен.
+
+	# Добавляем...
+	password = db.StringProperty(default=None)	# Если это поле задано, то все "наблюдатели" должны иметь этот-же ключ для доступа к системе
+	#groups = db.ListProperty(db.Key, default=None)	# Перечень ключей к записям групп, в которые входит система
+	#						# Это ссылки на "глобальные" группы. Локальные группы могут быть назначены каждым пользователем.
+
+
 	#@classmethod
 	#def collect_key(cls, collect_name=None):
 	#	return db.Key.from_path('DBSystem', collect_name or DEFAULT_COLLECT)

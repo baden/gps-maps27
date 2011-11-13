@@ -65,3 +65,25 @@ class ApiPage(webapp2.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 		self.response.write(json.dumps(a, indent=2) + "\r")
 
+
+from datamodel import DBSystem
+class Sys_SecureList(BaseApi):
+	def parcer(self):
+		from google.appengine.api import users
+		user = users.get_current_user()
+
+		sysinfos = []
+		systems = DBSystem.all(keys_only=True).fetch(1000)
+		for rec in systems:
+			sysinfos.append({'imei': rec.name(), 'key': "%s" % rec, })
+
+		return {
+			'answer': 'ok',
+			'info': {
+				'systems': sysinfos,
+			},
+			'user': {
+				'user_id': user.user_id(),
+				'admin': users.is_current_user_admin(),
+			}
+		}

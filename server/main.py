@@ -122,16 +122,19 @@ class MainPage(BaseHandler):
 		template_args = {}
 		self.render_template(self.__class__.__name__ + '.html', **template_args)
 
-class TestPage(webapp2.RequestHandler):
+class TestMainPage(BaseHandler):
+	@login_required
 	def get(self):
-		self.response.write('Hello, test!')
+		template_args = {}
+		self.render_template(self.__class__.__name__ + '.html', **template_args)
 
-config = {}
-config['webapp2_extras.sessions'] = {
-    'secret_key': 'my-super-secret-key-000',
-}
 
-app = webapp2.WSGIApplication([
-	('/test.*', TestPage),
-	('/', MainPage),
-], debug=True, config=config)
+#config = {}
+#config['webapp2_extras.sessions'] = {
+#    'secret_key': 'my-super-secret-key-000',
+#}
+
+#app = webapp2.WSGIApplication([
+#	('/test.*', TestPage),
+#	('/', MainPage),
+#], debug=True, config=config)

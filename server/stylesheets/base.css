@@ -1,0 +1,85 @@
+
+/*@import url("/plugins/jquery-ui-themes-1.8.7/jquery-ui-themes-1.8.7/themes/humanity/jquery.ui.all.css");*/
+@import url("/plugins/jquery-ui-themes-1.8.9/jquery-ui-themes-1.8.9/themes/cupertino/jquery.ui.all.css");
+/*@import url("/plugins/jquery-ui-themes-1.8.7/jquery-ui-themes-1.8.7/themes/flick/jquery.ui.all.css");*/
+/*@import url("/plugins/jquery-ui-themes-1.8.7/jquery-ui-themes-1.8.7/themes/redmond/jquery.ui.all.css");*/
+
+html, body {
+	/*text-align: center;*/
+	/*overflow:hidden;*/
+	overflow-x: hidden;
+	overflow-y: hidden;
+	padding: 0 0 0 0;
+	margin: 0 0 0 0;
+	height: 100%;
+	max-height:100%;
+	display: block;
+}
+
+body {
+	/*background-color: grey;*/
+	font-size: 75%;
+	font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
+}
+
+h1 {
+	/*font-size: 1.2em;*/
+}
+
+h2 {
+	/*font-size: 1.1em;*/
+}
+
+
+
+/*
+.ui-widget {
+	font-size: 1.0em !important;
+}
+*/
+
+
+
+table {
+	/*width: 98%;
+	margin-left: 1%;*/
+}
+
+table {
+    /*background: #FFF0FF;*/
+}
+
+table, th, td {
+    /*border: 2px solid black;
+    border-collapse: collapse;*/
+}
+
+td,th {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+td {
+}
+
+th {
+    /*background: #CFF0FF;*/
+}
+
+tr:nth-child(even) {
+    background: #F0E8F8;
+    /*border: 2px solid black;
+    border-collapse: collapse;*/
+}
+
+.ui-dialog, #ui-datepicker-div {
+	box-shadow: 2px 2px 6px #808080;
+	-moz-box-shadow: 2px 2px 6px #808080;
+	-webkit-box-shadow: 2px 2px 6px #808080;
+}
+
+.ui-button-text {
+	padding-top: 0.1em !important;
+	padding-bottom: 0.1em !important;
+}
+

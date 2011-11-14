@@ -17,11 +17,11 @@ GETFROM = "gps-maps.appspot.com:80"
 COUNT = 1
 # Where send to...
 
-#HOST = "127.0.0.1"
-#PORT = 8080
+HOST = "127.0.0.1"
+PORT = 8080
 
-HOST = "gps-maps27.appspot.com"
-PORT = 80
+#HOST = "gps-maps27.appspot.com"
+#PORT = 80
 
 HOSTNAME = "gps-maps27.appspot.com"
 

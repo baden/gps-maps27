@@ -6,6 +6,8 @@ from google.appengine.ext import db
 from google.appengine.api import memcache
 from google.appengine.api import channel
 import json
+
+from datamodel.accounts import DBAccounts
 #import cPickle as pickle
 #import pickle
 
@@ -99,35 +101,62 @@ class ChannelDisconnectHandler(webapp2.RequestHandler):
 	Необходимо обязательно фильтровать отправку клиентам по ключам систем. В противном случае "продвинутые" пользователи увидят чужие сообщения
 	и смогут даже добавить системы, которые они не видят.
 """
+
+"""
+	Типы сообщений:
+		broadcast - Сообщение всем подключенным клиентам
+		by_skey	- Сообщение всем подключенным клиентам у которых в списке наблюдения присутствует система с заданным ключем (IMEI)
+		by_akey - Сообщение всем подключенным клиентам для выбранного пользователя (если на одном компьютере открыть несколько копий приложения)
+"""
 class DBMessages(db.Model):
-	dest_uuid = db.ListProperty(str, default=None)			# Список адресов - получателей. На данном этапе не используется
+	#dest_uuid = db.ListProperty(str, default=None)			# Список адресов - получателей. На данном этапе не используется
+	akeys = db.ListProperty(db.Key)				# Заполняется если указан получатель по пользователю
+	skeys = db.ListProperty(db.Key)				# Заполняется есдт указан получатель по владению системой
 	message = db.StringProperty(multiline=True, default=u"")
 
-def send_message(message):
+def send_message(message, akeys=[], skeys=[], timeout=10):
 	from google.appengine.api.labs import taskqueue
 	# Для работы в High Replication необходимо все записи разместить в одной сущности.
 	collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
 	#messagedb = DBMessages(parent = collect_key, message = pickle.dumps(message, protocol=pickle.HIGHEST_PROTOCOL))
-	messagedb = DBMessages(parent = collect_key, message = repr(message))
+	messagedb = DBMessages(parent = collect_key, akeys=akeys, skeys=skeys, message = repr(message))
 	messagedb.put()
-
+	#lazzy_run()
 	lazzyrun = memcache.get('DBMessages:lazzy_run')
 	if lazzyrun is None:
-		memcache.set('DBMessages:lazzy_run', 'wait')
-		taskqueue.add(url='/channel/message', countdown=10)
-	pass
+		memcache.set('DBMessages:lazzy_run', 'wait', time=timeout*2)
+		taskqueue.add(url='/channel/message', countdown=timeout)
 
 class MessagePost(webapp2.RequestHandler):
 	def post(self):
-		logging.info('Execute messages send.')
+		logging.info('\n\nExecute messages send.\n')
 		collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
-		messages = []
+		messages_bc = []
+		messages_akey = {}
+		messages_skey = {}
 		mkeys = []
 		query = DBMessages.all().ancestor(collect_key)
 		for mesg in query:
-			logging.info('Message: %s' % mesg.message)
+			logging.info('\n\nMessage: %s' % mesg.message)
 			#messages.append(pickle.loads(mesg.message))
-			messages.append(eval(mesg.message))
+			value = eval(mesg.message)
+			if (mesg.akeys is not None) and (len(mesg.akeys) > 0):
+				logging.info('\n\n+akey')
+				for akey in mesg.akeys:
+					if akey not in messages_akey:
+						messages_akey[akey] = [value]
+					else:
+						messages_akey[akey].append(value)
+			elif (mesg.skeys is not None) and (len(mesg.skeys) > 0):
+				logging.info('\n\n+skey')
+				for skey in mesg.skeys:
+					if skey not in messages_skey:
+						messages_skey[skey] = [value]
+					else:
+						messages_skey[skey].append(value)
+			else:
+				logging.info('\n\n+broadcast')
+				messages_bc.append(value)
 			mkeys.append(mesg.key())
 			#mesg.delete()
 
@@ -139,38 +168,55 @@ class MessagePost(webapp2.RequestHandler):
 			else:
 				uuids = root.uuids
 
-		dump = json.dumps(messages)
+		#dump = json.dumps(messages_bc)
 		for uuid in uuids:
-			try:
-				channel.send_message(uuid, dump)
-			except channel.InvalidChannelClientIdError, e:
-				logging.error("Channed error: (%s). TBD! Remove uuid from list." % str(e))
+			_log = '\n\nMessages for: %s\n' % uuid
+			# Сообщения по "akey" (асинхронный запрос, мелочь а даст немного экономии)
+			akey = db.Key.from_path('DBAccounts', uuid.split('_')[0])
+			#account_future = DBAccounts.get_async(akey)
+			account_future = db.get_async(akey)
+
+			# Сообщения "всем"
+			messages = messages_bc[:]
+			if len(messages) > 0:
+				_log += '\nBroadcast messages: %d\n%s\n' % (len(messages), repr(messages))
+			
+			# Сообщения по "akey" 
+			if akey in messages_akey:
+				for msg in messages_akey[akey]:
+					messages.append(msg)
+					_log += '\nMessage by akey:\n%s\n' % repr(msg)
+
+			account = account_future.get_result()
+			skeys = account.systems_key
+
+			# Сообщения по "skey"
+			for skey in skeys:
+				if skey in messages_skey:
+					for msg in messages_skey[skey]:
+						messages.append(msg)
+						_log += '\nMessage by skey:\n%s\n' % repr(msg)
+
+			if len(messages) > 0:
+				try:
+					_log += 'Send to client: %s\n' % uuid
+					channel.send_message(uuid, json.dumps(messages))
+				except channel.InvalidChannelClientIdError, e:
+					logging.error("Channed error: (%s). TBD! Remove uuid from list." % str(e))
+			else:
+				_log += 'No messages for client: %s\n' % uuid
+
+			logging.info(_log)
 
 		db.delete(mkeys)
 		memcache.delete('DBMessages:lazzy_run')
-
-def send_instant_message(message):
-	uuids = memcache.get('DBUpdater:root')
-	if uuids is None:
-		root = DBUpdater.get_by_key_name('root')
-		if root is None:
-			uuids = []
-		else:
-			uuids = root.uuids
-
-	for uuid in uuids:
-		try:
-			channel.send_message(uuid, json.dumps([message]))
-		except channel.InvalidChannelClientIdError, e:
-			logging.error("Channed error: (%s). TBD! Remove uuid from list." % str(e))
-			#handle_disconnection(uuid)
 
 class Message(BaseApi):
 	def parcer(self):
 		logging.info('Broadcast message ')
 		args = self.request.arguments()
 		message = dict((a, self.request.get(a, '')) for a in args)
-		send_message(message)
+		send_message(message, skeys=[db.Key.from_path('DBSystem', '356895035359317+1')])
 		#send_instant_message(message)
 
 		return {

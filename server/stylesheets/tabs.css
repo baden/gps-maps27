@@ -1,0 +1,218 @@
+/*@import url("/plugins/jquery-ui-themes-1.8.7/jquery-ui-themes-1.8.7/themes/cupertino/jquery.ui.all.css");*/
+
+@font-face {
+  font-family: 'Yanone Kaffeesatz';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Yanone Kaffeesatz Regular'),
+  local('YanoneKaffeesatz-Regular'),
+  url('http://themes.googleusercontent.com/font?kit=YDAoLskQQ5MOAgvHUQCcLdXn3cHbFGWU4T2HrSN6JF4')
+  format('truetype');
+}
+
+@font-face {
+                font-family: 'Comfortaa Regular';
+                src: url('Comfortaa.eot');
+                src: local('Comfortaa Regular'), 
+                     local('Comfortaa'), 
+                     url('/fonts/Comfortaa.svg#font') format('svg'); 
+            }
+
+body {
+/*	padding: 0 0 0 0;
+	margin: 0 0 0 0;
+	height: 100%;*/
+	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	font-size: 75%;
+	font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
+	/*font-family: "Comfortaa Regular", "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";*/
+	/*font-family: "font-file-54189", "Gurkner-Jump", "Tangerine", "Helvetica", "Arial",  "Verdana", "sans-serif";*/
+
+/*	font-family: "Yanone Kaffeesatz", "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";*/
+
+}
+
+
+select {
+  -webkit-appearance: button;
+  -webkit-border-radius: 2px;
+  -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAICAYAAADJEc7MAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyBpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBXaW5kb3dzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjA5MDMwMzEzMUVBRTExRTA5NUM0QzJENTZCN0I5Mjk1IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjA5MDMwMzE0MUVBRTExRTA5NUM0QzJENTZCN0I5Mjk1Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MDkwMzAzMTExRUFFMTFFMDk1QzRDMkQ1NkI3QjkyOTUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MDkwMzAzMTIxRUFFMTFFMDk1QzRDMkQ1NkI3QjkyOTUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz5pY8xsAAAAbUlEQVR42mL8//8/AzmAEYijgJgHj5ovQMOXYYgmAgEzM/M3IPM/OgaJg+RBrkLHIEJhwYIFC9nY2H4iawLxQeIgeVwaMTQT0oSsEa6Zj4/vCyFN6BrBmt++fdtESBMIM2KJDlYg/k0oOgACDABJirkKokz/DAAAAABJRU5ErkJggg=="), -webkit-linear-gradient(#fafafa, #f4f4f4 40%, #e5e5e5);
+  background-position: center right;
+  background-repeat: no-repeat;
+  border: 1px solid #aaa;
+  color: #555;
+  font-size: inherit;
+  margin: 0;
+  overflow: hidden;
+  padding: 2px 20px 2px 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#tabs {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	display: block;
+	padding: 0 0 0 0;
+	/*margin: 0 -10px 0 -2px;*/
+	left: 0px;
+	/*top: -2px;*/
+	/*background-color: lime;*/
+}
+
+/*#tabs .ui-tabs-nav {
+	margin-left: 24px;
+}*/
+
+.ui-tabs .ui-tabs-nav {
+	padding: 0;
+}
+
+.ui-tabs .ui-tabs-nav li a {
+	padding: 3px 8px 3px 8px;
+}
+
+.ui-tabs .ui-tabs-nav li a span {
+	float: left;
+	margin-right: 6px;
+}
+
+.ui-tabs-panel {
+	/*display:block !important; *//* set up as a block */
+	position: absolute; /* needed for footer positioning*/
+	/*background-color: yellow !important;*/
+	top: 28px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	overflow-y: auto;
+
+	/*margin-top: 10px;
+	min-height: 80%;
+	height: auto;*/
+	/*border: 2px solid black !important;*/
+}
+
+.ui-tabs .ui-tabs-panel {
+	padding: 0;
+}
+
+div.map-container {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+div.map-control {
+	position: absolute;
+	right: 20px;
+	top: 10px;
+}
+
+div.map-control .ui-button-text-only, div.map-control .ui-button-text{
+	padding: 1px 8px 1px 8px;
+}
+
+table.tview {
+    border: 1px solid #ccc;
+}
+
+table.tview th {
+	vertical-align: middle;
+	border-left: 1px solid #ccc;
+}
+
+
+table.tview td, table.tview th {
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+/*
+table.tview tr:nth-child(even) {
+    background: #FEF;
+}
+
+table.tview tr:nth-child(odd) {
+    background: #ccc;
+}
+*/
+
+
+table.tview tr:hover td {
+	background-color: #fff;
+	color: black;
+	/*border: 1px solid #f00;*/
+	box-shadow: 2px 2px 6px #999;
+	-moz-box-shadow: 2px 2px 6px #999;
+	-webkit-box-shadow: 2px 2px 6px #999;
+}
+
+
+.ui-dialog, #ui-datepicker-div {
+	box-shadow: 2px 2px 6px #808080;
+	-moz-box-shadow: 2px 2px 6px #808080;
+	-webkit-box-shadow: 2px 2px 6px #808080;
+}
+
+.ui-button-text-only .ui-button-text {
+/*.ui-button-text {*/
+	/*padding-top: 0.1em !important;
+	padding-bottom: 0.1em !important;*/
+	padding: 2px 8px 2px 8px;
+}
+
+.ui-button-icon-only .ui-button-text, .ui-button-icons-only .ui-button-text {
+	padding: 2px 8px 2px 8px;
+}
+
+.ui-button-text-icon-secondary .ui-button-text, .ui-button-text-icons .ui-button-text {
+	padding: 2px 24px 2px 8px;
+}
+
+.ui-button-text-icon-primary .ui-button-text, .ui-button-text-icons .ui-button-text {
+	padding: 2px 8px 2px 24px;
+}
+
+.noblock {
+	display: inline;
+}
+
+h3 {
+	font-size: 120%;
+	padding: 20px 5px 6px 5px;
+}
+
+.alertmsg {
+	/*position: absolute;
+	top: 0px;
+	left: 0px;*/
+	width: 500px;
+	height: 520px;
+	border: 4px solid red;
+	/*z-index: 1000;*/
+}
+
+.alertmap {
+	position: absolute;
+	width: 620px;
+	height: 260px;
+	left: 4px;
+	top: 74px;
+	/*right: 4px;
+	bottom: 4px;*/
+}
+
+
+/* css for timepicker */
+/*
+.ui-timepicker-div .ui-widget-header{ margin-bottom: 8px; }
+.ui-timepicker-div dl{ text-align: left; }
+.ui-timepicker-div dl dt{ height: 25px; }
+.ui-timepicker-div dl dd{ margin: -25px 0 10px 65px; }
+.ui-timepicker-div td { font-size: 90%; }
+*/

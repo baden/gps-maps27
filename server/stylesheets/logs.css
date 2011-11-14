@@ -1,0 +1,31 @@
+div#log_head {
+	position: absolute;
+	top: 0px;
+	height: 24px;
+	overflow: hidden;
+}
+
+div#log_body {
+	position: absolute;
+	top: 24px;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+@-webkit-keyframes pulse {
+	0% { -webkit-box-shadow: 0 0 6px rgba(200, 0, 0, 1.0); }
+	50% { -webkit-box-shadow: 0 0 60px rgba(200, 0, 0, 1.0); }
+	100% { -webkit-box-shadow: 0 0 6px rgba(200, 0, 0, 1.0); }
+}
+
+div#log_body table tbody tr td + td + td + td:hover{
+	-webkit-animation: pulse 0.2s infinite ease-in-out;
+}
+
+div#container {
+	overflow: hidden;
+}
+

@@ -1,0 +1,179 @@
+<html>
+<head>
+  <link type="text/css" href="/stylesheets/config.css" rel="stylesheet">
+  <link href="/plugins/colorpicker/css/colorpicker.css" rel="stylesheet" type="text/css"/>
+  <script src="/plugins/colorpicker/js/colorpicker.js"></script>
+  <!--script src="/html/js/config.js"></script-->
+
+  <script src="/js/loader.js"></script>
+  <script>
+	//loader.requre("/plugins/colorpicker/js/colorpicker.js");
+	loader.require("/html/js/config.js");
+  </script>
+  <style>
+	#config_sys_list li span.spanbrd {
+		border: 1px solid #ccc;
+		padding: 0px 6px 0px 6px;
+		cursor: pointer;
+		font-weight: normal;
+		display: inline-block;
+		min-width: 100px;
+		text-align: center;
+	}
+  </style>
+
+</head>
+<body>
+	<div id="config_list">
+		<h3><a href="#">Наблюдаемые системы</a></h3>
+		<div>
+			<ul id="config_sys_list"></ul>
+			<button id="config_button_sys_add">Добавить систему</button>
+		</div>
+		<h3><a href="#">ГЕО-зоны</a></h3>
+		<div>
+			<ul id="config_zonerules_list"></ul>
+			<button id="config_button_zonerules_add">Создать набор правил.</button>
+		</div>
+
+		<h3><a href="#">Группы пользователей (Компании)</a></h3>
+		<div>
+			<ul id="config_ugroup_list"></ul>
+			<button id="config_button_ugroup_add">Создать группу пользователей. (Стать администратором группы).</button>
+			<button id="config_button_ugroup_select">Присоединиться к группе пользователей.</button>
+		</div>
+		<h3><a href="#">Настройки интерфейса</a></h3>
+		<div>
+			<div style="position: absolute; top:0px; bottom: 30px; left:0px; right:0px; overflow-y:auto; ">
+				Тема оформления:
+				<select id="config_set_theme" name="config_set_theme">
+					<option value="black-tie">black-tie</option>
+					<option value="blitzer">blitzer</option>
+					<option value="cupertino">cupertino</option>
+					<option value="dark-hive">dark-hive</option>
+					<option value="dot-luv">dot-luv</option>
+					<option value="eggplant">eggplant</option>
+					<option value="excite-bike">excite-bike</option>
+					<option value="flick">flick</option>
+					<option value="hot-sneaks">hot-sneaks</option>
+					<option value="humanity">humanity</option>
+					<option value="le-frog">le-frog</option>
+					<option value="mint-choc">mint-choc</option>
+					<option value="overcast">overcast</option>
+					<option value="pepper-grinder">pepper-grinder</option>
+					<option value="redmond">redmond</option>
+					<option value="smoothness">smoothness</option>
+					<option value="south-street">south-street</option>
+					<option value="start">start</option>
+					<option value="sunny">sunny</option>
+					<option value="swanky-purse">swanky-purse</option>
+					<option value="trontastic">trontastic</option>
+					<option value="ui-darkness">ui-darkness</option>
+					<option value="ui-lightness">ui-lightness</option>
+					<option value="vader">vader</option>
+				</select><br/>
+				<div id="colorpickerHolder">Цвет трека: <div style="width: 16px; height: 16px; border: 2px solid black; display: inline; position: absolute;"></div></div>
+				<div id="taillen">Длина "хвоста": <button>0</button></div>
+			</div>
+			<div style="position: absolute; bottom: 2px; left: 0;">
+				Для применения настроек требуется перезапустить приложение: <button id="button_config_restart">Перезапустить</button>
+			</div>
+		</div>
+
+		<h3 class="admin"><a href="#">Административные настройки</a></h3>
+		<div>
+			<!--button class="dbg_send_msg" imei="356895035359317" value="Совершенно случайное сообщение на <b>русском</b>">Послать сообщение от системы 356895035359317</button>
+			<button class="dbg_send_msg" imei="356895035359317" value="Совершенно другое случайное сообщение на совершенно другую тему все на том-же <b>русском</b>">Послать сообщение от системы 356895035359317</button>
+			<br/>
+			<button class="dbg_send_cfg" imei="356895035359317">Послать конфигурацию системы 356895035359317</button>
+			<button class="dbg_send_cfg" imei="353358019726996">Послать конфигурацию системы 353358019726996</button-->
+
+			<!--button>Удалить </button-->
+
+			<br />
+
+			<a href="http://localhost/_ah/admin/datastore" target="_blank">Админка на локалхосте</a>
+			<a href="http://localhost:8080/_ah/admin/datastore" target="_blank">(порт 8080)</a>
+			<a href="https://appengine.google.com/dashboard?&app_id=gps-maps" target="_blank">Админка в онлайн</a>
+			<a href="http://code.google.com/p/gps-maps/" target="_blank">Страница проекта</a>
+
+			<br />
+
+
+			<div class="cfg_iframe" value="/binbackup">Бэкапы бинарных данных</div>
+			<div class="cfg_iframe" value="/firmware">Образы обновления прошивки</div>
+			
+
+
+		</div>
+
+	</div>
+
+	<div style="display: none;"> <!-- Скрытые объекты -->
+
+	<div id="config_dialog_addsys" title="Добавление системы">
+	<form>
+		<label>Укажите IMEI добавляемой системы</label><br />
+       		<div><textarea id="config_addsys_imei" name="imei" rows="1" style="width:98%;"></textarea></div>
+	</form>
+	</div>
+
+	<div id="dialog_addsys_not_found" title="Ошибка">
+	  <p><span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>Система не найдена.</p>
+	  <p>Возможно система ни разу не выходила на связь с сервером.</p>
+	</div>
+
+	<div id="dialog_addsys_already" title="Ошибка">
+	  <p><span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>Вы уже наблюдаете за этой системой.</p>
+	</div>
+
+	<div id="config_dialog_sys_desc" title="Администрирование">
+	<form>
+		<span>Введите описание для системы IMEI:</span><label id="sysdesc_imei">IMEI</label><br />
+       		<div><textarea id="sys_desc" name="desc" rows="1" style="width:98%;"></textarea></div>
+	</form>
+	</div>
+
+
+	<div id="config_dialog_delsys" title="Внимание!!!">
+	  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>Вы действительно хотите отказаться от слежения за системой?</p>
+	  <p>IMEI: <span id="config_del_imei">*</span></p>
+	  <p>Описание: <span id="config_del_desc">*</span></p>
+	</div>
+
+
+	<div id="config_zone_link" title="Назначение правил для ГЕО-зон.">
+		<p>Система <span id="config_zone_link_imei">?</span> : <span id="config_zone_link_desc">?</span></p>
+		<table class="ui-widget ui-widget-content tview">
+			<thead>
+				<tr class="ui-widget-header"><th rowspan="2">Зона</th><th rowspan="2">Событие</th><th colspan="2">Правило действует</th><th rowspan="2">Приоритет</th><th rowspan="2">Удалить</th></tr>
+				<tr class="ui-widget-header"><th>c</th><th>по</th></tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+		<button id="config_zone_link_add_rule">Добавить правило</button>
+	</div>
+	
+	<style>
+		#popup-sys ul {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+		#popup-sys ul li {
+			width: 100%;
+			/*background-color: blue;*/
+		}
+	</style>
+	
+	<div id="popup-sys" title="Опции">
+		<ul>
+			<li>Конфигурация системы</li>
+			<li>Настройка вида</li>
+			<li>Показать на карте</li>
+			<li style="margin-top: 16px;">Отказаться от слежения</li>
+		</ul>
+	</div>
+	</div>  <!-- Скрытые объекты -->
+</body>

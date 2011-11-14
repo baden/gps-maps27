@@ -52,6 +52,10 @@ handlers:
   static_files: images/\1
   upload: images/(.*\.(gif|png|jpg|ico))
 
+- url: /sound/(.*\.(mp3|ogg))
+  static_files: sound/\1
+  upload: sound/(.*\.(mp3|ogg))
+
 #- url: /_ah/channel/.*
 #  script: channel.app
 

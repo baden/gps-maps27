@@ -1,0 +1,28 @@
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/stylesheets/logs.css">
+  <!--script src="/html/js/logs.js"></script-->
+
+  <script src="/js/loader.js"></script>
+  <script>
+	loader.require("/html/js/logs.js");
+  </script>
+
+</head>
+
+<body>
+	<div id="log_head">
+		Cистема: <select id="log_syslist" name="my_syslist" style="width:auto;"></select>
+	</div>
+
+	<div id="log_body">
+		<table id="log_table" class="ui-widget ui-widget-content tview">
+			<thead>
+				<tr class="ui-widget-header"><th>Дата и время</th><th>Событие</th><!--th>Примечание</th--></tr>
+			</thead>
+			<tbody>
+				<tr><td colspan=3>Нет событий</td></tr>
+			</tbody>
+		</table>
+	</div>
+</body>

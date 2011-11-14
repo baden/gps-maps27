@@ -3,13 +3,13 @@
 from google.appengine.ext import db
 from datetime import datetime, timedelta
 import struct
+from system import DBSystem
 #import zlib
 #import pickle
 
 """
  Запись о пользователе
 """
-
 DEFAULT_CONFIG = repr({
 	'theme': 'cupertino',
 })
@@ -47,9 +47,9 @@ class DBAccounts(db.Model):
 		return DBSystem.get_or_create(imei)
 	
 	def RegisterSystem(self, imei):
-		system = DBSystem.get_by_key_name("sys_%s" % imei)
+		system = DBSystem.get_by_key_name(imei)
 		if system is None:
-			system = DBSystem(key_name = "sys_%s" % imei, imei=imei)
+			system = DBSystem(key_name = imei, imei=imei)
 			system.put()
 
 		if system.key() not in self.systems_key:
@@ -57,7 +57,7 @@ class DBAccounts(db.Model):
 			self.put()
 
 	def AddSystem(self, imei):
-		system = DBSystem.get_by_key_name("sys_%s" % imei)
+		system = DBSystem.get_by_key_name(imei)
 		if system is None:
 			return 0
 
@@ -68,7 +68,7 @@ class DBAccounts(db.Model):
 		return 2
 
 	def DelSystem(self, imei):
-		system = DBSystem.get_by_key_name("sys_%s" % imei)
+		system = DBSystem.get_by_key_name(imei)
 		if system is None:
 			return 0
 
@@ -84,7 +84,7 @@ class DBAccounts(db.Model):
 
 	@property
 	def config(self):
-		from repy import simplejson as json
+		import json
 		return json.dumps(self.getconfig(), indent=2)
 
 	@property

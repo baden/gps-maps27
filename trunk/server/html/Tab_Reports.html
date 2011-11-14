@@ -1,0 +1,100 @@
+<html>
+<head>
+  <link type="text/css" href="/stylesheets/reports.css" rel="stylesheet">
+  <!--script src="/html/js/reports.js"></script-->
+  <script src="/js/loader.js"></script>
+  <script>
+	loader.require("/html/js/reports.js");
+  </script>
+  <style>
+	#report_btn_do_by_day, #report_btn_do_by_int {
+		padding: 8px 32px 8px 32px;
+	}
+  </style>
+
+</head>
+<body>
+	<button id="report_btn_do_by_day">Отчет за сутки</button>
+	<button id="report_btn_do_by_int">Отчет за интервал</button>
+
+	<!--
+	Cистема: <select id="rep_syslist" name="rep_syslist" style="width:auto;" onchange="purgeReport();"></select>
+	-->
+
+	<div>
+
+	<!--
+	<span id="button_report_type_div">
+	<input type="radio" id="button_report_type_day" value="0" name="button_report_type" checked="checked" /><label for="button_report_type_day">Отчет за сутки</label>
+	<input type="radio" id="button_report_type_interval" value="1" name="button_report_type"/><label for="button_report_type_interval">Отчет за интервал времени</label>
+	</span>
+
+	<span id="report_div_type_day">
+	<input type="text" id="indatepicker" size="10"/><input type="text" id="alternate" size="30"/>
+	</span>
+	<span id="report_div_type_interval" style="display:none;">
+	<input type="text" id="indatepicker_from" size="10" disabled="disabled"/><input type="text" id="alternate_from" size="30" disabled="disabled"/>
+	<input type="text" id="indatepicker_to" size="10" disabled="disabled"/><input type="text" id="alternate_to" size="30" disabled="disabled"/>
+	<button id="report_doit" disabled="disabled">Выполнить</button>
+	</span>
+
+	-->
+
+	<!--form method="POST"-->
+	<h2 id="report_header" style="padding: 10px 4px 5px 4px;"></h2>
+
+	<h3>Комплексный отчет:</h3>
+	<table id="report" class="ui-widget ui-widget-content tview">
+		<thead>
+			<tr class="ui-widget-header">
+				<th>Действие</th><th>Примечание</th><th>Период</th><th>Время</th>
+			</tr>
+		</thead>
+		<tbody></tbody>
+	</table>
+
+	<h3>Всего:</h3>
+
+	<table id="total" class="ui-widget ui-widget-content tview">
+		<thead>
+			<tr class="ui-widget-header ">
+				<th>Дата</th><th>Контролируемые параметры</th><th>Результат</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr><td>-</td><td>Пройденная дистанция</td><td id="report_total_dist">-</td></tr>
+			<tr><td>-</td><td>Общее время в пути</td><td id="report_total_movetime">-</td></tr>
+			<tr><td>-</td><td>Средняя скорость движения</td><td id="report_total_avspeed">-</td></tr>
+			<tr><td>-</td><td>Общее время стоянок и остановок</td><td id="report_total_stoptime">-</td></tr>
+			<tr><td>-</td><td>Максимальная скорость</td><td id="report_total_maxspeed">-</td></tr>
+		</tbody>
+	</table>
+
+	<button title="Загрузить отчет в формате XLS" id="report_export_xls" disabled="disabled">Экспорт в Excel</button><br/>
+
+	<iframe name="export_iframe" id="export_iframe" style="display: none;" frameborder="no"></iframe>
+
+	<!--/form-->
+
+
+	<div id="report_dlg_byday" title="Отчет за сутки" hidden>
+		Система: <select id="report_dlg_byday_syslist" name="report_dlg_byday_syslist" style="width:auto;" />
+		<div id="report_date_by_day" />
+		<input id="report_dlg_byday_alternate" style="width: 100%;" disabled="disabled"/>
+	</div>
+
+	<div id="report_dlg_byint" title="Отчет за интервал" hidden>
+		Система: <select id="report_dlg_byint_syslist" name="report_dlg_byint_syslist" style="width:auto;" />
+		<table style="width: 100%;"><thead><tr><th>Начало</th><th>Конец</th></tr></thead><tbody>
+		  <tr><td><div id="report_date_by_int_from" /></td><td><div id="report_date_by_int_to" /></td></tr>
+		  <!--tr><td><div id="report_dlg_byint_time_from_tp" /></td><td><div id="report_dlg_byint_time_to_tp" /></td></tr-->
+		  <tr><td><input id="report_dlg_byint_alternate_from" style="width: 100%;" disabled="disabled"/></td><td><input id="report_dlg_byint_alternate_to" style="width: 100%;" disabled="disabled"/></td></tr>
+		  <tr><td><input id="report_dlg_byint_time_from" style="width: 100%;" value="00:00:00"/></td><td><input id="report_dlg_byint_time_to" style="width: 100%;" value="23:59:59"/></td></tr>
+		</tbody></table>
+		<span style="color: red;">Внимание!</span> Не рекомендуется выбирать интервал более 3х суток, иначе отчет может быть не полным.
+		
+	</div>
+
+	</div>
+
+</body>

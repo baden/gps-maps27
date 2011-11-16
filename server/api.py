@@ -84,33 +84,34 @@ class ApiPage(webapp2.RequestHandler):
 class Info(BaseApi):
 	requred = ('account')
 	def parcer(self, **argw):
-		lsys = []
-		for sys in self.account.systems:
-			lsys.append({
+		lsys = [{
 				"key": str(sys.key()),
+				"skey": str(sys.key()),
 				"imei": sys.imei,
 				"phone": sys.phone,
 				"desc": sys.desc,
 				"premium": sys.premium >= datetime.utcnow(),
-			})
+			} for sys in self.account.systems]
 		accinfos = {
 			'key': "%s" % self.account.key(),
+			'config': self.account.pconfig,
 			'name': self.account.name,
 			'user': {
 				'email': self.account.user.email(),
+				'nickname': self.account.user.nickname(),
 				'id': self.account.user.user_id(),
+				'login_url': users.create_login_url('/'),
+				'logout_url': users.create_logout_url('/'),
+				'admin': users.is_current_user_admin(),
 			},
 			'systems': lsys,
 		}
 
-		#sysinfos = []
-		#systems = DBSystem.all(keys_only=True).fetch(1000)
-		#for rec in systems:
-		#	sysinfos.append({'imei': rec.name()[4:], 'key': "%s" % rec, })
-
 		return {
 			'answer': 'ok',
 			'info': {
+				'version': API_VERSION,
+				'server_name': os.environ['SERVER_NAME'],
 				'account': accinfos,
 				#'systems': sysinfos,
 			}

@@ -20,6 +20,11 @@
 	(function(window, $){
 		var document = window.document;
 
+		$.getJSON('/api/info', function (data) {
+			console.log(data);
+		});
+
+
 		var addLoadEvent = function(func) {
 			var oldonload = window.onload;
 			if (typeof window.onload != 'function') {

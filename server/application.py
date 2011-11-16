@@ -63,6 +63,7 @@ app = webapp2.WSGIApplication([
 	(r'/_ah/channel/disconnected/.*', 'channel.ChannelDisconnectHandler'),
 
 	(r'/test.*', 'main.TestMainPage'),
+	(r'/main2.*', 'main.TestMain2'),
 
 	(r'/', 'main.MainPage'),
 ], debug=True, config=config)

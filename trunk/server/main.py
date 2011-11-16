@@ -128,6 +128,12 @@ class TestMainPage(BaseHandler):
 		template_args = {}
 		self.render_template(self.__class__.__name__ + '.html', **template_args)
 
+class TestMain2(BaseHandler):
+	@login_required
+	def get(self):
+		template_args = {}
+		self.render_template(self.__class__.__name__ + '.html', **template_args)
+
 
 #config = {}
 #config['webapp2_extras.sessions'] = {

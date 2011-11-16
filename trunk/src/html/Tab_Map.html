@@ -1,0 +1,58 @@
+<div id="Tab_Map">
+	<div style="position: absolute; left: 0px; right: 0px; top: 0px; bottom: 0px; overflow: hidden;">
+	<div id="map"><div id="alert_container"></div></div>
+
+	<div id="controls">
+		<div id="mark1" style="display: inline;"></div>
+		<div id="mark2" style="display: inline;"></div>
+		<div id="point_info" style="display: inline;"></div>
+	</div>
+
+	<div id="panel">
+		<div class="panel_control" style=""><span class="ui-icon ui-icon-circle-triangle-e">&lt;</span></div>
+
+		<div id="groupselect">
+			<select id="group_list" name="group_list" style="width:100%;" title="Группа" onchange="UpdateGroupList();">
+				<option value="*">Все</option>
+				<!--option value="Личные">Личные</option>
+				<option value="Грузовые">Грузовые</option-->
+			</select>
+		</div>
+		<div id="carselect" class="nosel"><ul id="map_ul_sys"></ul></div>
+
+		<div id="maptools">
+			<button id="map_zone_show" title="Показать зоны">П</button>
+			<button id="map_zone_add" title="Создать зону">Д</button>
+			<button id="map_zone_edit" title="Редактировать зону">Р</button>
+			<button id="map_track_calc" title="Проложить маршрут">T</button>
+		</div>
+
+		<div id="zone_panel">
+			<ul id="map_zones_list"></ul>
+		</div>
+
+		<div id="dir_panel">
+			<button id="dir_panel_undo" style="display:block;margin:auto">Отмена</button>
+			<div id="directions_panel" style="width:100%;"></div>
+		</div>
+
+		<div id="map_div_cleartrack" style=""><button id="map_btn_cleartrack">Скрыть трек</button></div>
+		<div id="date_tabs" style="">
+			<ul><li><a href="#date_select">Сутки</a></li><li><a href="#int_select">Интервал</a></li></ul>
+			<div id="date_select" class="nosel">
+				<div id="datepicker"></div>
+			</div>
+			<div id="int_select">
+				<table class="int_select">
+				  <tr><td>c:</td><td><input type="text" id="dp1" size="8" value="01/01/2011"/></td><td><input type="text" id="tm1" size="6" value="00:00:00"/></td></tr>
+				  <tr><td>по:</td><td><input type="text" id="dp2" size="8" value="01/01/2011"/></td><td><input type="text" id="tm2" size="6" value="23:59:59"/></td></tr>
+				</table>
+				<div style="text-align: center;"><button>Показать</button></div>
+				<p style="text-align: center; color: red;">В разработке!!!</p>
+				
+			</div>
+		</div>
+	</div>
+
+	</div>
+</div>

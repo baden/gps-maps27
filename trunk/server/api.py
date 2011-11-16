@@ -12,14 +12,7 @@ from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
 
-#from template import TemplatedPage
 from datamodel import DBAccounts, DBSystem, DBGeo, PointWorker
-#from datamodel.accounts import DBAccounts
-
-#import local
-#import geo
-#import updater
-
 from datetime import datetime, timedelta
 
 API_VERSION = 1.0
@@ -27,6 +20,7 @@ SERVER_NAME = os.environ['SERVER_NAME']
 MAXPOINTS = 100000
 
 logging.getLogger().setLevel(logging.DEBUG)
+
 
 API_VERSION = 1.27
 
@@ -36,11 +30,14 @@ class BaseApi(webapp2.RequestHandler):
 		return {'answer': 'no', 'reason': 'base api'}
 
 	def _parcer(self):
-		if 'account' in self.requred:
-			self.akey = db.Key.from_path('DBAccounts', users.get_current_user().user_id())
-			if self.akey is None:
-				return {"answer": "no", "reason": "akey not defined or None"}
+		user = users.get_current_user()
+		if user is None:
+			return {"answer": "no", "reason": "Required login."}
+		self.akey = db.Key.from_path('DBAccounts', user.user_id())
+		if self.akey is None:
+			return {"answer": "no", "reason": "Required register user first (login)."}
 
+		if 'account' in self.requred:
 			try:
 				self.account = DBAccounts.get(self.akey)
 			except db.datastore_errors.BadKeyError, e:
@@ -63,7 +60,6 @@ class BaseApi(webapp2.RequestHandler):
 			self.imei = self.request.get('imei', None)
 			if self.imei is None:
 				return {'answer': 'no', 'result': 'imei not defined'}
-
 
 		return self.parcer()
 
@@ -665,6 +661,7 @@ class Geo_Get(BaseApi):
 	requred = ('skey')
 	def parcer(self):
 		from math import log, sqrt
+		from datamodel.geo import distance
 
 		"""
 		prof = "gc START: %s\n" % dir(gc)
@@ -713,7 +710,7 @@ class Geo_Get(BaseApi):
 			plon = point['lon']
 
 			if prev_point:
-				dist = geo.distance(point, prev_point)
+				dist = distance(point, prev_point)
 				dt = point['time'] - prev_point['time']
 				dt = dt.days * 24 * 3600 + dt.seconds
 				cspeed = (dist * 3600 / dt) if dt>0 else 0
@@ -989,6 +986,8 @@ class Geo_Dates(webapp2.RequestHandler):
 class Geo_Last(BaseApi):
 	requred = ('account')
 	def parcer(self, **argw):
+		from datamodel.geo import getGeoLast
+
 		skey = self.request.get("skey", None)
 		if skey is not None:
 			systems = [db.get(db.Key(skey))]
@@ -1000,7 +999,7 @@ class Geo_Last(BaseApi):
 				'skey': str(s.key()),
 				'imei': s.imei,
 				'desc': s.desc,
-				'data': geo.getGeoLast(s.key()),
+				'data': getGeoLast(s.key()),
 			})
 
 		return {
@@ -1137,7 +1136,7 @@ class Report_Get(BaseApi):
 			check_point(point)
 
 			if self.prev_point:
-				d = geo.distance(point, self.prev_point)
+				d = distance(point, self.prev_point)
 				td = point['time'] - self.prev_point['time']
 				td = td.days * 24 * 3600 + td.seconds
 				if td > 0:
@@ -1186,33 +1185,27 @@ class Sys_Add(BaseApi):
 			return {'answer': 'no', 'result': 'already'}
 
 		#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
-		message = {
-			'msg': 'change_slist',
-			'account': {
-				'akey': '%s' % account.key(),
-				'email': account.user.email(),
-			},
-			'data': data
-		}
-		send_message(message)
-
+		send_message({'msg': 'change_slist', 'data':{'type': 'Adding'}}, akeys=[self.akey])
 
 		return {'answer': 'yes', 'result': 'added'}
 
 class Sys_Del(BaseApi):
 	requred = ('account', 'imei')
 	def parcer(self, **argw):
+		from channel import send_message
 		res = self.account.DelSystem(self.imei)
 		if res == 0:
 			return {'answer': 'no', 'result': 'not found'}
 		elif res == 2:
 			return {'answer': 'no', 'result': 'already'}
-		updater.inform_account('change_slist', self.account, {'type': 'Deleting'})
+		#inform_account('change_slist', self.account, {'type': 'Deleting'})
+		send_message({'msg': 'change_slist', 'data':{'type': 'Deleting'}}, akeys=[self.akey])
 		return {'answer': 'yes', 'result': 'deleted'}
 
 class Sys_Sort(BaseApi):
 	requred = ('account', 'imei')
 	def parcer(self, **argw):
+		from channel import send_message
 		index = self.request.get('index', None)
 		if index is None:
 			return {'result': 'no', 'reason': 'index not defined'}
@@ -1252,13 +1245,16 @@ class Sys_Sort(BaseApi):
 		#	return {'result': 'not found'}
 		#elif res == 2:
 		#	return {'result': 'already'}
-		updater.inform_account('change_slist', self.account, {'type': 'Sorting'})
+		#updater.inform_account('change_slist', self.account, {'type': 'Sorting'})
+		send_message({'msg': 'change_slist', 'data':{'type': 'Sorting'}}, akeys=[self.akey])
 
 		return {'result': 'sorted', 'desc': {'imei': self.imei, 'oldindex': oldindex, 'newindex': index}}
 
 class Sys_Desc(BaseApi):
 	requred = ('account', 'imei')
 	def parcer(self, **argw):
+		from channel import inform
+
 		desc = self.request.get('desc', None)
 		if desc is None:
 			return {'answer': 'no', 'reason': 'desc not defined'}
@@ -1268,8 +1264,8 @@ class Sys_Desc(BaseApi):
 			return {'answer': 'no', 'reason': 'nosys'}
 		system.desc = desc
 		system.put()
-
-		updater.inform('changedesc', system.key(), {
+		
+		inform('changedesc', system.key(), {
 			'desc': desc
 		})
 
@@ -1459,25 +1455,25 @@ class Logs_Del(BaseApi):
 			"answer": "ok",
 		}
 		
-class Chanel_GetToken(BaseApi):
-	requred = ('account')
-	def parcer(self):
-		import updater
-
-		uuid = self.request.get("uuid")
-		if uuid is None:
-			return {'answer': 'no', 'reason': 'uuid not defined or None'};
-
-		token = updater.register(self.account, uuid)
-
-		logging.info('== Goted token %s ' % token)
-
-		return {
-			'answer': 'ok',
-			'akey': '%s' % self.account.key(),
-			'uuid': uuid,
-			'token': token
-		}
+#class Chanel_GetToken(BaseApi):
+#	requred = ('account')
+#	def parcer(self):
+#		#import updater
+#
+#		uuid = self.request.get("uuid")
+#		if uuid is None:
+#			return {'answer': 'no', 'reason': 'uuid not defined or None'};
+#
+#		token = updater.register(self.account, uuid)
+#
+#		logging.info('== Goted token %s ' % token)
+#
+#		return {
+#			'answer': 'ok',
+#			'akey': '%s' % self.account.key(),
+#			'uuid': uuid,
+#			'token': token
+#		}
 
 class SystemConfig(webapp2.RequestHandler):
 	def get(self):
@@ -1526,7 +1522,7 @@ class SystemConfig(webapp2.RequestHandler):
 class Zone_Add(BaseApi):
 	#requred = ('akey')
 	def parcer(self):
-		from datamodel import DBZone
+		from datamodel.zone import DBZone
 
 		#points = self.request.get("points", None)
 		points = json.loads(self.request.get('points', '[]'))
@@ -1548,7 +1544,7 @@ class Zone_Add(BaseApi):
 class Zone_Get(BaseApi):
 	#requred = ('akey')
 	def parcer(self):
-		from datamodel import DBZone
+		from datamodel.zone import DBZone
 
 		#points = self.request.get("points", None)
 		#points = json.loads(self.request.get('points', '[]'))
@@ -1580,7 +1576,7 @@ class Zone_Get(BaseApi):
 class Zone_Del(BaseApi):
 	#requred = ('akey')
 	def parcer(self):
-		from datamodel import DBZone
+		from datamodel.zone import DBZone
 
 		zkey = self.request.get("zkey", None)
 

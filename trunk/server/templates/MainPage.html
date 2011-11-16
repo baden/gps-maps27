@@ -19,7 +19,8 @@
   <link rel="stylesheet" href="/stylesheets/style.css?v=1">	<!-- CSS : implied media="all" -->
   <!--link rel="stylesheet" media="handheld" href="css/handheld.css?v=2"-->	<!-- Uncomment if you are specifically targeting less enabled mobile browsers -->
 
-  <link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/{{ account.pconfig.theme }}/jquery.ui.all.css" rel="stylesheet">
+  <!--link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/{{ account.pconfig.theme }}/jquery.ui.all.css" rel="stylesheet"-->
+  <link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/{{ account.pconfig.theme }}/jquery-ui.css" rel="stylesheet">
   <link type="text/css" href="/stylesheets/e.css" rel="stylesheet">
   <!--link type="text/css" href="/stylesheets/tabs.css" rel="stylesheet"-->
 
@@ -109,7 +110,8 @@
 	config.sysbykey['{{ sys.key() }}'] = {'imei': '{{ sys.imei }}', 'desc': '{{ sys.desc }}'};
 	{% endfor %}
 
-	config.skey = config.systems[0];
+	if(config.systems.length == 0) config.skey = '';
+	else config.skey = config.systems[0].skey;
 
 	config.ui = {{ account.config|safe }};
 	//log("ConfigUI: ", config.ui);

@@ -195,10 +195,11 @@ def SaveGPSPointFromBin(pdata, result):
 
 class BinGpsParse(webapp2.RequestHandler):
 	def post(self):
-		from datamodel.geo import PointWorker
+		from datamodel.geo import PointWorker, updateLasts
 
 		logging.info("arguments: %s" % self.request.arguments())
 		logging.info("body: %s" % len(self.request.body))
+		#return
 
 		_log = "\n== BINGPSPARSE ["
 
@@ -293,6 +294,7 @@ class BinGpsParse(webapp2.RequestHandler):
 				#inform('geo_change', skey, {
 				#	'points': points
 				#})
+				#geoLast.update(skey)	# Обновить последнюю известную координату.
 
 			else:
 				logging.error("Packet has no data or data is corrupted.\n")

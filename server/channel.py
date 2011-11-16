@@ -127,6 +127,12 @@ def send_message(message, akeys=[], skeys=[], timeout=10):
 		memcache.set('DBMessages:lazzy_run', 'wait', time=timeout*2)
 		taskqueue.add(url='/channel/message', countdown=timeout)
 
+def inform(msg, skey, data):
+	send_message({
+		'msg': '%s' % msg,
+		'data': data
+	}, skeys=[skey])
+
 class MessagePost(webapp2.RequestHandler):
 	def post(self):
 		logging.info('\n\nExecute messages send.\n')

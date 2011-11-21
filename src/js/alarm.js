@@ -139,7 +139,7 @@ var show_alarm_window = function(skey, update){
 									disabled: true
 								});
 								window.config.alarm[skey].confirmed = true;
-								window.config.alarm[skey].confirmby = window.config.username;
+								window.config.alarm[skey].confirmby = window.config.user.nickname;
 								window.config.alarm[skey].confirmwhen = Date_to_url(new Date());
 								$(cncl_btn).button('option',{disabled: false});
 								add_alert_icon(skey);

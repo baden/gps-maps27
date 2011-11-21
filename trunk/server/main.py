@@ -3,6 +3,7 @@
 import webapp2
 import logging
 import os
+import json
 
 from google.appengine.ext import db
 from google.appengine.api import users
@@ -133,6 +134,46 @@ class TestMain2(BaseHandler):
 	def get(self):
 		template_args = {}
 		self.render_template(self.__class__.__name__ + '.html', **template_args)
+
+class InitConfig(webapp2.RequestHandler):
+	def config(self):
+		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
+
+		user = users.get_current_user()
+		if user is None:
+			return {'answer': 'no', 'reason': 'Required login.'}
+
+		account = DBAccounts.get(db.Key.from_path('DBAccounts', user.user_id()))
+
+		return {
+			'version': VERSION,
+			'server_name': os.environ['SERVER_NAME'],
+			'account': {
+				'key': str(account.key()),
+				'user': {
+					'email': account.user.email(),
+					'nickname': account.user.nickname(),
+					'id': account.user.user_id(),
+					'login_url': users.create_login_url('/'),
+					'logout_url': users.create_logout_url('/'),
+					'admin': users.is_current_user_admin(),
+				},
+				'config': account.pconfig,
+				'name': account.name,
+				'systems': [{
+					"key": str(sys.key()),
+					"skey": str(sys.key()),
+					"imei": sys.imei,
+					"phone": sys.phone,
+					"desc": sys.desc,
+					"premium": sys.premium >= datetime.utcnow(),
+				} for sys in account.systems],
+			}
+		}
+
+	@login_required
+	def get(self):
+		self.response.write('config = ' + json.dumps(self.config(), indent=2) + '\r')
 
 
 #config = {}

@@ -20,17 +20,18 @@
 
   <!--link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/{{ account.pconfig.theme }}/jquery.ui.all.css" rel="stylesheet"-->
   <!--link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/{{ account.pconfig.theme }}/jquery-ui.css" rel="stylesheet"-->
+
+  <script type="text/javascript" src="/initconfig.js"></script>
+
   <link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/jquery-ui.css" rel="stylesheet">
   <link type="text/css" href="/plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.css" rel="stylesheet">
-
 
   <script type="text/javascript" src="/_ah/channel/jsapi"></script>
   <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=ru"></script>
   <script type="text/javascript" src="http://www.google.com/jsapi"></script>
   <script type="text/javascript">
-	var config = config || {};
 	config.inits = [];
-	config.ui = {'theme': 'cupertino'};
+	//config.ui = {'theme': 'cupertino'};
 
 	if(('google' in window) && ('maps' in google)){
 	} else {
@@ -71,62 +72,62 @@
   </script-->
 
   <script>
-	$.getJSON('/api/info', function (data) {
-		console.log(data);
-		config.info = data.info;
-		config.user = data.info.account.user;
-		config.username = data.info.account.user.nickname;
-		config.akey = data.info.account.key;
-		config.admin = data.info.account.user.admin;
-		config.systems = data.info.account.systems;
-		config.sysbykey = {};
-		for(var i in config.systems){
-			var sys = config.systems[i];
-			config.sysbykey[sys.skey] = sys;// {'imei': '{{ sys.imei }}', 'desc': '{{ sys.desc }}'};
-		}
-		if(config.systems.length == 0) config.skey = ''; else config.skey = config.systems[0].skey;
-		config.ui = data.info.account.config;
+	if(config.account.systems.length == 0) config.skey = ''; else config.skey = config.account.systems[0].skey;
 
-		// Установим chanel-соединение
-		// Получим токен для установки соединения
-		var uuid = new Date().getTime();
-		$.getJSON('/api/channel/gettoken?uuid=' + config.user.id + '_' + uuid, function (data) {
-			if(data.token){
-				var token = data.token;
-				log('Token goted:' + token, 'uuid='+config.user.id);
+	config.sysbykey = {};
+	for(var i in config.account.systems){
+		var sys = config.account.systems[i];
+		config.sysbykey[sys.skey] = sys;// {'imei': '{{ sys.imei }}', 'desc': '{{ sys.desc }}'};
+	}
 
-				var onOpened = function() {
-					log('goog.appengine.Channel: onOpened ('+token+')');
-					//connected = true;
-				}
+	/* Deprecated declares */
+	config.user = config.account.user;
+	config.username = config.account.user.nickname;
+	config.admin = config.account.user.admin;
+	config.systems = config.account.systems;
+	config.ui = config.account.config;
+	config.akey = config.account.key;
 
-				var onMessage = function(m) {
-					var msg = JSON.parse(m.data);
-					config.updater.process(msg);
-					//config.updater.process({msg: '*'});
-				}
+	console.log(config);
 
-				var onError = function() {
-					log("goog.appengine.Channel: onError");
-				}
+	// Установим chanel-соединение
+	// Получим токен для установки соединения
+	var uuid = new Date().getTime();
+	$.getJSON('/api/channel/gettoken?uuid=' + config.user.id + '_' + uuid, function (data) {
+		if(data.token){
+			var token = data.token;
+			log('Token goted:' + token, 'uuid='+config.user.id);
 
-				var onClose = function() {
-					log("goog.appengine.Channel: onClose (TBD! Reconnect?)");
-					//connected = false;
-				}
-				if(window.location.hostname == 'localhost'){
-					goog.appengine.Socket.POLLING_TIMEOUT_MS = 10000;
-				}
-
-				var channel = new goog.appengine.Channel(token);
-				var socket = channel.open();
-				socket.onopen = onOpened;
-				socket.onmessage = onMessage;
-				socket.onerror = onError;
-				socket.onclose = onClose;
+			var onOpened = function() {
+				log('goog.appengine.Channel: onOpened ('+token+')');
+				//connected = true;
 			}
-		});
 
+			var onMessage = function(m) {
+				var msg = JSON.parse(m.data);
+				config.updater.process(msg);
+				//config.updater.process({msg: '*'});
+			}
+
+			var onError = function() {
+				log("goog.appengine.Channel: onError");
+			}
+
+			var onClose = function() {
+				log("goog.appengine.Channel: onClose (TBD! Reconnect?)");
+				//connected = false;
+			}
+			if(window.location.hostname == 'localhost'){
+				goog.appengine.Socket.POLLING_TIMEOUT_MS = 10000;
+			}
+
+			var channel = new goog.appengine.Channel(token);
+			var socket = channel.open();
+			socket.onopen = onOpened;
+			socket.onmessage = onMessage;
+			socket.onerror = onError;
+			socket.onclose = onClose;
+		}
 	});
 
 	config.inits.push(function(){

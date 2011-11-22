@@ -6,7 +6,7 @@ def webapp_add_wsgi_middleware(app):
     app = recording.appstats_wsgi_middleware(app)
     return app
 
-'''
+
 import os
 import Cookie
 from google.appengine.api import namespace_manager
@@ -43,4 +43,4 @@ def namespace_manager_default_namespace_for_request():
       name = Cookie.BaseCookie(cookies).get('namespace')
 
   return name
-'''
+

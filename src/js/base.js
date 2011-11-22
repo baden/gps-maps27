@@ -1,29 +1,28 @@
-"use strict";
 
 window.log = function(){
-  log.history = log.history || [];   // store logs to an array for reference
-  log.history.push(arguments);
+//  log.history = log.history || [];   // store logs to an array for reference
+//  log.history.push(arguments);
 //  if(this.console){
   if(window.console){
     console.log( Array.prototype.slice.call(arguments) );
   }
-};
+}
 
 // catch all document.write() calls
-(function(doc){
+/*(function(doc){
   var write = doc.write;
   doc.write = function(q){ 
     log('document.write(): ',arguments); 
     if (/docwriteregexwhitelist/.test(q)) write.apply(doc,arguments);  
-  };
-})(document);
+  }
+})(document);*/
 
 var f2d = function(n) {
   if (n < 10) {
     return '0' + n;
   }
   return String(n);
-};
+}
 
 var dt_to_Date = function(dt) {
 	var date = new Date(Date.UTC(
@@ -49,21 +48,6 @@ var dt_to_time = function (dt) {
 
 var dt_to_datetime = function (dt) {
 	return dt_to_date(dt) + ' ' + dt_to_time(dt);
-/*
-	//log('dt_to_datetime dt:', dt);
-	var date = new Date(Date.UTC(
-		parseInt('20'+dt[0]+dt[1], 10),
-		parseInt(dt[2]+dt[3], 10)-1,
-		parseInt(dt[4]+dt[5], 10),
-		parseInt(dt[6]+dt[7], 10),
-		parseInt(dt[8]+dt[9], 10),
-		parseInt(dt[10]+dt[11], 10)
-	));
-	//log('dt_to_datetime dt:', dt, 'date: ', date);
-		
-	return f2d(date.getDate()) + '/' + f2d(date.getMonth()+1) + '/' + date.getFullYear() + ' ' + date.toLocaleTimeString();
-	//return dt[4]+dt[5] + '/' + dt[2]+dt[3] + '/20' + dt[0]+dt[1] + ' ' + dt[6]+dt[7] + ':' + dt[8]+dt[9] + ':' + dt[10]+dt[11];
-*/
 }
 
 var Date_to_date = function(date) {
@@ -77,7 +61,6 @@ var Date_to_time = function (date) {
 var Date_to_datetime = function (date) {
 	return Date_to_date(date) + ' ' + Date_to_time(date);
 }
-
 
 var td_to_hms = function (d) {
 	var minutes = (d - (d % 60)) / 60;
@@ -199,10 +182,8 @@ results[1]		Как повезет :)
 		return results[1].formatted_address;
 	} else if(results[0]) {
 		return results[0].formatted_address;
-	} else {
-		return 'Адрес неизвестен';
 	}
-	return 'Ошибка';
+	return 'Адрес неизвестен';
 }
 
 
@@ -327,3 +308,4 @@ config.updater.add('change_slist', function(msg) {
 	UpdateAccountSystemList();
 });
 
+log('root');

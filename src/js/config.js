@@ -1,4 +1,3 @@
-"use strict";
 (function(window, $){
 	var document = window.document;
 
@@ -128,8 +127,7 @@
 										rows += '<td>' + (v[1].desc || '-') + '</td>';
 									}
 									rows += '<td class="cfg_changeble'+(v[1].wait?' wait':'')+'">' + v[1].value + '</td>';
-									rows += '<td>' + v[1].default + '</td><td>' + (v[1].wait?v[1].wait:'') + '</td>'+
-										'</tr>';
+									rows += '<td>' + v[1]['default'] + '</td><td>' + ((v[1].wait)?(v[1].wait):'') + '</td></tr>';
 									index += 1;
 								}
 								rows += '</tbody></table>';
@@ -226,7 +224,7 @@
 						//div.children('label').first().html(imei+':'+$(this).parent().children('desc').html());
 						$('#config_purgegps').datepicker({
 							altField: "#config_purgegps_alternate",
-							altFormat: "dd.mm.yy DD",
+							altFormat: "dd.mm.yy DD"
 						});
 						//div.children('button').button().click(function(){
 						//});
@@ -521,7 +519,7 @@
 					}
 				});
 
-			},
+			}
 		});
 		//$("#config_sys_list").disableSelection();
 

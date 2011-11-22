@@ -1,5 +1,4 @@
-﻿"use strict";
-(function( window, $, undefined ) {
+﻿(function( window, $, undefined ) {
 
 var document = window.document;
 

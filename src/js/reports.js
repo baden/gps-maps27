@@ -1,4 +1,3 @@
-"use strict";
 (function(){
 
 var geocoder;
@@ -172,8 +171,8 @@ var showMap2 = function(from, to, type) {
 				var $map = $('#rmap').gmap({
 					pos: new google.maps.LatLng(data.points[0][1], data.points[0][2]),
 					zoom: 15,
-					marker: 'center',
-					//markertitme: title
+					//markertitme: title,
+					marker: 'center'
 				});
 				var map = $($map).gmap('option', 'map');
 				//console.log('Map: ', map);
@@ -611,7 +610,7 @@ if(0){
 				//var win = window.open(url,'Download');
 				//win.document.write(data);
 
-			},
+			}
 			//Ext.get('iframe').set({src:result.responseText });
 		});
 		//'ext-gen233'

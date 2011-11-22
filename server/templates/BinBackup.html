@@ -1,0 +1,82 @@
+﻿<!doctype html>
+
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Просмотр бинарных данных GPS-лога</title>
+
+  <link rel="stylesheet" href="/stylesheets/binbackup.css">
+</head>
+
+<body>
+
+	{% if imei %}
+
+    <h1>Архив бинарных данных:</h1>
+	<a class="Next" href="/binbackup?imei={{ imei }}&cursor={{ ncursor }}">&lt;&lt; Раньше</a>
+	{{ system.imei }}: <b>{{ system.desc }}</b>
+	<a class="smallButton" href="/binbackup" title="Выбрать другую">S</a> 
+
+	<br />
+
+	<div style="margin-left:50px;">
+
+        {% for bindata in dbbindata %}
+	<div class="bblock" title="{{ bindata.key }}">
+		<div class="{% if bindata.crcok %}crcok{% else %}crcfail{% endif %}">{{ bindata.sdate|date:"d/m/y G:i:s" }}</div>
+		{{ bindata.datasize }} bytes
+		{% if bindata.needfix %}
+		 <a class="smallButton" style="background-color: red;" href="binbackup?cmd=fixcrc&key={{ bindata.key }}&imei={{ imei }}" title="Починить CRC">F</a>
+		{% endif %}
+		{% if bindata.wronglen %}
+		 <a class="smallButton" style="background-color: #FF00FF;" href="binbackup?cmd=fixlen&key={{ bindata.key }}&imei={{ imei }}" title="Ошибочная длина">L</a>
+		{% endif %}
+		{% if bindata.postbug %}
+		 <a class="smallButton" style="background-color: #C0C000;" href="binbackup?cmd=fixpost&key={{ bindata.key }}&imei={{ imei }}" title="POST-баг">P</a>
+		{% endif %}
+		 <a class="smallButton" href="binbackup?cmd=getbin&key={{ bindata.key }}&imei={{ imei }}" title="Загрузить данные в сыром виде">B</a>
+		{% if admin %}
+		 <a class="smallButton" href="binbackup?imei={{ imei }}&cmd=parce&key={{ bindata.key }}&cursor={{ cursor }}" title="Повторно обработать пакет">W</a>
+		 <a class="smallButton" href="binbackup?imei={{ imei }}&cmd=del&key={{ bindata.key }}&imei={{ imei }}" title="Удалить эти данные">X</a>
+		{% endif %}
+	</div>
+	{% endfor %}
+
+	<p>В показанных записях: <b>{{ total }}</b> байт.</p>
+
+	</div>
+	<a class="pushLink" href="binbackup?cmd=pack&filter=today&imei={{ imei }}" title="Загружает сегодняшние записей одним куском">Упаковать сегодняшние</a>
+	<a class="pushLink" href="binbackup?cmd=pack&imei={{ imei }}" title="Загружает 200 записей одним куском">Упаковать</a>
+	<a class="pushLink" href="binbackup?cmd=pack&cnt=1000&imei={{ imei }}" title="Загружает 1000 записей одним куском">Упаковать x1000</a>
+	{% if admin %}
+	<a class="pushLink" href="binbackup?cmd=delall&imei={{ imei }}" title="Удаляет 500 самых старых записей">Очистить</a>
+	{% endif %}
+
+	{% else %}
+
+    <h1>Выберите систему:</h1>
+
+    <table class="selector">
+        <!--thead>
+        	<tr>
+        	</tr>
+        </thead-->
+	        {% for user in allusers %}
+            <tr>
+		<td>{{ forloop.counter }}</td>
+		<td><a class="selector" style="" href="/binbackup?imei={{ user.imei }}"><div style="width: 100%;">{{ user.imei }}: {{ user.desc }}</div></a></td>
+            </tr>
+		{% endfor %}
+    </table>
+
+	{% if admin %}
+	Дата самой старой записи: {{ oldest }}<br />
+	Записей старее 1 месяца: {{ coldest }}<br />
+	<a class="pushLink" href="binbackup?cmd=delold" title="Удаляет записи старее 1 меняца">Очистить старые</a>
+	{% endif %}
+
+	{% endif %}
+    
+</body>
+</html>

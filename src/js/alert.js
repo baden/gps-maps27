@@ -1,4 +1,3 @@
-"use strict";
 /**
 	* HabraAlert 0.2
 	* author DeerUA
@@ -95,7 +94,7 @@ warning = function (mtext, howlong) {
 */
 
 /*
-Использование:
+РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ:
 <script type="text/javascript">
 	m1 = function(){message("all good");}
 	m3 = function(){error("something wrong");}

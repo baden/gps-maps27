@@ -1,5 +1,4 @@
-﻿"use strict";
-/*
+﻿/*
 */
 (function(){
 
@@ -9,25 +8,44 @@ $(document).ready(function() {
 	//	log('1111');
 	//});
 	//log($('#geos_body table tr:first th:last')[0].offsetLeft);
-	var $p = $('#geos_body table tr:first th:last')[0];
-	$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
-	//$("#geomap").resizable();
-	var $map = $('#geomap').gmap({
-			//pos: new google.maps.LatLng(45, 35),
-			zoom: 15,
-			//marker: 'center',
-			//markertitme: title
-	});
-	var map = $($map).gmap('option', 'map');
 
-	var icon = $.gmap.images['center'];
-	var marker = new google.maps.Marker({
-        	//position: new google.maps.LatLng(data.stops[i].p[0], data.stops[i].p[1]),
-	        map: map,
-		title: 'Положение',
-		icon: icon,
-	        draggable: false
-	});
+	var $gmap = null;
+	var gmap = null;
+	var gmarker;
+	var $p = $('#geos_body table tr:first th:last')[0];
+
+	//$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
+/*
+	config.updater.tabs[3] = function(){
+		$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
+		if(!$gmap){
+			log('== create');
+			//$("#geomap").resizable();
+			$gmap = $('#geomap').gmap({
+					//pos: new google.maps.LatLng(45, 35),
+					//marker: 'center',
+					//markertitme: title,
+					zoom: 15
+			});
+			gmap = $($gmap).gmap('option', 'map');
+
+			gmarker = new google.maps.Marker({
+		        	//position: new google.maps.LatLng(data.stops[i].p[0], data.stops[i].p[1]),
+			        map: gmap,
+				title: 'Положение',
+				icon: $.gmap.images['center'],
+			        draggable: false
+			});
+
+		} else {
+			log('== resize');
+			google.maps.event.trigger(gmap, 'resize');
+		}
+
+		//var $p = $('#geos_body table tr:first th:last')[0];
+		//$('#geomap').resize();
+	}
+*/
 
 	var tbody = $('#geos_body table tbody');
 	var skey;
@@ -44,7 +62,7 @@ $(document).ready(function() {
 		8: "ANGLE",
 		9: "DELTALAT",
 		10: "DELTALONG",
-		11: "DELTA",
+		11: "DELTA"
 	};
 
 	var td = function(value){
@@ -204,8 +222,8 @@ $(document).ready(function() {
 					if(!isNaN(lat) && !isNaN(lon)){
 						//log('geo preview', lat, lon);
 						var pos = new google.maps.LatLng(lat, lon);
-						map.panTo(pos);
-						marker.setPosition(pos);
+						gmap.panTo(pos);
+						gmarker.setPosition(pos);
 					}
 				}
 			});

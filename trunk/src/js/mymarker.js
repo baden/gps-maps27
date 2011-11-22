@@ -1,4 +1,3 @@
-"use strict";
 /*
 	Что хочется от маркера.
 	Svg-представление
@@ -72,7 +71,7 @@ MyMarker.prototype.Info = function() {
 		'</b><br />Датчик 2: <b>' + results[i].in2.toFixed(3) +*/
 		'</table>' + 
 		'<div id="moreinfo" title="Ожидайте, идет получение дополнительной информации."><center><img src="/images/loading.gif" /></center></div></div>',
-		position: point,
+		position: point
 	});
 	//log(" info_window = ", this.infowindow);
 
@@ -86,7 +85,7 @@ MyMarker.prototype.Info = function() {
 			if (data.answer && data.answer === 'ok'){
 				/*this.infowindow.close();
 				this.infowindow = new google.maps.InfoWindow({content:
-					position: point,
+					position: point
 				});*/
 
 				//if(!$('#tbl_info tbody')){ sleep(10); }
@@ -120,6 +119,7 @@ MyMarker.prototype.Info = function() {
 }
 
 MyMarker.prototype.onAdd = function() {
+	log('MyMarker.prototype.onAdd: This:', this);
 
 	// Note: an overlay's receipt of onAdd() indicates that
 	// the map's panes are now available for attaching the overlay to the map via the DOM.
@@ -235,7 +235,8 @@ MyMarker.prototype.onRemove = function() {
 }
 
 MyMarker.prototype.draw = function() {
-
+	log('MyMarker.prototype.draw: This:', this);
+/*
 	if(this.point){
 		// Size and position the overlay. We use a southwest and northeast
 		// position of the overlay to peg it to the correct position and size.
@@ -253,6 +254,7 @@ MyMarker.prototype.draw = function() {
 		div.style.left = divpx.x - 8 + 'px';
 		div.style.top = divpx.y - 8 + 'px';
 	}
+*/
 /*
 	if(this.arrdiv){
 		var arrdiv = this.arrdiv;

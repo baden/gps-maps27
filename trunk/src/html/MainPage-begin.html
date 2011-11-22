@@ -48,10 +48,29 @@
 	}
   </script>
 
+  <script src="/js/jquery.min-1.7.js"></script>
+  <script src="/js/jquery.cookie.js"></script>
   <!--link type="text/css" href="/stylesheets/e.css" rel="stylesheet"-->
   <!--link type="text/css" href="/stylesheets/tabs.css" rel="stylesheet"-->
   <link rel="stylesheet" href="/stylesheets/all.css?v=1">	<!-- CSS : implied media="all" -->
-  <script src="/js/all.js?v=1"></script>
+
+
+  <!--script src="/js/all.js?v=1"></script-->
+  <script src="/js/all-min.js?v=1"></script>
+
+  <!--script src="/js/src/base.js?v=1"></script>
+  <script src="/js/src/alert.js?v=1"></script>
+  <script src="/js/src/mymarker.js?v=1"></script>
+  <script src="/js/src/lastmarker.js?v=1"></script>
+  <script src="/js/src/gmap.js?v=1"></script>
+  <script src="/js/src/alarm.js?v=1"></script>
+  <script src="/js/src/config.js?v=1"></script>
+  <script src="/js/src/geos.js?v=1"></script>
+  <script src="/js/src/zones.js?v=1"></script>
+  <script src="/js/src/directions.js?v=1"></script>
+  <script src="/js/src/maps.js?v=1"></script>
+  <script src="/js/src/reports.js?v=1"></script>
+  <script src="/js/src/logs.js?v=1"></script-->
 
   <script type="text/javascript" src="/plugins/jquery-ui-1.8.16/jquery-ui-1.8.16/ui/jquery-ui.js"></script>
   <script type="text/javascript" src="/plugins/jquery-ui-1.8.16/jquery-ui-1.8.16/ui/i18n/jquery.ui.datepicker-ru.js"></script>
@@ -292,6 +311,8 @@
 		var whorls = new Object();
 
 		$(document).ready(function(){
+			$('#a_login').attr('href', window.config.user.logout_url);
+			$('#a_login').html(window.config.user.nickname);
 			//#clickme
 			$('#getdoc').bind('mouseover', function(){
 				$('#getadobe').stop(true, true).fadeIn("slow");

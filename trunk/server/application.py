@@ -64,9 +64,17 @@ app = webapp2.WSGIApplication([
 
 	(r'/test.*', 'main.TestMainPage'),
 	(r'/main2.*', 'main.TestMain2'),
+	(r'/addlog.*', 'main.AddLog'),	# События
+	(r'/config.*', 'main.Config'),	# Конфигурация системы
+	(r'/binbackup.*', 'main.BinBackup'),
+	(r'/inform.*', 'main.Inform'),
+	(r'/ping.*', 'main.Ping'),
+	(r'/firmware.*', 'main.Firmware'),
+
+	(r'/params.*', 'main.Params'),	# Запрос параметров системы, например localhost/params?cmd=check&imei=353358019726996
 
 	(r'/initconfig.js', 'main.InitConfig'),
 
-	(r'/', 'main.MainPage'),
+	#(r'/', 'main.MainPage'),
 ], debug=True, config=config)
 

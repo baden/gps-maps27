@@ -1,5 +1,3 @@
-"use strict";
-
 (function(){
 
 var map = null;
@@ -296,7 +294,7 @@ var ParcePath = function(data){
 					//'<div style="width: 220px; height: 220px; border: none;">'+
 					address,
 					//'</div>',
-					position: position,
+					position: position
 				});
 				stop_infowindow.open(map);
 
@@ -584,6 +582,7 @@ var CreateMap = function () {
 	//	console.log("Map: clicked.");
 	//});
 
+	log('create MyMarker');
 	ruler1 = new MyMarker(map);
 }
 

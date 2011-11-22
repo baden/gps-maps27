@@ -1,4 +1,3 @@
-"use strict";
 (function( $, undefined ) {
 
 
@@ -84,7 +83,7 @@ var show_alarm_window = function(skey, update){
 		var $map = $(dmap).gmap({
 			pos: data.position,
 			zoom: 15,
-			marker: 'center',
+			marker: 'center'
 		});
 		data.map = $($map).gmap('option', 'map');
 		data.marker = new google.maps.Marker({

@@ -1409,13 +1409,13 @@ class Global_DelAll(BaseApi):
 class Logs_Get(BaseApi):
 	requred = ('skey')
 	def parcer(self):
-		from datamodel import GPSLogs
+		from datamodel.logs import GPSLogs
 
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 
 		cursor = self.request.get("cursor", None)
 		
-		logsq = GPSLogs.all().ancestor(self.skey).order('-date').fetch(1000)
+		logsq = GPSLogs.all().ancestor(self.skey).order('-date').fetch(300)
 
 		"""
 		logs = []

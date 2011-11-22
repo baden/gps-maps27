@@ -1,4 +1,3 @@
-"use strict";
 /*
 	Что хочется от маркера.
 	В идеале Svg-представление.
@@ -85,7 +84,7 @@ LastMarker.prototype.Info = function() {
 			if (data.answer && data.answer === 'ok'){
 				/*this.infowindow.close();
 				this.infowindow = new google.maps.InfoWindow({content:
-					position: point,
+					position: point
 				});*/
 
 				//if(!$('#tbl_info tbody')){ sleep(10); }

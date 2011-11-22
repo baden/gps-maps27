@@ -1,5 +1,3 @@
-"use strict";
-
 // Private
 (function($){
 	var log_line = function(d) {

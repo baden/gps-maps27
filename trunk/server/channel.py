@@ -11,6 +11,9 @@ from datamodel.accounts import DBAccounts
 #import cPickle as pickle
 #import pickle
 
+# В 1.6.0 наблюдаются проблемы с channel api.
+DISABLE_CHANNEL = True
+
 """
 	Призвана обеспечить механизм рассылки оповещений подключенным клиентам (открытым страницам).
 
@@ -29,7 +32,10 @@ def register(uuid):
 	user_id = uuid.split('_')[0]
 	akey = db.Key.from_path('DBAccounts', user_id)
 	logging.info('== Generate channel-token for account: %s, uuid=%s' % (akey, uuid))
-	token = channel.create_channel(uuid)
+	if not DISABLE_CHANNEL:
+	    token = channel.create_channel(uuid)
+	else:
+	    token = 'disabled'
 	return token
 
 def handle_connection(client_id):
@@ -206,7 +212,8 @@ class MessagePost(webapp2.RequestHandler):
 			if len(messages) > 0:
 				try:
 					_log += 'Send to client: %s\n' % uuid
-					channel.send_message(uuid, json.dumps(messages))
+					if not DISABLE_CHANNEL:
+						channel.send_message(uuid, json.dumps(messages))
 				except channel.InvalidChannelClientIdError, e:
 					logging.error("Channed error: (%s). TBD! Remove uuid from list." % str(e))
 			else:

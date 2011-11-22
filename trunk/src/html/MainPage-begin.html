@@ -1,4 +1,4 @@
-﻿<!doctype html>  
+<!doctype html>
 <html>
 
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ --> 
@@ -113,7 +113,7 @@
 	// Получим токен для установки соединения
 	var uuid = new Date().getTime();
 	$.getJSON('/api/channel/gettoken?uuid=' + config.user.id + '_' + uuid, function (data) {
-		if(data.token){
+		if(data.token != 'disabled'){
 			var token = data.token;
 			log('Token goted:' + token, 'uuid='+config.user.id);
 
@@ -146,6 +146,8 @@
 			socket.onmessage = onMessage;
 			socket.onerror = onError;
 			socket.onclose = onClose;
+		} else {
+		    log('channel api is disabled');
 		}
 	});
 

@@ -1,4 +1,6 @@
-// Private
+/*
+*/
+
 (function($){
 	var log_line = function(d) {
 		var row = '<td>'+dt_to_datetime(d.time)+'</td><td>'+d.text+'<!--td>'+d.label+'</td-->';

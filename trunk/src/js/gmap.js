@@ -1,4 +1,7 @@
-﻿(function( $, undefined ) {
+/*
+*/
+
+(function( $, undefined ) {
 
 
 //$.extend($.ui, { gmap: { version: "0.0.1" } });

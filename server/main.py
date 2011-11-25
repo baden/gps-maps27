@@ -13,6 +13,7 @@ from webapp2_extras.users import login_required
 from datetime import date, timedelta, datetime
 
 from datamodel.accounts import DBAccounts
+from datamodel.system import DBSystem
 from google.appengine.api import namespace_manager
 
 SERVER_NAME = os.environ['SERVER_NAME']
@@ -205,7 +206,6 @@ class AddLog(webapp2.RequestHandler):
 		#from datamodel import DBNewConfig, DBAccounts
 		from datamodel.logs import GPSLogs
 		from datamodel.accounts import DBAccounts
-		from datamodel.system import DBSystem
 
 		from datetime import datetime
 		from inform import Informer
@@ -319,6 +319,7 @@ class Config(webapp2.RequestHandler):
 	def post(self):
 		from datamodel import DBConfig
 		from urllib import unquote_plus
+		from channel import send_message
 		#from zlib import compress
 
 		self.response.headers['Content-Type'] = 'application/octet-stream'
@@ -353,9 +354,12 @@ class Config(webapp2.RequestHandler):
 			#newconfig.
 			newconfig.put()
 
-			updater.inform('cfgupd', system.key(), {
-				'skey': str(system.key())
-			})	# Информировать всех пользователей, у которых открыта страница настроек
+			#updater.inform('cfgupd', system.key(), {
+			#	'skey': str(system.key())
+			#})	# Информировать всех пользователей, у которых открыта страница настроек
+
+			#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
+			send_message({'msg': 'cfgupd', 'data':{'skey': str(system.key())}}, akeys=[self.account.key()])
 
 			self.response.out.write("CONFIG: OK\r\n")
 			return
@@ -453,7 +457,7 @@ class BinBackup(BaseHandler):
 
 	def get(self):
 		from utils import CRC16
-		from datamodel import DBGPSBinBackup, DBSystem, DBGPSBin
+		from datamodel import DBGPSBinBackup, DBGPSBin
 		#from local import fromUTC
 		from datetime import date, datetime, timedelta
 
@@ -878,6 +882,7 @@ class Inform(webapp2.RequestHandler):
 	def get(self):
 		from datetime import datetime
 		from inform import Informer
+		from channel import send_message
 		# Это единственный (пока) способ побороть Transfer-Encoding: chunked
 		imei = self.request.get('imei', 'unknown')
 		msg = self.request.get('msg', 'unknown')
@@ -889,13 +894,20 @@ class Inform(webapp2.RequestHandler):
 		self.response.out.write("OK\r\n")
 		self.response.out.write("INFORM: OK\r\n")
 
-		system = DBSystem.get_or_create(imei)
+		skey = DBSystem.key_by_imei(imei)
 
-		updater.inform('inform', system.key(), {
-			'skey': str(system.key()),
+		#updater.inform('inform', system.key(), {
+		#	'skey': str(system.key()),
+		#	'time': datetime.utcnow().strftime("%y%m%d%H%M%S"),
+		#	'msg': msg,
+		#})
+		#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
+		send_message({'msg': 'inform', 'data':{
+			'skey': str(skey),
 			'time': datetime.utcnow().strftime("%y%m%d%H%M%S"),
 			'msg': msg,
-		})
+		}}, skeys=[skey])
+
 
 class Ping(webapp2.RequestHandler):
 	def get(self):

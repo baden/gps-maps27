@@ -2,8 +2,8 @@
 	<div id="config_list">
 		<h3><a href="#">Наблюдаемые системы</a></h3>
 		<div>
-			<ul id="config_sys_list"></ul>
 			<button id="config_button_sys_add">Добавить систему</button>
+			<ul id="config_sys_list"></ul>
 		</div>
 		<h3><a href="#">ГЕО-зоны</a></h3>
 		<div>
@@ -78,6 +78,17 @@
 			<div class="cfg_iframe" value="/binbackup">Бэкапы бинарных данных</div>
 			<div class="cfg_iframe" value="/firmware">Образы обновления прошивки</div>
 			
+			<div>
+			Последние операции. <button id="button_admin_operations">Запросить последние операции</button>
+			<table id="table_admin_operations" class="ui-widget ui-widget-content tview">
+				<thead>
+					<tr class="ui-widget-header"><th>Дата и время</th><th>Событие</th><th>Пользователь</th><th>Параметры</th></tr>
+				</thead>
+				<tbody>
+					<tr><td colspan=5>Тут будут операции.</td></tr>
+				</tbody>
+			</table>
+			</div>
 
 
 		</div>

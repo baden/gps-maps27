@@ -12,8 +12,8 @@ from datamodel.accounts import DBAccounts
 #import pickle
 
 # В 1.6.0 наблюдаются проблемы с channel api.
-#DISABLE_CHANNEL = True
-DISABLE_CHANNEL = False
+DISABLE_CHANNEL = True
+#DISABLE_CHANNEL = False
 
 """
 	Призвана обеспечить механизм рассылки оповещений подключенным клиентам (открытым страницам).
@@ -119,7 +119,7 @@ class DBMessages(db.Model):
 	#dest_uuid = db.ListProperty(str, default=None)			# Список адресов - получателей. На данном этапе не используется
 	akeys = db.ListProperty(db.Key)				# Заполняется если указан получатель по пользователю
 	skeys = db.ListProperty(db.Key)				# Заполняется есдт указан получатель по владению системой
-	message = db.StringProperty(multiline=True, default=u"")
+	message = db.TextProperty(default=u"")
 
 def send_message(message, akeys=[], skeys=[], timeout=10):
 	from google.appengine.api.labs import taskqueue

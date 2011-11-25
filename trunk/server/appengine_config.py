@@ -1,15 +1,46 @@
+# -*- coding: utf-8 -*-
+
+import logging
+import os
+import Cookie
+from google.appengine.api import namespace_manager
+import re
+from google.appengine.ext.appstats import recording
+
+logging.info('Loading %s from %s', __name__, __file__)
+
+#apptrace_URL_PATTERNS  = ['^/$']
+#apptrace_TRACE_MODULES = ['api.py']
+
 def webapp_add_wsgi_middleware(app):
     #import os
     #from google.appengine.api import namespace_manager
     #namespace_manager.set_namespace(os.environ['SERVER_NAME'])
-    from google.appengine.ext.appstats import recording
     app = recording.appstats_wsgi_middleware(app)
     return app
 
 
-import os
-import Cookie
-from google.appengine.api import namespace_manager
+appstats_TZOFFSET = -2*3600
+appstats_DUMP_LEVEL = -1
+appstats_FILTER_LIST = [{'PATH_INFO': '!^/favicon\.ico$'}]
+
+
+"""
+appstats_stats_url = '/_ah/stats'
+
+# Custom Appstats path normalization.
+def appstats_normalize_path(path):
+    logging.info('====**==== appstats_normalize_path (%s): %s from %s', repr(path), __name__, __file__)
+    if path.startswith('/api/'):
+        return '/api/...'
+    if path.startswith('/user_popup/'):
+        return '/user_popup/X'
+    if path.startswith('/info/'):
+        i = path.find('/', 5)
+        if i > 0:
+            return path[:i] + '/X'
+    return re.sub(r'\d+', 'X', path)
+"""
 
 _USE_SERVER_NAME = 0
 _USE_GOOGLE_APPS_DOMAIN = 1

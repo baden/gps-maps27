@@ -13,6 +13,8 @@ from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
 
 from datamodel import DBAccounts, DBSystem, DBGeo, PointWorker
+from datamodel.admin import DBAdmin
+
 from datetime import datetime, timedelta
 
 API_VERSION = 1.0
@@ -30,12 +32,16 @@ class BaseApi(webapp2.RequestHandler):
 		return {'answer': 'no', 'reason': 'base api'}
 
 	def _parcer(self):
-		user = users.get_current_user()
-		if user is None:
+		self.user = users.get_current_user()
+		if self.user is None:
 			return {"answer": "no", "reason": "Required login."}
-		self.akey = db.Key.from_path('DBAccounts', user.user_id())
+		self.akey = db.Key.from_path('DBAccounts', self.user.user_id())
 		if self.akey is None:
 			return {"answer": "no", "reason": "Required register user first (login)."}
+
+		if 'admin' in self.requred:
+			if not users.is_current_user_admin():
+				return {'answer': 'no', 'result': 'Admin rights required.'}
 
 		if 'account' in self.requred:
 			try:
@@ -1179,12 +1185,19 @@ class Sys_Add(BaseApi):
 	requred = ('account', 'imei')
 	def parcer(self, **argw):
 		from channel import send_message
+
 		res = self.account.AddSystem(self.imei)
 		if res == 0:
+			#DBAdmin.addOperation(self.akey, u"Не найдена", {'imei': self.imei})
+			DBAdmin.addOperation(self.akey, u'Пользователь пытался добавить несуществующую систему.', {'imei': self.imei})
 			return {'answer': 'no', 'result': 'not found'}
 		elif res == 2:
+			DBAdmin.addOperation(self.akey, u'Пользователь пытался добавить систему за которой уже наблюдает.', {'imei': self.imei})
+			#DBAdmin.addOperation(self.akey, u'already', {'imei': self.imei})
 			return {'answer': 'no', 'result': 'already'}
 
+		DBAdmin.addOperation(self.akey, u'Пользователь добавил систему.', {'imei': self.imei})
+		#DBAdmin.addOperation(self.akey, 'ok.', {'imei': self.imei})
 		#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
 		send_message({'msg': 'change_slist', 'data':{'type': 'Adding'}}, akeys=[self.akey])
 
@@ -1276,7 +1289,8 @@ class Sys_Config(BaseApi):
 	requred = ('imei')
 	def parcer(self, **argw):
 		#from zlib import decompress
-		from datamodel import DBConfig, DBDescription, DBNewConfig
+		from datamodel.configs import DBConfig, DBDescription, DBNewConfig
+		#from datamodel import 
 
 		cmd = self.request.get('cmd', None)
 		if cmd is None:
@@ -1284,7 +1298,9 @@ class Sys_Config(BaseApi):
 
 		# Запросить список программируемых параметров
 		if cmd == 'get':
-			descriptions = DBDescription().all() #.fetch(MAX_TRACK_FETCH)
+			collect_key = db.Key.from_path('DefaultCollect', 'DBDescription')
+			# TBD! Чтение всех коментарием выглядит идиотизмом.
+			descriptions = DBDescription.all().ancestor(collect_key) #.fetch(MAX_TRACK_FETCH)
 
 			descs={}
 			fdescs={}
@@ -1392,10 +1408,11 @@ class Sys_Config(BaseApi):
 
 class Param_Desc(BaseApi):
 	def parcer(self):
-		from datamodel import DBDescription
+		from datamodel.configs import DBDescription
 
 		name = self.request.get('name', '-error-')
-		DBDescription(key_name = "dbdescription_%s" % name, name=name, value=self.request.get('value', '')).put()
+		collect_key = db.Key.from_path('DefaultCollect', 'DBDescription')
+		DBDescription(key_name = str(name), name=name, parent=collect_key, value=self.request.get('value', '')).put()
 		return {'result': 'ok'}
 
 """
@@ -1604,17 +1621,17 @@ class Zone_Rule_Del(BaseApi):
 # Подтверждение получения тревожного сообщения
 #
 class AlarmConfirm(BaseApi):
-	requred = ('account', 'imei')
+	requred = ('imei')
 	def parcer(self):
 		from alarm import Alarm
 		from inform import Informer
 		import urllib
 
 		Informer.add_by_imei(self.imei, 'ALARM_CONFIRM')
-		Alarm.confirm(self.imei, self.account)
+		Alarm.confirm(self.imei, self.user)
 
 		#url = "/addlog?imei=%s&text=%s" % (self.imei, u'Получение тревоги подтверждено оператором ' % self.account.user.nickname())
-		url = "/addlog?imei=%s&mtype=alarm_confirm&akey=%s" % (self.imei, str(self.account.key()))
+		url = "/addlog?imei=%s&mtype=alarm_confirm&akey=%s" % (self.imei, str(self.akey))
 		taskqueue.add(url = url, method="GET", countdown=0)
 
 		return {'answer': 'ok', 'imei': str(self.imei)}
@@ -1623,18 +1640,18 @@ class AlarmConfirm(BaseApi):
 # Отмена получения тревожного сообщения
 #
 class AlarmCancel(BaseApi):
-	requred = ('account', 'imei')
+	requred = ('imei')
 	def parcer(self):
 		from alarm import Alarm
 		from inform import Informer
 		import urllib
 
 		Informer.add_by_imei(self.imei, 'ALARM_CANCEL')
-		Alarm.cancel(self.imei, self.account)
+		Alarm.cancel(self.imei, self.user)
 
 		#url = "/addlog?imei=%s&text=%s" % (self.imei, u'Отбой тревоги оператором ' % self.account.user.nickname())
 		#url = "/addlog?imei=%s&text=%s" % (self.imei, urllib.quote(u'Cancel alarm ру'.encode('utf-8')))
-		url = "/addlog?imei=%s&mtype=alarm_cancel&akey=%s" % (self.imei, str(self.account.key()))
+		url = "/addlog?imei=%s&mtype=alarm_cancel&akey=%s" % (self.imei, str(self.akey))
 
 		taskqueue.add(url = url, method="GET", countdown=0)
 
@@ -1644,7 +1661,7 @@ class AlarmCancel(BaseApi):
 # Запросить список "активных" тревог
 #
 class AlarmGet(BaseApi):
-	requred = ('account')
+	#requred = ('account')
 	def parcer(self):
 		from alarm import Alarm
 		all = [r for r in Alarm.getall()]
@@ -1727,3 +1744,22 @@ class GMapCeng(BaseApi):
 
 		return {'answer': 'ok', 'ceng': ceng, 'el': el, 'info': info, 'loc': loc, 'geo': get_location_by_geo(loc[0],loc[1])}
 
+
+class Admin_Operations(BaseApi):
+	requred = ('admin')
+	def parcer(self):
+		cursor = self.request.get("cursor", None)
+		if cursor is None:
+			q = DBAdmin.lastOperations()
+		else:
+			q = DBAdmin.lastOperations(cursor=cursor)
+		ans = []
+		for r in q.fetch(20):
+			ans.append({
+				'time': r.date.strftime("%y%m%d%H%M%S"),
+				'desc': r.desc,
+				'account': db.get(r.akey).user.nickname(),
+				'params': eval(r.params)
+			})
+
+		return {'answer': 'ok', 'operations': ans, 'cursor': q.cursor()}

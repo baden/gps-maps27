@@ -56,6 +56,8 @@ app = webapp2.WSGIApplication([
 	('/api/gmap/ceng*', 'api.GMapCeng'),
 
 
+	('/api/admin/operations*', 'api.Admin_Operations'),
+
 	(r'/api/channel/gettoken', 'channel.Chanel_GetToken'),
 	(r'/api/channel/message', 'channel.Message'),
 	(r'/channel/message', 'channel.MessagePost'),

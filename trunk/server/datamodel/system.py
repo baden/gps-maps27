@@ -40,3 +40,11 @@ class DBSystem(db.Model):
 			model = cls.get_or_insert(imei, imei=imei)
 			memcache.set("DBSystem:%s" % imei, str(model.key()))
 			return model.key()
+
+	"""
+		В отличие от предыдущего метода не проверяет и не создает сущность в базе
+	"""
+	@classmethod
+	#def key_by_imei(cls, imei=FAKE_IMEI, collect_name=None):
+	def imei2key(cls, imei=FAKE_IMEI):
+		return db.Key.from_path("DBSystem", imei)

@@ -338,6 +338,14 @@ class BinGps(webapp2.RequestHandler):
 
 		imei = self.request.get('imei', '000000000000000')
 
+		# TBD! Реализовать проверку премиум-аккаунтов. Естественно с кэшированием.
+		block_bingps = memcache.get("block_bingps:%s" % imei)
+		if block_bingps is not None:
+			logging.warning("IMEI block by DOS. Denied.")
+			self.response.out.write('BINGPS: TIMEIN\r\n')
+			return
+		memcache.set("block_bingps:%s" % imei, '*', time = 60*1)
+
 		if imei in IMEI_BLACK_LIST:
 			logging.error("IMEI in black list. Denied.")
 			self.response.write('BINGPS: DENIED\r\n')

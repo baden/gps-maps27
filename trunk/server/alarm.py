@@ -6,31 +6,32 @@ from datetime import datetime, timedelta
 from datamodel import DBAccounts, DBSystem
 import logging
 #
-#  Используется для отправки системе сообщений.
-#  - информирование о смене конфигурации (пока не используется)
-#  - подтверждение тревоги для SIM20
-#  - отмена тревоги для SIM20
+#  РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РґР»СЏ РѕС‚РїСЂР°РІРєРё СЃРёСЃС‚РµРјРµ СЃРѕРѕР±С‰РµРЅРёР№.
+#  - РёРЅС„РѕСЂРјРёСЂРѕРІР°РЅРёРµ Рѕ СЃРјРµРЅРµ РєРѕРЅС„РёРіСѓСЂР°С†РёРё (РїРѕРєР° РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ)
+#  - РїРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ С‚СЂРµРІРѕРіРё РґР»СЏ SIM20
+#  - РѕС‚РјРµРЅР° С‚СЂРµРІРѕРіРё РґР»СЏ SIM20
 #
 class Alarm(db.Model):
-	cdate = db.DateTimeProperty(auto_now_add=True)		# Время создания тревоги
-	system = db.ReferenceProperty(DBSystem)			# Система, вызвавшая тревогу
-	cdateHistory = db.ListProperty(datetime, default=None)	# Время создания тревоги
-	lpos = db.GeoPtProperty()				# Последняя позиция
+	cdate = db.DateTimeProperty(auto_now_add=True)		# Р’СЂРµРјСЏ СЃРѕР·РґР°РЅРёСЏ С‚СЂРµРІРѕРіРё
+	#system = db.ReferenceProperty(DBSystem)		# РЎРёСЃС‚РµРјР°, РІС‹Р·РІР°РІС€Р°СЏ С‚СЂРµРІРѕРіСѓ - РЈР±СЂР°РЅРѕ, РІРјРµСЃС‚Рѕ СЌС‚РѕРіРѕ РёСЃРєРѕР»СЊР·РѕРІР°С‚СЊ key().name()
+	cdateHistory = db.ListProperty(datetime, default=None)	# Р’СЂРµРјСЏ СЃРѕР·РґР°РЅРёСЏ С‚СЂРµРІРѕРіРё
+	lpos = db.GeoPtProperty()				# РџРѕСЃР»РµРґРЅСЏСЏ РїРѕР·РёС†РёСЏ
 	fid = db.IntegerProperty()				# FID
-	ceng = db.StringProperty(default='')			# Строка инженерного меню (если есть)
-	confirmed = db.BooleanProperty(default=False)		# Получение тревоги подтверждено
-	confirmby = db.ReferenceProperty(DBAccounts, default=None)	# Оператор, подтвердивший тревогу -> DBAccounts
-	confirmwhen = db.DateTimeProperty()			# Время подтвердения тревоги
+	ceng = db.StringProperty(default='')			# РЎС‚СЂРѕРєР° РёРЅР¶РµРЅРµСЂРЅРѕРіРѕ РјРµРЅСЋ (РµСЃР»Рё РµСЃС‚СЊ)
+	confirmed = db.BooleanProperty(default=False)		# РџРѕР»СѓС‡РµРЅРёРµ С‚СЂРµРІРѕРіРё РїРѕРґС‚РІРµСЂР¶РґРµРЅРѕ	TBD! РњРЅРµ РЅРµ РЅСЂР°РІСЏС‚СЃСЏ Reference, С‚Р°Рє РєР°Рє РјРѕРіСѓС‚ РІС‹Р·С‹РІР°С‚СЊ Р»РёС€РЅРёРµ РѕР±СЂР°С‰РµРЅРёСЏ Рє Р±Р°Р·Рµ. Р”СѓРјР°СЋ РјРѕР¶РЅРѕ РїРµСЂРµРґРµР»Р°С‚СЊ РЅР° user.id() РёР»Рё РЅР° UserProperty
+	confirmby = db.UserProperty()				# РћРїРµСЂР°С‚РѕСЂ, РїРѕРґС‚РІРµСЂРґРёРІС€РёР№ С‚СЂРµРІРѕРіСѓ
+	#confirmby = db.StringProperty(default=None)		# РћРїРµСЂР°С‚РѕСЂ, РїРѕРґС‚РІРµСЂРґРёРІС€РёР№ С‚СЂРµРІРѕРіСѓ
+	confirmwhen = db.DateTimeProperty()			# Р’СЂРµРјСЏ РїРѕРґС‚РІРµСЂРґРµРЅРёСЏ С‚СЂРµРІРѕРіРё
 
 	@classmethod
 	def add_alarm(cls, imei, fid, lpos, ceng):
 		#entity = cls(key_name="alarm_%s" % system.imei, system_key=system)
 		#entity.put()
 		def txn():
-			entity = cls.get_by_key_name("alarm_%s" % imei)
+			collect_key = db.Key.from_path('DefaultCollect', 'Alarm')
+			entity = cls.get_by_key_name(imei, parent=collect_key)
 			if entity is None:
-				#entity = cls(key_name="alarm_%s" % imei, system=DBSystem.get_by_imei(imei), fid=fid, lpos=lpos, ceng=ceng, cdateHistory = [datetime.now()])
-				entity = cls(key_name="alarm_%s" % imei, system=db.Key.from_path('DBSystem', "sys_%s" % imei), fid=fid, lpos=lpos, ceng=ceng, cdateHistory = [datetime.now()])
+				entity = cls(key_name=imei, parent=collect_key, fid=fid, lpos=lpos, ceng=ceng, cdateHistory = [datetime.now()])
 				#memcache.set("inform_%s" % imei, [msg])
 				entity.put()
 			else:
@@ -44,12 +45,14 @@ class Alarm(db.Model):
 
 	@classmethod
 	def getall(cls):
-		for r in cls.all():
+		collect_key = db.Key.from_path('DefaultCollect', 'Alarm')
+		for r in cls.all().ancestor(collect_key):
 			usr = ''
 			if r.confirmed:
-				usr = str(r.confirmby.user)
+				usr = confirmby.nickname()
 			yield {
-				'skey': str(r.system.key()),
+				#'skey': str(r.system.key()),
+				'skey': str(DBSystem.imei2key(r.key().name())),
 				'dt': r.cdate.strftime("%y%m%d%H%M%S"),
 				'lpos': (r.lpos.lat, r.lpos.lon),
 				'fid': r.fid,
@@ -60,16 +63,26 @@ class Alarm(db.Model):
 				'confirmwhen': (r.confirmwhen or datetime.now()).strftime("%y%m%d%H%M%S") or none
 			}
 	@classmethod
-	def confirm(cls, imei, account):
-		entity = cls.get_by_key_name("alarm_%s" % imei)
+	def confirm(cls, imei, user):
+		collect_key = db.Key.from_path('DefaultCollect', 'Alarm')
+		entity = cls.get_by_key_name(imei, parent=collect_key)
 		if entity is not None:
 			entity.confirmed = True
-			entity.confirmby = account
+			entity.confirmby = user
 			entity.confirmwhen = datetime.now()
 			entity.put()
 
 	@classmethod
 	def cancel(cls, imei, account):
-		entity = cls.get_by_key_name("alarm_%s" % imei)
+		key = db.Key.from_path('DefaultCollect', 'Alarm', 'Alarm', imei)
+		try:
+			db.delete(key)
+		except:
+			logging.warning('Error deleting Alarm: %s' % key)
+		"""
+		collect_key = db.Key.from_path('DefaultCollect', 'Alarm')
+		entity = cls.get_by_key_name(imei, parent=collect_key)
 		if entity is not None:
 			db.delete(entity)
+		"""
+		pass

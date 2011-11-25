@@ -12,7 +12,8 @@ from datamodel.accounts import DBAccounts
 #import pickle
 
 # В 1.6.0 наблюдаются проблемы с channel api.
-DISABLE_CHANNEL = True
+#DISABLE_CHANNEL = True
+DISABLE_CHANNEL = False
 
 """
 	Призвана обеспечить механизм рассылки оповещений подключенным клиентам (открытым страницам).

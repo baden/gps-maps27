@@ -331,7 +331,7 @@
 					//var imei = $("#sysdesc_imei").html(); //document.getElementById('sysdesc_imei').value;
 					//var desc = document.getElementById('sys_desc').value;
 					//log('Set desc for sys ' + imei + ' -> ' + desc);
-					$.getJSON('/api/sys/desc?akey='+config.akey+'&imei=' + imei + '&desc=' + desc, function (data) {
+					$.getJSON('/api/sys/desc?imei=' + imei + '&desc=' + desc, function (data) {
 						if(data.result){
 							var result = data.result;
 							if(result == "disabled"){
@@ -417,7 +417,7 @@
 					//var imei = $("#sysdesc_imei").html(); //document.getElementById('sysdesc_imei').value;
 					//var desc = document.getElementById('sys_desc').value;
 					log('Set desc for sys ' + imei + ' -> ' + desc);
-					$.getJSON('/api/sys/desc?akey='+config.akey+'&imei=' + imei + '&desc=' + desc, function (data) {
+					$.getJSON('/api/sys/desc?imei=' + imei + '&desc=' + desc, function (data) {
 						if(data.result){
 							var result = data.result;
 							if(result == "disabled"){
@@ -452,7 +452,7 @@
 				},
 				'Да, отказаться от слежения': function(){
 					var imei = $('#config_del_imei').html();
-					$.getJSON('/api/sys/del?akey='+config.akey+'&imei=' + imei, function (data) {
+					$.getJSON('/api/sys/del?imei=' + imei, function (data) {
 						//UpdateSysList();
 						ConfigList.Rebuild();	// Это неправильная реализация.
 					});
@@ -475,7 +475,7 @@
 				console.log(ui);*/
 				var imei = ui.item.attr('imei');
 				var index = ui.item.index();
-				$.getJSON('/api/sys/sort?akey='+config.akey+'&imei=' + imei + '&index=' + index, function (data) {
+				$.getJSON('/api/sys/sort?imei=' + imei + '&index=' + index, function (data) {
 					//window.location = "/config";
 					//$(this).dialog('close');
 					if(data.result){

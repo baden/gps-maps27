@@ -23,7 +23,6 @@ MAXPOINTS = 100000
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-
 API_VERSION = 1.27
 
 class BaseApi(webapp2.RequestHandler):
@@ -144,14 +143,7 @@ class Sys_SecureList(BaseApi):
 			}
 		}
 
-
-
-
-
 # --------------------------------------------------------------------------------
-
-
-
 
 class Debug_jqGrid(webapp2.RequestHandler):
 	def get(self):

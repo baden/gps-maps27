@@ -414,4 +414,3 @@ config.updater.add('addlog', function(msg) {
 
 
 })(jQuery);
-

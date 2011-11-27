@@ -1535,20 +1535,30 @@ class Zone_Add(BaseApi):
 		from datamodel.zone import DBZone
 
 		#points = self.request.get("points", None)
+		ztype = self.request.get('type', 'polygon')
+		if ztype == 'polygon':
+			ztype = DBZone._POLYGON
+		elif ztype == 'circle':
+			ztype = BDZone._CIRCLE
+		elif ztype == 'bound':
+			ztype = BDZone._BOUND
+		else:
+			ztype = DBZone._POLYGON
 		points = json.loads(self.request.get('points', '[]'))
-		
-		zone = DBZone(ztype=self.request.get('type', 'poligon'))
+
+		zkey = DBZone.addZone(ztype, [db.GeoPt(lat=p[0], lon=p[1]) for p in points])
+		"""
+		zone = DBZone(ztype=ztype)
 		zpoints = []
 		for p in points:
 			zpoints.append(db.GeoPt(lat=p[0], lon=p[1]))
 		zone.points = zpoints
 		zone.put()
-		
-
+		"""
 		return {
 			"answer": "ok",
 			"points": points,
-			"zkey": str(zone.key())
+			"zkey": str(zkey)
 		}
 
 class Zone_Get(BaseApi):
@@ -1560,7 +1570,7 @@ class Zone_Get(BaseApi):
 		#points = json.loads(self.request.get('points', '[]'))
 		skey = self.request.get("skey", None)
 		
-		zones = DBZone.all().fetch(1000)
+		zones = DBZone.getZones().fetch(100)	#DBZone.all().fetch(1000)
 		zlist = []
 		for zone in zones:
 			zlist.append({
@@ -1568,11 +1578,7 @@ class Zone_Get(BaseApi):
 				'type': zone.ztype,
 				'points': [(p.lat, p.lon) for p in zone.points],
 			})
-		#zpoints = []
-		#for p in points:
-		#	zpoints.append(db.GeoPt(lat=p[0], lon=p[1]))
-		#zone.points = zpoints
-		#zone.put()
+
 		if zones:
 			return {
 				"answer": "ok",

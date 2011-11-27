@@ -556,7 +556,102 @@ var UpdateMarker = function (moev){
 
 }
 
+/*
+	Проба гугловского редактора зон
+*/
+
 var once_map_style = true;
+var drawingManager;
+var selectedShape;
+var colors = ['#1E90FF', '#FF1493', '#32CD32', '#FF8C00', '#4B0082'];
+var selectedColor;
+var colorButtons = {};
+
+
+      function clearSelection() {
+        if (selectedShape) {
+          selectedShape.setEditable(false);
+          selectedShape = null;
+        }
+      }
+
+      function setSelection(shape) {
+        clearSelection();
+        selectedShape = shape;
+        shape.setEditable(true);
+        selectColor(shape.get('fillColor') || shape.get('strokeColor'));
+      }
+
+      function deleteSelectedShape() {
+        if (selectedShape) {
+          selectedShape.setMap(null);
+        }
+      }
+
+      function selectColor(color) {
+        selectedColor = color;
+        for (var i = 0; i < colors.length; ++i) {
+          var currColor = colors[i];
+          colorButtons[currColor].style.border = currColor == color ? '2px solid #789' : '2px solid #fff';
+        }
+
+        // Retrieves the current options from the drawing manager and replaces the
+        // stroke or fill color as appropriate.
+        var polylineOptions = drawingManager.get('polylineOptions');
+        polylineOptions.strokeColor = color;
+        drawingManager.set('polylineOptions', polylineOptions);
+
+        var rectangleOptions = drawingManager.get('rectangleOptions');
+        rectangleOptions.fillColor = color;
+        drawingManager.set('rectangleOptions', rectangleOptions);
+
+        var circleOptions = drawingManager.get('circleOptions');
+        circleOptions.fillColor = color;
+        drawingManager.set('circleOptions', circleOptions);
+
+        var polygonOptions = drawingManager.get('polygonOptions');
+        polygonOptions.fillColor = color;
+        drawingManager.set('polygonOptions', polygonOptions);
+      }
+
+      function setSelectedShapeColor(color) {
+        if (selectedShape) {
+          if (selectedShape.type == google.maps.drawing.OverlayType.POLYLINE) {
+            selectedShape.set('strokeColor', color);
+          } else {
+            selectedShape.set('fillColor', color);
+          }
+        }
+      }
+
+      function makeColorButton(color) {
+        var button = document.createElement('span');
+        button.className = 'color-button';
+        button.style.backgroundColor = color;
+        google.maps.event.addDomListener(button, 'click', function() {
+          selectColor(color);
+          setSelectedShapeColor(color);
+        });
+
+        return button;
+      }
+
+       function buildColorPalette() {
+         var colorPalette = document.getElementById('color-palette');
+         for (var i = 0; i < colors.length; ++i) {
+           var currColor = colors[i];
+           var colorButton = makeColorButton(currColor);
+           colorPalette.appendChild(colorButton);
+           colorButtons[currColor] = colorButton;
+         }
+         selectColor(colors[0]);
+       }
+
+
+/*
+	Проба гугловского редактора зон. Конец.
+*/
+
 
 var CreateMap = function () {
 	//log('CreateMap: begin');
@@ -587,6 +682,122 @@ var CreateMap = function () {
 
 	log('create MyMarker');
 	ruler1 = new MyMarker(map);
+
+/*
+	Проба гугловского редактора зон.
+*/
+	var polyOptions = {
+          strokeWeight: 0,
+          fillOpacity: 0.45,
+          editable: true
+        };
+
+// Creates a drawing manager attached to the map that allows the user to draw
+        // markers, lines, and shapes.
+        drawingManager = new google.maps.drawing.DrawingManager({
+          //drawingMode: google.maps.drawing.OverlayType.POLYGON,
+		drawingControl: true,
+		  drawingControlOptions: {
+		    position: google.maps.ControlPosition.TOP_CENTER,
+		    drawingModes: [google.maps.drawing.OverlayType.CIRCLE, google.maps.drawing.OverlayType.POLYGON, google.maps.drawing.OverlayType.POLYLINE, google.maps.drawing.OverlayType.RECTANGLE]
+		  },
+
+          markerOptions: {
+            draggable: true
+          },
+          polylineOptions: {
+            editable: true
+          },
+          rectangleOptions: polyOptions,
+          circleOptions: polyOptions,
+          polygonOptions: polyOptions,
+          map: map
+        });
+
+        google.maps.event.addListener(drawingManager, 'overlaycomplete', function(e) {
+		var newShape = e.overlay;
+
+		log('Complete drawing zone', e);
+		if(e.type == google.maps.drawing.OverlayType.POLYGON){
+			log('Save polygon zone.');
+
+			var vertices = e.overlay.getPath();
+        
+			var points = [];
+			for(var i=0; i<vertices.length; i++) {
+				var p = vertices.getAt(i)
+				points.push([p.lat(), p.lng()]);
+			}
+
+			$.ajax({
+		  		url: '/api/zone/add',
+				  dataType: 'json',
+				  data: {type: 'polygon', points: JSON.stringify(points)},
+				  type: 'post',
+				  success: function(data){
+					if(data && data.answer == 'ok'){
+						//polygon['zkey'] = data.zkey;
+						//if(!('zones' in config)) config['zones'] = {};
+						//zones[data.zkey] = {type: 'polygon', polygon: polygon}
+						//update_zone_list();
+					}
+				}
+			});
+
+			
+            		google.maps.event.addListener(vertices, 'insert_at', function() {
+				log('Polygon event: insert_at', newShape);
+			});
+            		google.maps.event.addListener(vertices, 'remove_at', function() {
+				log('Polygon event: remove_at', newShape);
+			});
+            		google.maps.event.addListener(vertices, 'set_at', function() {
+				log('Polygon event: set_at', newShape);
+			});
+		}
+
+		if(e.type == google.maps.drawing.OverlayType.CIRCLE){
+			log('Save circle zone. (TBD)');
+			//var vertices = e.overlay.getPath();
+			google.maps.event.addListener(newShape, 'radius_changed', function() {
+				//radius = circle.getRadius();
+				log('Circle event: radius_changed', newShape);
+			});
+		}
+
+            if (e.type != google.maps.drawing.OverlayType.MARKER) {
+            // Switch back to non-drawing mode after drawing a shape.
+            drawingManager.setDrawingMode(null);
+
+            // Add an event listener that selects the newly-drawn shape when the user
+            // mouses down on it.
+            newShape.type = e.type;
+            google.maps.event.addListener(newShape, 'click', function() {
+              setSelection(newShape);
+            });
+            setSelection(newShape);
+          }
+        });
+
+	if(0){
+	// To hide:
+	drawingManager.setOptions({
+	  drawingControl: false
+	});
+
+	// To show:
+	drawingManager.setOptions({
+	  drawingControl: true
+	});
+	}
+
+// Clear the current selection when the drawing mode is changed, or when the
+        // map is clicked.
+        google.maps.event.addListener(drawingManager, 'drawingmode_changed', clearSelection);
+        google.maps.event.addListener(map, 'click', clearSelection);
+        google.maps.event.addDomListener(document.getElementById('delete-button'), 'click', deleteSelectedShape);
+
+        buildColorPalette();
 }
 
 var lastpos = {};
@@ -646,9 +857,9 @@ var CreateLastMarker = function(p){
 	}
 }
 
-var GetLastPositions = function (akey) {
+var GetLastPositions = function() {
 	//log('Get last positions...');
-	$.getJSON('/api/geo/last?akey=' + akey, function (data) {
+	$.getJSON('/api/geo/last', function (data) {
 		//$("#progress").html("Обрабатываем...");
 		if (data.answer && data.answer == 'ok') {
 			//log('Show last positions...');
@@ -659,11 +870,12 @@ var GetLastPositions = function (akey) {
 		}
 	});
 
+	/* TBD! Исключить запрос положения. Обеспечить отправку нового положения в команде оповещения geo_change */
 	config.updater.add('geo_change', function(msg) {
 		//log('MAPS: GEO_Update: ', msg.data);
 		var skey = msg.data.skey;
 		//map.panTo(lastpos[skey].position);
-		$.getJSON('/api/geo/last?akey=' + akey + '&skey=' + skey, function (data) {
+		$.getJSON('/api/geo/last?skey=' + skey, function (data) {
 			//log('Update last positions and tail for...', data);
 			CreateLastMarker(data.geo[0]);
 			/*
@@ -896,7 +1108,7 @@ $(document).ready(function() {
 		}
 	});
 
-	GetLastPositions(config.akey);
+	GetLastPositions();
 	UpdateDayList(config.skey);
 });
 
@@ -1001,7 +1213,7 @@ $(document).ready(function(){
 
 	var zonekit = new ZoneKit();
 	$('#map_zone_show').click(zonekit.Show);
-	$('#map_zone_add').click(zonekit.AddPoligon);
+	$('#map_zone_add').click(zonekit.AddPolygon);
 	$('#map_zone_edit').click(zonekit.Edit);
 
 	var dirkit = new DirKit();

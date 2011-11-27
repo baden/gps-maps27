@@ -27,7 +27,7 @@
   <link type="text/css" href="/plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.css" rel="stylesheet">
 
   <script type="text/javascript" src="/_ah/channel/jsapi"></script>
-  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=ru"></script>
+  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=ru&libraries=drawing"></script>"></script>
   <script type="text/javascript" src="http://www.google.com/jsapi"></script>
   <script type="text/javascript">
 	config.inits = [];
@@ -375,6 +375,7 @@
 	    <li><a href="#Tab_Config"><span class="ui-icon ui-icon-gear"></span>Настройка</a></li>
 	    <li><a href="#Tab_Help"><span class="ui-icon ui-icon-help"></span>Помощь</a></li>
 	  </ul>
+
 <div id="Tab_Map">
 	<div style="position: absolute; left: 0px; right: 0px; top: 0px; bottom: 0px; overflow: hidden;">
 	<div id="map"><div id="alert_container"></div></div>
@@ -406,6 +407,12 @@
 
 		<div id="zone_panel">
 			<ul id="map_zones_list"></ul>
+			<div id="panel">
+			      <div id="color-palette"></div>
+			      <div>
+			        <button id="delete-button">Delete Selected Shape</button>
+			      </div>
+			</div>
 		</div>
 
 		<div id="dir_panel">
@@ -832,3 +839,4 @@
 	</div>
 </body>
 </html>
+

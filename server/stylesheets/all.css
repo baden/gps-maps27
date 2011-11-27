@@ -837,6 +837,19 @@ div#alarm_popup {
 	padding: 4px 4px 4px 4px;
 	z-index:1002;
 }
+
+#color-palette {
+        clear: both;
+      }
+
+      .color-button {
+        width: 14px;
+        height: 14px;
+        font-size: 0;
+        margin: 2px;
+        float: left;
+        cursor: pointer;
+      }
 /* reports.css */
 div#map_preview {
 	position: absolute;

@@ -125,12 +125,16 @@ class Info(BaseApi):
 class Sys_SecureList(BaseApi):
 	def parcer(self):
 		from google.appengine.api import users
+		from google.appengine.ext.db.metadata import Namespace
+
 		user = users.get_current_user()
 
 		sysinfos = []
 		systems = DBSystem.all(keys_only=True).fetch(1000)
 		for rec in systems:
 			sysinfos.append({'imei': rec.name(), 'key': "%s" % rec, })
+
+		name_spaces = [str(p.namespace_name) for p in db.GqlQuery("SELECT * FROM __namespace__").fetch(100)]
 
 		return {
 			'answer': 'ok',
@@ -140,7 +144,8 @@ class Sys_SecureList(BaseApi):
 			'user': {
 				'user_id': user.user_id(),
 				'admin': users.is_current_user_admin(),
-			}
+			},
+			'name_spaces': name_spaces
 		}
 
 # --------------------------------------------------------------------------------
@@ -1536,25 +1541,12 @@ class Zone_Add(BaseApi):
 
 		#points = self.request.get("points", None)
 		ztype = self.request.get('type', 'polygon')
-		if ztype == 'polygon':
-			ztype = DBZone._POLYGON
-		elif ztype == 'circle':
-			ztype = BDZone._CIRCLE
-		elif ztype == 'bound':
-			ztype = BDZone._BOUND
-		else:
-			ztype = DBZone._POLYGON
 		points = json.loads(self.request.get('points', '[]'))
+		zkey = self.request.get('zkey', None)
 
-		zkey = DBZone.addZone(ztype, [db.GeoPt(lat=p[0], lon=p[1]) for p in points])
-		"""
-		zone = DBZone(ztype=ztype)
-		zpoints = []
-		for p in points:
-			zpoints.append(db.GeoPt(lat=p[0], lon=p[1]))
-		zone.points = zpoints
-		zone.put()
-		"""
+		#zkey = DBZone.addZone(ztype, [db.GeoPt(lat=p[0], lon=p[1]) for p in points])
+		zkey = DBZone.addZone(ztype, points, zkey=zkey)
+
 		return {
 			"answer": "ok",
 			"points": points,
@@ -1571,13 +1563,20 @@ class Zone_Get(BaseApi):
 		skey = self.request.get("skey", None)
 		
 		zones = DBZone.getZones().fetch(100)	#DBZone.all().fetch(1000)
-		zlist = []
+		zlist = {}
 		for zone in zones:
-			zlist.append({
+			zlist[str(zone.key())] ={
 				'zkey': str(zone.key()),
-				'type': zone.ztype,
+				'type': zone.ztype_name,
 				'points': [(p.lat, p.lon) for p in zone.points],
-			})
+				'radius': zone.radius,
+				'owner': zone.owner.nickname(),
+				'private': zone.private,
+				'options': zone.options,
+				'name': zone.name,
+				'address': zone.address
+			}
+
 
 		if zones:
 			return {

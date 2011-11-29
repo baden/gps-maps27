@@ -473,14 +473,14 @@ div#alarm_popup {
 }
 
 #color-palette {
-        clear: both;
-      }
+	clear: both;
+}
 
-      .color-button {
-        width: 14px;
-        height: 14px;
-        font-size: 0;
-        margin: 2px;
-        float: left;
-        cursor: pointer;
-      }
+.color-button {
+	width: 14px;
+	height: 14px;
+	font-size: 0;
+	margin: 2px;
+	float: left;
+	cursor: pointer;
+}

@@ -119,7 +119,7 @@ MyMarker.prototype.Info = function() {
 }
 
 MyMarker.prototype.onAdd = function() {
-	log('MyMarker.prototype.onAdd: This:', this);
+	//log('MyMarker.prototype.onAdd: This:', this);
 
 	// Note: an overlay's receipt of onAdd() indicates that
 	// the map's panes are now available for attaching the overlay to the map via the DOM.
@@ -235,7 +235,7 @@ MyMarker.prototype.onRemove = function() {
 }
 
 MyMarker.prototype.draw = function() {
-	log('MyMarker.prototype.draw: This:', this);
+	//log('MyMarker.prototype.draw: This:', this);
 /*
 	if(this.point){
 		// Size and position the overlay. We use a southwest and northeast

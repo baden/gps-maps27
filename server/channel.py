@@ -33,7 +33,8 @@ class DBUpdater(db.Model):
 
 def register(uuid):
 	user_id = uuid.split('_')[0]
-	akey = db.Key.from_path('DBAccounts', user_id)
+	#akey = db.Key.from_path('DBAccounts', user_id)
+	akey = DBAccounts.key_from_user_id(user_id)
 	logging.info('== Generate channel-token for account: %s, uuid=%s' % (akey, uuid))
 	if not DISABLE_CHANNEL:
 	    token = channel.create_channel(uuid)
@@ -76,6 +77,7 @@ def handle_disconnection(client_id):
 	#db.delete(subscriptions)
 
 from api import BaseApi
+
 class Chanel_GetToken(BaseApi):
 	#requred = ('account')
 	def parcer(self):
@@ -91,7 +93,7 @@ class Chanel_GetToken(BaseApi):
 
 		return {
 			'answer': 'ok',
-			'akey': '%s' % db.Key.from_path('DBAccounts', uuid.split('_')[0]),
+			'akey': '%s' % DBAccounts.key_from_user_id(uuid.split('_')[0]),	#db.Key.from_path('DBAccounts', uuid.split('_')[0]),
 			'uuid': uuid,
 			'token': token
 		}
@@ -188,7 +190,8 @@ class MessagePost(webapp2.RequestHandler):
 		for uuid in uuids:
 			_log = '\n\nMessages for: %s\n' % uuid
 			# Сообщения по "akey" (асинхронный запрос, мелочь а даст немного экономии)
-			akey = db.Key.from_path('DBAccounts', uuid.split('_')[0])
+			#akey = db.Key.from_path('DBAccounts', uuid.split('_')[0])
+			akey = DBAccounts.key_from_user_id(uuid.split('_')[0])
 			#account_future = DBAccounts.get_async(akey)
 			account_future = db.get_async(akey)
 

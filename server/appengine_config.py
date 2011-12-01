@@ -3,7 +3,7 @@
 import logging
 import os
 import Cookie
-from google.appengine.api import namespace_manager
+#from google.appengine.api import namespace_manager
 import re
 from google.appengine.ext.appstats import recording
 
@@ -17,7 +17,7 @@ logging.info('Loading %s from %s', __name__, __file__)
 #    app = recording.appstats_wsgi_middleware(app)
 #    return app
 
-os.environ['ROOT_NAMESPACE'] = 'point'
+#os.environ['ROOT_NAMESPACE'] = 'point'
 
 appstats_TZOFFSET = -2*3600
 appstats_DUMP_LEVEL = -1
@@ -41,6 +41,7 @@ def appstats_normalize_path(path):
     return re.sub(r'\d+', 'X', path)
 """
 
+'''
 _USE_SERVER_NAME = 0
 _USE_GOOGLE_APPS_DOMAIN = 1
 _USE_COOKIE = 2
@@ -74,3 +75,4 @@ def namespace_manager_default_namespace_for_request():
 
   return name
 
+'''

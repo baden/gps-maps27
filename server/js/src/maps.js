@@ -584,7 +584,7 @@ var CreateMap = function () {
 	//	console.log("Map: clicked.");
 	//});
 
-	log('create MyMarker');
+	//log('create MyMarker');
 	ruler1 = new MyMarker(map);
 
 	var input = document.getElementById('input_map_address');
@@ -979,7 +979,7 @@ $(document).ready(function() {
 	});
 
 	GetLastPositions();
-	UpdateDayList(config.skey);
+	if(config.skey)	UpdateDayList(config.skey);
 
 	var list = $('ul#map_ul_sys');
 

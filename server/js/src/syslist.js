@@ -13,7 +13,7 @@ function SysList(){
 	var me = this;
 	lists_count += 1;
 	this.listnum = lists_count;
-	log('SysList: init', lists_count, this.listnum);
+	//log('SysList: init', lists_count, this.listnum);
 	
 	$(document).ready(function() {
 		me.Rebuild();
@@ -21,7 +21,7 @@ function SysList(){
 }
 
 SysList.prototype.Rebuild = function(){
-	log('SysList: rebuild', this, lists_count, this.listnum);
+	//log('SysList: rebuild', this, lists_count, this.listnum);
 	this.start();
 	for(var i in window.config.account.systems){
 		var s = window.config.account.systems[i];
@@ -31,7 +31,7 @@ SysList.prototype.Rebuild = function(){
 }
 
 SysList.prototype.start = function(){
-	log('SysList: start');
+	//log('SysList: start');
 }
 
 SysList.prototype.addItem = function(){
@@ -39,7 +39,7 @@ SysList.prototype.addItem = function(){
 }
 
 SysList.prototype.finish = function(){
-	log('SysList: finish');
+	//log('SysList: finish');
 }
 
 window['SysList'] = SysList;

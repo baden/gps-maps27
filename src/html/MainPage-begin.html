@@ -92,7 +92,7 @@
   </script-->
 
   <script>
-	if(config.account.systems.length == 0) config.skey = ''; else config.skey = config.account.systems[0].skey;
+	if(config.account.systems.length == 0) config.skey = null; else config.skey = config.account.systems[0].skey;
 
 	config.sysbykey = {};
 	for(var i in config.account.systems){
@@ -108,7 +108,7 @@
 	config.ui = config.account.config;
 	config.akey = config.account.key;
 
-	console.log(config);
+	console.log('Init config:', config);
 
 	// Установим chanel-соединение
 	// Получим токен для установки соединения
@@ -153,7 +153,7 @@
 	});
 
 	config.inits.push(function(){
-		log('== First init', config);
+		log('== First init (TBD!)', config);
 	});
 	
 	$(document).ready(function() {
@@ -168,7 +168,7 @@
 			show: function(){
 				var index = $(this).tabs( "option", "selected" );
 				//log('TAB: show: ', index, $(this));
-				log('config:', config);
+				//log('config:', config);
 				config.tab = index;
 				if(('tabs' in config.updater) && (config.updater.tabs[index])) config.updater.tabs[index]();
 			},

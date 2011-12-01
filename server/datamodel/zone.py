@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from google.appengine.ext import db
+from namespace import at_local, private
 
 ZTYPE_TO_INT = {
 	'polygon': 1,
@@ -15,6 +16,8 @@ INT_TO_ZTYPE = {
 	3: 'rectangle',
 	4: 'polyline'
 }
+
+DEFAULT_COLLECT = 'DefaultCollect'
 
 # Гео-зоны
 # parent (ancestor) является администратором зоны (DBAccounts)
@@ -37,8 +40,9 @@ class DBZone(db.Model):
 	_POLYLINE = 4
 
 	@classmethod
+	@at_local
 	def addZone(cls, ztype, raw_points, zkey=None, bounds=[[0.0, 0.0], [0.0, 0.0]]):
-		collect_key = db.Key.from_path('DefaultCollect', 'DBZone')
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
 		try:
 			ztype = ZTYPE_TO_INT[ztype]
 		except:
@@ -68,10 +72,11 @@ class DBZone(db.Model):
 			return db.run_in_transaction(txn, zkey)
 
 	# db.GeoPt(lat=p[0], lon=p[1])
+	#@at_local
 	@classmethod
 	def getZones(cls, **kwds):
-		collect_key = db.Key.from_path('DefaultCollect', 'DBZone')
-		return cls.all().ancestor(collect_key)
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__, namespace=private())
+		return cls.all(namespace=private()).ancestor(collect_key)
 
 	@property
 	def ztype_name(self):
@@ -82,7 +87,6 @@ class DBZone(db.Model):
 		return _ztype_name
 
 
-	#collect_key = db.Key.from_path('DefaultCollect', 'DBZone')
 
 # Записи связи зон с объектами
 # parent (ancestor) указывает на объект (DBSystem)

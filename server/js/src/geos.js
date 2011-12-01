@@ -257,7 +257,7 @@ $(document).ready(function() {
 		}
 	});
 
-	genReport();
+	if(config.skey) genReport();
 
 	$('#geos_viewtype').buttonset({
 	}).change(function(){

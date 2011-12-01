@@ -1,9 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 
 from google.appengine.ext import db
-from google.appengine.api import namespace_manager
-
-ROOT_NAMESPACE = 'point'
 
 """
 	События не привязанные точно ко времени (включения/выключения, получение/выполнение SMS-команд и т.д.)

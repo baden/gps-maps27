@@ -10,10 +10,6 @@ var document = window.document;
 window.config.zones = window.config.zones || {};
 var zones = window.config.zones;
 
-/*
-	Проба гугловского редактора зон
-*/
-
 var once_map_style = true;
 var drawingManager;
 var selectedShape;
@@ -30,6 +26,7 @@ function clearSelection() {
 		}
 
 		selectedShape = null;
+		cancelFromLocal();
 	}
 }
 
@@ -42,8 +39,10 @@ function setSelection(shape) {
 
 function deleteSelectedShape() {
 	if (selectedShape) {
-		selectedShape.setMap(null);
-		log('TBD! Remove shape from server');
+		//selectedShape.setMap(null);
+		//log('TBD! Remove shape from server', selectedShape.zkey);
+		deleteZone(selectedShape.zkey);
+		cancelFromLocal();
 	}
 }
 
@@ -106,57 +105,113 @@ function buildColorPalette() {
 	selectColor(colors[0]);
 }
 
-
-/*
-	Проба гугловского редактора зон. Конец.
-*/
-
-
+function deleteZone(zkey) {
+	var zone = zones[zkey];
+	selectedShape = null;	// Подавление паразитного сохранения
+	$.getJSON('/api/zone/del', {zkey:zkey}, function (data) {
+		log('ok deleted Geo-zone.', data);
+	});
+	zone.overlay.setMap(null);
+	$('#map_zones_list li[zkey=' + zkey + ']').remove();
+	delete zone.overlay;
+	zone = null;
+	delete zones[zkey];
+	cancelFromLocal();
+}
 
 var update_zone_list = function(){
+	var zone_type_names = {'polygon': 'Фигура', 'polyline': 'Линия', 'circle': 'Окружность', 'rectangle': 'Прямоугольник'};
 	$('#map_zones_list').empty();
 	for(var i in zones){
 		var zone = zones[i];
-			if(zone.type == 'polygon'){
-			$('#map_zones_list').append('<li zkey="' + i + '"> Полигон, вершин: ' + zone.overlay.getPath().length + '<span title="Удалить зону." style="display: inline-block;float:right;" class="ui-icon ui-icon-close" foo="del"></li>');
-		}
+		$('#map_zones_list').append('<li zkey="' + i + '"> '+(zone_type_names[zone.type]||'<Неподдерживаемый тип>')+'<span title="Удалить зону." class="ui-icon ui-icon-close" foo="del"></li>');
 	}
 	$('#map_zones_list li').click(function(ev){
 		var zkey = $(this).attr('zkey');
 		var zone = zones[zkey];
-		if(zone.type == 'polygon') {
-			var bounds = new google.maps.LatLngBounds();
-			var path = zone.overlay.getPath();
-			log('path', path);
-			for(var i=0; i<path.length; i++){
-				bounds.extend(path.getAt(i));
-			}
-			log('Show bounds', bounds);
-			window.config.map.fitBounds(bounds);
-		}
+		//var bounds = getBounds(zone.overlay);
+		var bounds = zone.overlay.getBounds();
+		//log('Show bounds', bounds.toString());
+		window.config.map.fitBounds(bounds);
+		setSelection(zone.overlay);
 	}).mouseover(function(ev){
 		var zkey = $(this).attr('zkey');
 		var zone = zones[zkey];
-		if(zone.type == 'polygon') zone.overlay.setOptions({strokeWeight: 4});
+		zone.overlay.setOptions({strokeWeight: 4});
 	}).mouseout(function(ev){
 		var zkey = $(this).attr('zkey');
 		var zone = zones[zkey];
-		if(zone.type == 'polygon') zone.overlay.setOptions({strokeWeight: 1});
+		if(zone.type == 'polyline') {
+			zone.overlay.setOptions({strokeWeight: 2});
+		} else {
+			zone.overlay.setOptions({strokeWeight: 1});
+		}
 	});
 	$('#map_zones_list li span[foo=del]').click(function(ev){
 		var zkey = $(this).parent().attr('zkey');
 		log('Delete Geo-zone ', zkey);
-		$.getJSON('/api/zone/del', {zkey:zkey}, function (data) {
-			log('ok deleted Geo-zone ', data);
-			var zone = zones[zkey];
-			if(zone.type == 'polygon') zone.overlay.setMap(null);
-			$('#map_zones_list li[zkey=' + zkey + ']').remove();
-			delete zone.overlay;
-			zone = null;
-			delete zones[zkey];
-		});
-
+		deleteZone(zkey);
 	});
+}
+
+/* Сохраняет резутьтат редактирования на локальном компьютере на случай непредвиденного закрытия */
+function saveToLocal(overlay) {
+	var data;
+	//var overlay = config.zones[zkey].overlay;
+	switch(overlay.type){
+		case 'polygon':
+		case 'polyline':
+			//data = overlay.getPath().getArray().map(function(el){return [el.lat(), el.lng()];});
+			data = overlay.getPath().getArray().map(function(el){return el.toArray();});
+			break;
+		case 'circle':
+			data = {center: overlay.getCenter().toArray(), radius: overlay.getRadius()};
+			break;
+		case 'rectangle':
+			data = {bounds: overlay.getBounds().toArray()};
+			break;
+	}
+	var save = {zkey: overlay.zkey, type: overlay.type, data: data};
+	localStorage.setItem('zones.last.edit', JSON.stringify(save, '', '  '));
+}
+
+/* Восстанавливает последнее редактирование из локального хранилища */
+function restoreFromLocal() {
+	var data = localStorage.getItem('zones.last.edit');
+	//localStorage.removeItem('zones.last.edit');
+	if(data){
+		data = JSON.parse(data);
+		log('-- Restore editing from local storage', data);
+		if(data.zkey in config.zones){
+			var overlay = config.zones[data.zkey].overlay;
+			zones_show();
+			zones_activate();
+			setSelection(overlay);
+			switch(config.zones[data.zkey].type){
+				case 'polygon':
+				case 'polyline':
+					var path = overlay.getPath();
+					path.clear();
+					data.data.map(function(el){
+						path.push(new google.maps.LatLng(el[0], el[1]));
+					});
+					break;
+				case 'circle':
+					overlay.setCenter(new google.maps.LatLng(data.data.center[0], data.data.center[1]));
+					overlay.setRadius(data.data.radius);
+					break;
+				case 'rectangle':
+					overlay.setBounds(new google.maps.LatLngBounds(new google.maps.LatLng(data.data.bounds[0][0], data.data.bounds[0][1]), new google.maps.LatLng(data.data.bounds[1][0], data.data.bounds[1][1])));
+					break;
+			}
+		}
+	}
+}
+
+/* Отменяет сохранение */
+function cancelFromLocal() {
+	log('-- cancelFromLocal()');
+	localStorage.removeItem('zones.last.edit');
 }
 
 function configEdit(newShape){
@@ -169,6 +224,7 @@ function configEdit(newShape){
 			//log('Polygon event: insert_at', newShape, index);
 			//log('TBD! Save new point is', vertices.getAt(index).toString());
 			newShape.dirty = true;	// При снятии выделения необходимо сохранить зону.
+			saveToLocal(newShape);
 			//SaveZoneToServer(newShape);
 		});
 		google.maps.event.addListener(vertices, 'remove_at', function(index, el) {
@@ -176,12 +232,14 @@ function configEdit(newShape){
 			//log('TBD! Remove new point at index', index);
 			//SaveZoneToServer(newShape);
 			newShape.dirty = true;	// При снятии выделения необходимо сохранить зону.
+			saveToLocal(newShape);
 		});
 		google.maps.event.addListener(vertices, 'set_at', function(index, el) {
 			//log('Polygon event: set_at', newShape, index, el);
 			//log('TBD! Save new point ', el.toString(), 'at index', index);
 			//SaveZoneToServer(newShape);
 			newShape.dirty = true;	// При снятии выделения необходимо сохранить зону.
+			saveToLocal(newShape);
 		});
 	} else if(newShape.type == 'circle'){
 		google.maps.event.addListener(newShape, 'radius_changed', function() {
@@ -189,12 +247,14 @@ function configEdit(newShape){
 			//log('TBD! Save new radius is', newShape.getRadius());
 			//SaveZoneToServer(newShape);
 			newShape.dirty = true;	// При снятии выделения необходимо сохранить зону.
+			saveToLocal(newShape);
 		});
 		google.maps.event.addListener(newShape, 'center_changed', function() {
 			//log('Circle event: center_changed', newShape);
 			//log('TBD! Save new center is', newShape.getCenter().toString());
 			//SaveZoneToServer(newShape);
 			newShape.dirty = true;	// При снятии выделения необходимо сохранить зону.
+			saveToLocal(newShape);
 		});
 	} else if(newShape.type == 'rectangle'){
 		google.maps.event.addListener(newShape, 'bounds_changed', function() {
@@ -202,6 +262,7 @@ function configEdit(newShape){
 			//log('TBD! Save new bounds is', newShape.getBounds().toString());
 			//SaveZoneToServer(newShape);
 			newShape.dirty = true;	// При снятии выделения необходимо сохранить зону.
+			saveToLocal(newShape);
 		});
 	}
 	//log('configEdit', newShape);
@@ -224,17 +285,18 @@ function LoadZones() {
 					var path = [];
 					for(var j in zone.points) path.push(new google.maps.LatLng(zone.points[j][0], zone.points[j][1]));
 					newShape = new google.maps.Polygon({
+						//map: window.config.map,
 						path: path,
 						clickable: false,
 						strokeColor: "#FF0000",
 						strokeOpacity: 0.8,
 						strokeWeight: 1,
 						fillColor: "#FF0000",
-						fillOpacity: 0.35,
-						map: window.config.map
+						fillOpacity: 0.35
 					});
 				} else if(zone.type == 'circle'){
 					newShape = new google.maps.Circle({
+						//map: window.config.map,
 						center: new google.maps.LatLng(zone.points[0][0], zone.points[0][1]),
 						radius: zone.radius,
 						clickable: false,
@@ -242,32 +304,31 @@ function LoadZones() {
 						strokeOpacity: 0.8,
 						strokeWeight: 1,
 						fillColor: "#FF0000",
-						fillOpacity: 0.35,
-						map: window.config.map
+						fillOpacity: 0.35
 					});
 				} else if(zone.type == 'rectangle'){
 					newShape = new google.maps.Rectangle({
+						//map: window.config.map,
 						bounds: new google.maps.LatLngBounds(new google.maps.LatLng(zone.points[0][0], zone.points[0][1]), new google.maps.LatLng(zone.points[1][0], zone.points[1][1])),
 						clickable: false,
 						strokeColor: "#FF0000",
 						strokeOpacity: 0.8,
 						strokeWeight: 1,
 						fillColor: "#FF0000",
-						fillOpacity: 0.35,
-						map: window.config.map
+						fillOpacity: 0.35
 					});
 				} else if(zone.type == 'polyline'){
 					var path = [];
 					for(var j in zone.points) path.push(new google.maps.LatLng(zone.points[j][0], zone.points[j][1]));
 					newShape = new google.maps.Polyline({
+						//map: window.config.map,
 						path: path,
 						clickable: false,
 						strokeColor: "#FF0000",
 						strokeOpacity: 0.8,
 						strokeWeight: 2,
 						fillColor: "#FF0000",
-						fillOpacity: 0.35,
-						map: window.config.map
+						fillOpacity: 0.35
 					});
 				} else continue;
 
@@ -277,7 +338,8 @@ function LoadZones() {
 				newShape['type'] = zone.type;
 				configEdit(newShape);
 			}
-			//update_zone_list();
+			update_zone_list();
+			restoreFromLocal();
 		}
 	});
 }
@@ -324,12 +386,22 @@ function SaveZoneToServer(overlay) {
 	$.ajax({
   		url: '/api/zone/add',
 		dataType: 'json',
-		data: {type: overlay.type, points: JSON.stringify(points), zkey: overlay.zkey},
+		data: {type: overlay.type, points: JSON.stringify(points), zkey: overlay.zkey, bounds: JSON.stringify(overlay.getBounds().toArray())},
 		type: 'post',
 		success: function(data){
 			if(data && data.answer == 'ok'){
 				log('Add polygon to zkey or modify it');
+				if(!overlay.zkey){
+					zones[data.zkey] = {};
+					zones[data.zkey]['overlay'] = overlay;
+					zones[data.zkey]['zkey'] = data.zkey;
+					zones[data.zkey]['type'] = overlay.type;
+					update_zone_list();
+					//newShape['zkey'] = zone.zkey;
+					//newShape['type'] = zone.type;
+				}
 				overlay.zkey = data.zkey;
+
 				// Нужно сохранить zkey созданного полигона.
 				//polygon['zkey'] = data.zkey;
 				//if(!('zones' in config)) config['zones'] = {};
@@ -341,7 +413,9 @@ function SaveZoneToServer(overlay) {
 }
 
 function ZoneKit() {
+	// TBD! Стоит переделать на отложенную загрузку зон только если пользователь активизировал отображение или редактор.
 	LoadZones();
+	//restoreFromLocal();
 
 /*
 	Проба гугловского редактора зон.
@@ -385,17 +459,18 @@ function ZoneKit() {
 			newShape.type = 'rectangle';
 		}
 		SaveZoneToServer(newShape);
-
-
+                
 		// Switch back to non-drawing mode after drawing a shape.
 		drawingManager.setDrawingMode(null);
 
+		configEdit(newShape);
+
 		// Add an event listener that selects the newly-drawn shape when the user
 		// mouses down on it.
-		newShape.type = e.type;
-		google.maps.event.addListener(newShape, 'click', function() {
-			setSelection(newShape);
-		});
+		//newShape.type = e.type;
+		//google.maps.event.addListener(newShape, 'click', function() {
+		//	setSelection(newShape);
+		//});
 		setSelection(newShape);
         });
 
@@ -418,102 +493,37 @@ function ZoneKit() {
 	google.maps.event.addDomListener(document.getElementById('delete-button'), 'click', deleteSelectedShape);
 
 	buildColorPalette();
+
 }
 
 var zone_showed = false;
 
+var zones_show = function(){
+	zone_showed = true;
+	$('#map_zone_show>span').css('background-color', 'lime');
+	for(var i in zones){
+		zones[i].overlay.setMap(window.config.map);
+	}
+}
+
+var zones_hide = function(){
+	zone_showed = false;
+	$('#map_zone_show>span').css('background-color', '');
+	for(var i in zones){
+		zones[i].overlay.setMap(null);
+	}
+}
+
 ZoneKit.prototype.Show = function(){
 	if(!zone_showed){
-		zone_showed = true;
-		$('#map_zone_show>span').css('background-color', 'lime');
-		for(var i in zones){
-			if(zones[i].type == 'polygon') zones[i].overlay.setMap(window.config.map);
-		}
+		zones_show();
 	} else {
-		zone_showed = false;
-		$('#map_zone_show>span').css('background-color', '');
-		for(var i in zones){
-			if(zones[i].type == 'polygon') zones[i].overlay.setMap(null);
-		}
+		zones_hide();
 	}
 	//update_zone_list();
 }
 
 var track_edit_mode = false;
-
-ZoneKit.prototype.AddPolygon = function(){
-	var polygon;
-	var events = {};
-
-	var start_add_zone = function (){
-		track_edit_mode = true;
-		$('#map_zone_add>span').css('background-color', 'lime');
-		message('Создавайте зону указывая на карте последовательность вершин многоугольника левой клавишей мыши. Завершение создания зоны - правая клавиша мыши.');
-	}
-	var stop_add_zone = function(){
-		track_edit_mode = false;
-		$('#map_zone_add>span').css('background-color', '');
-		google.maps.event.removeListener(events.click);
-		google.maps.event.removeListener(events.move);
-		var vertices = polygon.getPath();
-		vertices.pop();
-
-		var points = [];
-		for(var i=0; i<vertices.length; i++) {
-			var p = vertices.getAt(i)
-			points.push([p.lat(), p.lng()]);
-		}
-
-		$.ajax({
-	  		url: '/api/zone/add',
-			  dataType: 'json',
-			  data: {type: 'polygon', points: JSON.stringify(points)},
-			  type: 'post',
-			  success: function(data){
-				if(data && data.answer == 'ok'){
-					polygon['zkey'] = data.zkey;
-					if(!('zones' in config)) config['zones'] = {};
-					zones[data.zkey] = {type: 'polygon', polygon: polygon}
-					update_zone_list();
-				}
-			}
-		});
-	}
-
-	if(!track_edit_mode){
-		start_add_zone();
-		var init_path = [];
-
-		polygon = new google.maps.Polygon({
-			clickable: false,
-			strokeColor: "#FF0000",
-			strokeOpacity: 0.8,
-			strokeWeight: 1,
-			fillColor: "#FF0000",
-			fillOpacity: 0.35,
-			map: window.config.map
-		});
-
-		log('self', self);
-
-		events.click = google.maps.event.addListener(window.config.map, 'click', function(event){
-			var vertices = polygon.getPath();
-			vertices.push(event.latLng);
-
-			if(vertices.length == 1) vertices.push(event.latLng);
-		});
-
-		events.move = google.maps.event.addListener(window.config.map, 'mousemove', function(event){
-			var vertices = polygon.getPath();
-			if(vertices.length > 1) vertices.setAt(vertices.length-1, event.latLng);
-		});
-
-		google.maps.event.addListenerOnce(window.config.map, 'rightclick', stop_add_zone);
-
-	} else {
-		stop_add_zone();
-	}
-}
 
 var zones_activate = function(){
 	for(var i in zones){
@@ -549,16 +559,20 @@ var zones_deactivate = function(){
 }
 
 ZoneKit.prototype.Edit = function(){
+	var self = this;
 	if($('#zone_panel').css('display') == 'none'){
 		$('#map_zone_edit>span').css('background-color', 'lime');
 
 		$('#zone_panel').show('fast');
+		$('#zone_edit_panel').show();
+		zones_show();
 		zones_activate();
 		drawingManager.setOptions({drawingControl: true});
 
 	} else {
 		$('#map_zone_edit>span').css('background-color', '');
 		$('#zone_panel').hide('fast');
+		$('#zone_edit_panel').hide();
 		zones_deactivate();
 		drawingManager.setOptions({drawingControl: false});
 	}
@@ -566,4 +580,8 @@ ZoneKit.prototype.Edit = function(){
 
 window['ZoneKit'] = ZoneKit;
 
+//$(window).unload(function(){log("Don't forget save edited zones.");});
+//$(window).unload( function () { clearSelection(); } );	// Сохранение результатов редактирования при выходе. Хрен знает получится или нет.
+
 })(window, jQuery);
+

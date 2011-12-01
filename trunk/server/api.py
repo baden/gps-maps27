@@ -21,7 +21,8 @@ API_VERSION = 1.0
 SERVER_NAME = os.environ['SERVER_NAME']
 MAXPOINTS = 100000
 
-logging.getLogger().setLevel(logging.DEBUG)
+#logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.ERROR)
 
 API_VERSION = 1.27
 
@@ -129,8 +130,37 @@ class Sys_SecureList(BaseApi):
 
 		user = users.get_current_user()
 
+		key = self.request.get("key", None)
+		if key is not None:
+			key = db.Key(key)
+			parent = key.parent()
+			if parent is not None:
+				parent = {
+					'key': str(parent),
+					'app': parent.app(),
+					'has_id_or_name': parent.has_id_or_name(),
+					'id': parent.id(),
+					'id_or_name': parent.id_or_name(),
+					'kind': parent.kind(),
+					'name': parent.name(),
+					'namespace': parent.namespace(),
+					'parent': str(parent.parent())
+				}
+			key = {
+				'key': str(key),
+				'app': key.app(),
+				'has_id_or_name': key.has_id_or_name(),
+				'id': key.id(),
+				'id_or_name': key.id_or_name(),
+				'kind': key.kind(),
+				'name': key.name(),
+				'namespace': key.namespace(),
+				'parent': parent
+			}
+
 		sysinfos = []
-		systems = DBSystem.all(keys_only=True).fetch(1000)
+		#systems = DBSystem.all(keys_only=True).fetch(1000)
+		systems = DBSystem.get_all(keys_only=True).fetch(1000)
 		for rec in systems:
 			sysinfos.append({'imei': rec.name(), 'key': "%s" % rec, })
 
@@ -140,6 +170,7 @@ class Sys_SecureList(BaseApi):
 			'answer': 'ok',
 			'info': {
 				'systems': sysinfos,
+				'key': key,
 			},
 			'user': {
 				'user_id': user.user_id(),
@@ -1263,6 +1294,7 @@ class Sys_Sort(BaseApi):
 
 class Sys_Desc(BaseApi):
 	requred = ('account', 'imei')
+	#requred = ('account', 'skey')
 	def parcer(self, **argw):
 		from channel import inform
 
@@ -1543,9 +1575,10 @@ class Zone_Add(BaseApi):
 		ztype = self.request.get('type', 'polygon')
 		points = json.loads(self.request.get('points', '[]'))
 		zkey = self.request.get('zkey', None)
+		bounds = json.loads(self.request.get('bounds', '[[0.0,0.0],[0.0,0.0]'))
 
 		#zkey = DBZone.addZone(ztype, [db.GeoPt(lat=p[0], lon=p[1]) for p in points])
-		zkey = DBZone.addZone(ztype, points, zkey=zkey)
+		zkey = DBZone.addZone(ztype, points, zkey=zkey, bounds=bounds)
 
 		return {
 			"answer": "ok",

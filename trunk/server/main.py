@@ -16,6 +16,8 @@ from datamodel.accounts import DBAccounts
 from datamodel.system import DBSystem
 from google.appengine.api import namespace_manager
 
+logging.getLogger().setLevel(logging.ERROR)
+
 SERVER_NAME = os.environ['SERVER_NAME']
 VERSION = '0'
 if 'CURRENT_VERSION_ID' in os.environ: VERSION = os.environ['CURRENT_VERSION_ID'] + '/2'

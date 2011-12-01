@@ -42,11 +42,18 @@ class DBAccounts(db.Model):
 		return skey in systems_key
 
 	def system_by_imei(self, imei):
-		skey = db.Key.from_path('DBSystem', imei)
+		skey = DBSystem.imei2key(imei)
 		if skey not in self.systems_key:
 			return None
 		return db.get(skey)
-	
+
+	def system_by_skey(self, skey):
+		if skey not in self.systems_key:
+			return None
+		return db.get(skey)
+
+
+	"""
 	def RegisterSystem(self, imei):
 		system = DBSystem.get_by_key_name(imei)
 		if system is None:
@@ -56,9 +63,9 @@ class DBAccounts(db.Model):
 		if system.key() not in self.systems_key:
 			self.systems_key.append(system.key())
 			self.put()
-
+	"""
 	def AddSystem(self, imei):
-		system = DBSystem.get_by_key_name(imei)
+		system = DBSystem.get_by_imei(imei)
 		if system is None:
 			return 0
 
@@ -69,7 +76,7 @@ class DBAccounts(db.Model):
 		return 2
 
 	def DelSystem(self, imei):
-		system = DBSystem.get_by_key_name(imei)
+		system = DBSystem.get_by_imei(imei)
 		if system is None:
 			return 0
 

@@ -5,6 +5,8 @@ import zipfile
 from datetime import datetime, timedelta
 import webapp2
 
+logging.getLogger().setLevel(logging.ERROR)
+
 TYPES = {
 	'js': 'application/x-javascript',
 	'html': 'text/html; charset=utf-8',

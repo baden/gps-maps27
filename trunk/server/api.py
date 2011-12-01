@@ -43,7 +43,7 @@ class BaseApi(webapp2.RequestHandler):
 			if not users.is_current_user_admin():
 				return {'answer': 'no', 'result': 'Admin rights required.'}
 
-		if 'account' in self.requred:
+		if ('account' in self.requred) or ('skey' in self.requred):
 			try:
 				self.account = DBAccounts.get(self.akey)
 			except db.datastore_errors.BadKeyError, e:
@@ -61,6 +61,9 @@ class BaseApi(webapp2.RequestHandler):
 				self.skey = db.Key(skey)
 			except db.datastore_errors.BadKeyError, e:
 				return {'answer': 'no', 'reason': 'skey key error', 'comments': '%s' % e}
+			if self.skey not in self.account.systems_key:
+			#if self.account.has_skey(self.skey):
+				return {'answer': 'no', 'reason': 'System skey is not yours.'}
 
 		if 'imei' in self.requred:
 			self.imei = self.request.get('imei', None)
@@ -160,7 +163,7 @@ class Sys_SecureList(BaseApi):
 
 		sysinfos = []
 		#systems = DBSystem.all(keys_only=True).fetch(1000)
-		systems = DBSystem.get_all(keys_only=True).fetch(1000)
+		systems = DBSystem.get_all(keys_only=True) #.fetch(1000)
 		for rec in systems:
 			sysinfos.append({'imei': rec.name(), 'key': "%s" % rec, })
 
@@ -443,41 +446,43 @@ class DebugGeo(webapp2.RequestHandler):
 
 		self.response.out.write("OK")
 
+class Geo_Task_Del(webapp2.RequestHandler):
+	def get(self):
+		skey = db.Key(self.request.get("skey"))
+
+		#logging.info('API: /api/geo/del: call task');
+		dtto = datetime.strptime(self.request.get("to"), "%y%m%d%H%M%S")
+		DBGeo.DeleteTo(skey, dtto)
+
+
+		#logging.info('API: /api/geo/del: delete %d records' % len(qu));
+
+		#return {'answer': 'ok', 'result': 'End Task'}
+
+		#if len(qu) < 200:
+		#	logging.info('API: /api/geo/del: finish task');
+		#	return {
+		#		'answer': 'ok',
+		#		'result': 'continue task for delete',
+		#		'dateto': str(dtto),
+		#		'count': len(qu)
+		#	}
+
 class Geo_Del(BaseApi):
-	requred = ('imei')
+	requred = ('admin', 'skey')
 	def parcer(self, **argw):
+		#logging.info('API: /api/geo/del');
+		#system = DBSystem.get_by_imei(self.imei)
+		#system = DBSystem.get(self.skey)
+		#if system is None:
+		#	logging.info('API: /api/geo/del: no sys');
+		#	return {
+		#		'answer': 'error',
+		#		'result': 'system not found (IMEI:%s)' % self.skey.name(),
+		#	}
 
-		logging.info('API: /api/geo/del');
-
-		system = DBSystem.get_by_imei(self.imei)
-		if system is None:
-			logging.info('API: /api/geo/del: no sys');
-			return {
-				'answer': 'error',
-				'result': 'system not found (IMEI:%s)' % self.imei,
-			}
-
-		if self.request.get('task', '') == 'yes':
-			logging.info('API: /api/geo/del: call task');
-			dtto = datetime.strptime(self.request.get("to"), "%y%m%d%H%M%S")
-			qu = DBGeo.all(keys_only=True).filter('date <', dtto).order('date').ancestor(system).fetch(200)
-			db.delete(qu)
-
-			logging.info('API: /api/geo/del: delete %d records' % len(qu));
-
-			#return {'answer': 'ok', 'result': 'End Task'}
-
-			if len(qu) < 200:
-				logging.info('API: /api/geo/del: finish task');
-				return {
-					'answer': 'ok',
-					'result': 'continue task for delete',
-					'dateto': str(dtto),
-					'count': len(qu)
-				}
-
-		logging.info('API: /api/geo/del: create task');
-		url = "/api/geo/del?task=yes&imei=%s&to=%s" % (self.imei, self.request.get('to',''))
+		logging.info('API: /api/geo/taskdel: create task');
+		url = "/api/geo/taskdel?skey=%s&to=%s" % (self.skey, self.request.get('to',''))
 		countdown=0
 		taskqueue.add(url = url, method="GET", countdown=countdown)
 
@@ -1229,15 +1234,15 @@ class Sys_Add(BaseApi):
 		#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
 		send_message({'msg': 'change_slist', 'data':{'type': 'Adding'}}, akeys=[self.akey])
 
-		return {'answer': 'yes', 'result': 'added'}
+		return {'answer': 'yes', 'result': 'added', 'skey': DBSystem.imei2key(self.imei)}
 
 class Sys_Del(BaseApi):
-	requred = ('account', 'imei')
+	requred = ('account', 'skey')
 	def parcer(self, **argw):
 		from channel import send_message
-		res = self.account.DelSystem(self.imei)
+		res = self.account.DelSystem(self.skey)
 		if res == 0:
-			return {'answer': 'no', 'result': 'not found'}
+			return {'answer': 'no', 'result': 'not found'}		# Этот ответ больше не поддерживается
 		elif res == 2:
 			return {'answer': 'no', 'result': 'already'}
 		#inform_account('change_slist', self.account, {'type': 'Deleting'})
@@ -1245,7 +1250,7 @@ class Sys_Del(BaseApi):
 		return {'answer': 'yes', 'result': 'deleted'}
 
 class Sys_Sort(BaseApi):
-	requred = ('account', 'imei')
+	requred = ('account', 'skey')
 	def parcer(self, **argw):
 		from channel import send_message
 		index = self.request.get('index', None)
@@ -1253,48 +1258,38 @@ class Sys_Sort(BaseApi):
 			return {'result': 'no', 'reason': 'index not defined'}
 		index = int(index)
 
-		systems = self.account.systems
-		slist = [s.imei for s in systems]
-		if self.imei not in slist:
-			return {'result': 'no', 'reason': 'unknown system imei'}
+		#systems = self.account.systems
+		#slist = [s.imei for s in systems]
+		#if self.imei not in slist:
+		#	return {'result': 'no', 'reason': 'unknown system imei'}
 
-		oldindex = slist.index(self.imei)
+		#oldindex = slist.index(self.imei)
+		oldindex = self.account.systems_key.index(self.skey)
 
-		logging.info(
-			'\n=====\n OLD index ' + str(oldindex) +
-			'\nIMEI_1: ' + db.get(self.account.systems_key[oldindex]).imei +
-			#'\nIMEI_2: ' + systems[oldindex].imei +
-			'\nIMEI_S: ' + self.imei
-		)
-		logging.info( '\n ==\n' + repr(systems))
-		logging.info( '\n ==\n' + repr(slist))
-		logging.info( '\n ==\n' + repr(self.account.systems_key))
+		#logging.info(
+		#	'\n=====\n OLD index ' + str(oldindex) +
+		#	'\nIMEI_1: ' + db.get(self.account.systems_key[oldindex]).imei +
+		#	'\nIMEI_S: ' + self.imei
+		#)
+		#logging.info( '\n ==\n' + repr(systems))
+		#logging.info( '\n ==\n' + repr(slist))
+		#logging.info( '\n ==\n' + repr(self.account.systems_key))
 
 		if oldindex != index:
-			#logging.info('\nchange ' + str(account.systems_key[oldindex]) + ' and ' + str(account.systems_key[index]))
-			#logging.info('change ' + db.get(account.systems_key[oldindex]).imei + ' and ' + db.get(account.systems_key[index]).imei)
-
 			goted = self.account.systems_key[oldindex]
 			del self.account.systems_key[oldindex]
 			self.account.systems_key.insert(index, goted)
-			logging.info('\n=====Change ' + str(goted) + '(' + db.get(goted).imei + ') to ' + str(index))
+			#logging.info('\n=====Change ' + str(goted) + '(' + db.get(goted).imei + ') to ' + str(index))
 
-			#account.systems_key[oldindex],account.systems_key[index] = account.systems_key[index],account.systems_key[oldindex]
 			self.account.put()
 
-		#res = account.AddSystem(imei)
-		#if res == 0:
-		#	return {'result': 'not found'}
-		#elif res == 2:
-		#	return {'result': 'already'}
-		#updater.inform_account('change_slist', self.account, {'type': 'Sorting'})
 		send_message({'msg': 'change_slist', 'data':{'type': 'Sorting'}}, akeys=[self.akey])
 
-		return {'result': 'sorted', 'desc': {'imei': self.imei, 'oldindex': oldindex, 'newindex': index}}
+		return {'result': 'sorted', 'desc': {'skey': str(self.skey), 'oldindex': oldindex, 'newindex': index}}
 
 class Sys_Desc(BaseApi):
-	requred = ('account', 'imei')
-	#requred = ('account', 'skey')
+	#requred = ('account', 'imei')
+	requred = ('account', 'skey')
 	def parcer(self, **argw):
 		from channel import inform
 
@@ -1302,24 +1297,25 @@ class Sys_Desc(BaseApi):
 		if desc is None:
 			return {'answer': 'no', 'reason': 'desc not defined'}
 
-		system = self.account.system_by_imei(self.imei)
+		#system = self.account.system_by_imei(self.imei)
+		#if
+		system = DBSystem.get(self.skey)
 		if system is None:
 			return {'answer': 'no', 'reason': 'nosys'}
 		system.desc = desc
 		system.put()
 		
-		inform('changedesc', system.key(), {
+		inform('changedesc', self.skey, {
 			'desc': desc
 		})
 
-		return {'result': 'ok', 'imei': system.imei, 'desc': system.desc}
+		return {'result': 'ok', 'skey': str(self.skey), 'imei': system.imei, 'desc': system.desc}
 
 class Sys_Config(BaseApi):
-	requred = ('imei')
+	requred = ('skey')
 	def parcer(self, **argw):
 		#from zlib import decompress
 		from datamodel.configs import DBConfig, DBDescription, DBNewConfig
-		#from datamodel import 
 
 		cmd = self.request.get('cmd', None)
 		if cmd is None:
@@ -1345,7 +1341,7 @@ class Sys_Config(BaseApi):
 					'private': description.private
 				}
 
-			config = DBConfig.get_by_imei(self.imei)
+			config = DBConfig.get_by_imei(self.skey.name())
 			configs = config.config
 			'''
 			if config.config:
@@ -1353,7 +1349,7 @@ class Sys_Config(BaseApi):
 			else:
 				configs = {}
 			'''
-			waitconfigs = DBNewConfig.get_by_imei(self.imei)
+			waitconfigs = DBNewConfig.get_by_imei(self.skey.name())
 			waitconfig = waitconfigs.config
 			'''
 			if waitconfigs.config:
@@ -1411,7 +1407,7 @@ class Sys_Config(BaseApi):
 			name = self.request.get('name', 'unknown')
 			value = self.request.get('value', '0')
 
-			waitconfigs = DBNewConfig.get_by_imei(self.imei)
+			waitconfigs = DBNewConfig.get_by_imei(self.skey.name())
 			waitconfig = waitconfigs.config
 			'''
 			if waitconfigs.config:
@@ -1422,16 +1418,16 @@ class Sys_Config(BaseApi):
 			waitconfig[name] = value
 			waitconfigs.config = waitconfig #compress(repr(waitconfig), 9)
 			waitconfigs.put()
-			memcache.set("update_config_%s" % self.imei, "yes")
+			memcache.set("update_config_%s" % self.skey.name(), "yes")
 
 			#inform.send_by_imei(self.imei, 'CONFIGUP')
 
 		# Отменить задание (действие аналогичное /params?cmd=check&imei=xxxxxxxx)
 		if cmd == 'cancel':
-			newconfigs = DBNewConfig().get_by_imei(self.imei)
+			newconfigs = DBNewConfig().get_by_imei(self.skey.name())
 			newconfigs.config = {}
 			newconfigs.put()
-			memcache.set("update_config_%s" % self.imei, "no")
+			memcache.set("update_config_%s" % self.skey.name(), "no")
 
 		return {'result': 'ok'}
 
@@ -1461,7 +1457,7 @@ class Logs_Get(BaseApi):
 
 		cursor = self.request.get("cursor", None)
 		
-		logsq = GPSLogs.all().ancestor(self.skey).order('-date').fetch(300)
+		logsq = GPSLogs.all().ancestor(self.skey).order('-date').fetch(100)
 
 		"""
 		logs = []
@@ -1670,22 +1666,22 @@ class AlarmConfirm(BaseApi):
 # Отмена получения тревожного сообщения
 #
 class AlarmCancel(BaseApi):
-	requred = ('imei')
+	requred = ('skey')
 	def parcer(self):
 		from alarm import Alarm
 		from inform import Informer
 		import urllib
 
-		Informer.add_by_imei(self.imei, 'ALARM_CANCEL')
-		Alarm.cancel(self.imei, self.user)
+		Informer.add_by_imei(self.skey.name(), 'ALARM_CANCEL')
+		Alarm.cancel(self.skey.name(), self.user)
 
 		#url = "/addlog?imei=%s&text=%s" % (self.imei, u'Отбой тревоги оператором ' % self.account.user.nickname())
 		#url = "/addlog?imei=%s&text=%s" % (self.imei, urllib.quote(u'Cancel alarm ру'.encode('utf-8')))
-		url = "/addlog?imei=%s&mtype=alarm_cancel&akey=%s" % (self.imei, str(self.akey))
+		url = "/addlog?imei=%s&mtype=alarm_cancel&akey=%s" % (self.skey.name(), str(self.akey))
 
 		taskqueue.add(url = url, method="GET", countdown=0)
 
-		return {'answer': 'ok', 'imei': str(self.imei)}
+		return {'answer': 'ok', 'imei': str(self.skey.name())}
 
 #
 # Запросить список "активных" тревог

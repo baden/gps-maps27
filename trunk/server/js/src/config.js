@@ -37,10 +37,9 @@
 	}
 
 	ConfigList.addItem = function(s){
-		//log('addItem for ConfigList. sys:', s);
+		log('addItem for ConfigList. sys:', s);
 		$("#config_sys_list").append(
-			//'<li class="sli" imei="'+s.imei+'"><span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
-			'<li class="ui-widget ui-widget-content ui-widget-header" imei="'+s.imei+'"><span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
+			'<li class="ui-widget ui-widget-content ui-widget-header" data-imei="'+s.imei+'" data-skey="'+s.key+'"><span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
 			 '<span class="bico hl mm" title="Выбрать пиктограмму">P</span>' +
 			 (config.admin?'<span class="bpurge hl mm" title="Удалить GPS данные!">D</span>':'') +
 			 '<span class="bconf hl mm" title="Настроить систему">C</span>' +
@@ -56,58 +55,67 @@
 	ConfigList.finish = function(){
 		//log('ConfigList: finish');
 		$("#config_sys_list .calarm").button().click(function(){
-			var par = $(this).parent();
-			var imei = par.attr('imei');
-			log('imei', imei);
-			$.getJSON('/api/alarm/cancel?imei=' + imei, function (data) {
+			//var imei = par.attr('imei');
+			//var skey = $(this).parent()[0].dataset.skey;
+			var skey = this.parentNode.dataset.skey;		// Лучший способ доступа к dataset !
+
+			$.getJSON('/api/alarm/cancel?skey=' + skey, function (data) {
+				log('Alarm canceled.');
 			});
 		});
 
 		$("#config_sys_list .bdesc").button().click(function(){
 			//alert(this.attributes['imei'].value);
 			//var i = this.attributes['index'].value;
+
 			var par = $(this).parent();
-			var imei = par.attr('imei');
+			//window['dbg_aa'] = par;
+			//log('parent=', par, par[0].dataset.skey);
+
+			var imei = this.parentNode.dataset.imei;
+			var skey = this.parentNode.dataset.skey;
 			var desc = par.find('desc').html();
 			var dialog = $('#config_dialog_sys_desc');
-			//log(dialog);
-			//log(imei);
-			//$("#sysdesc_imei").html(sys_imeis[i])
+
+			/* Почему-то .data(key, value) от jQuery не работает. Воспользуюсь dataset */
+			dialog[0].dataset.imei = imei;
+			dialog[0].dataset.skey = skey;
+			dialog[0].dataset.desc = desc;
+
 			dialog.find('label').html(imei);
-			//$("#sys_desc").val(sys_descs[i]);
 			dialog.find('textarea').val(desc);
-			//log('Dialog: dialog-sys-desc ' + sys_imeis[i] + ' (' + sys_descs[i] + ')');
 			dialog.dialog('open');
 		});
 
 		$("#config_sys_list .bzone").button().click(function(){
 			var par = $(this).parent();
-			var imei = par.attr('imei');
+			var imei = this.parentNode.dataset.imei;
+			var skey = this.parentNode.dataset.skey;
+
 			$('#config_zone_link_imei').html(imei);
 			var desc = par.find('desc').html();
 			$('#config_zone_link_desc').html(desc);
+
 			var dialog = $('#config_zone_link');
-			//log('Zone links', par, imei, desc, dialog);
+			dialog[0].dataset.skey = skey;
+
 			dialog.dialog('open');
 		});
-			$('#config_sys_list .bconf').button().click(function(){
+		$('#config_sys_list .bconf').button().click(function(){
 			var par = $(this).parent();
-			var imei = par.attr('imei');
+			var imei = this.parentNode.dataset.imei;
+			var skey = this.parentNode.dataset.skey;
 			var desc = par.find('desc').html();
-			log('TBD! config', i);
+			//log('TBD! config', i);
 
 			if($('#config_params').length === 0){
 				var div = $('body').append(
-					//'<div id="config_overlay" class="ui-widget-overlay"></div>' +
-					'<div id="config_params">' +
-					'<div id="config_params_body">Загрузка данных с сервера...</div>' +
-					//'<div id="config_params_close" style="position: absolute; top: -10px; left: 50%; margin-left: -20px;"><span class="ui-icon ui-icon-close"></span></div>' +
-					'</div>'
+					'<div id="config_params"><div id="config_params_body">Загрузка данных с сервера...</div></div>'
 				);
 			} else {
 				$('#config_params_body').html('Загрузка данных с сервера...');
 			}
-			$.getJSON('/api/sys/config?cmd=get&imei='+imei, function (data) {
+			$.getJSON('/api/sys/config?cmd=get&skey='+skey, function (data) {
 				if(data.answer == 'ok'){
 					if(data.config.length === 0){
 						$("#config_params_body").empty().html('Нет параметров. Возможно система еще не сохранила параметры.<br/>Можно послать SMS на номер системы с текстом <strong>saveconfig</strong> для принудительного сохранения параметров.');
@@ -160,7 +168,7 @@
 								//log('Change value', name);
 								$(this).next().next().html(nvalue);
 								$(this).addClass('wait');
-								sendGet('/api/sys/config?cmd=set&imei=' + imei + '&name=' + name + '&value=' + nvalue);
+								sendGet('/api/sys/config?cmd=set&skey=' + skey + '&name=' + name + '&value=' + nvalue);
 							}
 						});
 					}
@@ -182,7 +190,7 @@
 				//position: ['left','top'],
 				buttons: {
 					'Отменить задание на изменение параметров': function() {
-						sendGet('/api/sys/config?cmd=cancel&imei=' + imei);
+						sendGet('/api/sys/config?cmd=cancel&skey=' + skey);
 						$(this).dialog('close');
 					},
 					'Закрыть': function() {
@@ -201,7 +209,9 @@
 		});
 		if(config.admin) $('#config_sys_list .bpurge').button().css('color', 'red').click(function(){
 			//alert('В разработке');
-			var imei = $(this).parent().attr('imei');
+			//var imei = $(this).parent().attr('imei');
+			var imei = this.parentNode.dataset.imei;
+			var skey = this.parentNode.dataset.skey;
 			//log('Удаление GPS данных для системы', this, imei);
 			if($('#config_purgegps').length === 0){
 				$('body').append(
@@ -238,7 +248,7 @@
 					'Выполнить!': function() {
 						var dateto = $.datepicker.formatDate('ymmdd000000', $('#config_purgegps').datepicker('getDate'));
 						//log('Удаление GPS данных для системы', imei, ' до даты ', dateto);
-						$.getJSON('/api/geo/del?imei='+imei+'&to='+dateto, function (data) {
+						$.getJSON('/api/geo/del?skey='+skey+'&to='+dateto, function (data) {
 							if(data.answer == 'ok'){
 								alert('Удаление данных поставлено в очередь. Это может потребовать некоторого времени.');
 							} else {
@@ -255,7 +265,11 @@
 			alert('В разработке');
 		});
 		$("#config_sys_list .bdel").button().click(function(){
-			$('#config_del_imei').html($(this).parent().attr('imei'));
+			var imei = this.parentNode.dataset.imei;
+			var skey = this.parentNode.dataset.skey;
+			$('#config_dialog_delsys')[0].dataset.skey = skey;
+
+			$('#config_del_imei').html(imei);
 			$('#config_del_desc').html($(this).parent().find('desc').html());
 			$('#config_dialog_delsys').dialog('open');
 		});
@@ -318,31 +332,41 @@
 			buttons: {
 				'Применить изменения.': function() {
 					var dialog = $(this);
-					//log(dialog);
+					//log('Dialog', dialog);
 					//log($(this));
-					//$("#sysdesc_imei").html(sys_imeis[i])
-					var imei = dialog.find('label').html();
-					//$("#sys_desc").val(sys_descs[i]);
+					//var imei = dialog.find('label').html();
+
+					var imei = dialog[0].dataset.imei;
+					var skey = dialog[0].dataset.skey;
+					var olddesc = dialog[0].dataset.desc;
+
 					var desc = dialog.find('textarea').val();
 
-					// Мгновенное обновление названия
-					$("#config_sys_list").find('li[imei="'+imei+'"]>desc').html(desc);
+					log('Compare:', olddesc, desc);
 
-					//var imei = $("#sysdesc_imei").html(); //document.getElementById('sysdesc_imei').value;
-					//var desc = document.getElementById('sys_desc').value;
-					//log('Set desc for sys ' + imei + ' -> ' + desc);
-					$.getJSON('/api/sys/desc?imei=' + imei + '&desc=' + desc, function (data) {
-						if(data.result){
-							var result = data.result;
-							if(result == "disabled"){
-								//$("#dialog-need-admin").dialog('open');
-							} else if(result == "ok") {
-								//UpdateSysList();
-								// Отложенное обновление названия
-								//$("#config_sys_list").find('li[imei="'+imei+'"]>desc').html(desc);
+					if(desc != olddesc){
+						// Мгновенное обновление названия
+						$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(desc);
+	
+						$.getJSON('/api/sys/desc?skey=' + skey + '&desc=' + desc, function (data) {
+							if(data.result){
+								var result = data.result;
+								if(result == "disabled"){
+									//$("#dialog-need-admin").dialog('open');
+									alert('Изменение описание заблокировано.');
+									$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
+								} else if(result == "ok") {
+									//UpdateSysList();
+									// Отложенное обновление названия
+									//$("#config_sys_list").find('li[imei="'+imei+'"]>desc').html(desc);
+								} else {
+									alert('Ошибка изменения описания. Отменено.');
+									$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
+								}
 							}
-						}
-					});
+						});
+					}
+
 					$(this).dialog('close');
 				},
 				'Отменить': function() {
@@ -452,8 +476,9 @@
 				},
 				'Да, отказаться от слежения': function(){
 					var imei = $('#config_del_imei').html();
-					$.getJSON('/api/sys/del?imei=' + imei, function (data) {
-						//UpdateSysList();
+					var skey = this.dataset.skey;
+
+					$.getJSON('/api/sys/del?skey=' + skey, function (data) {
 						ConfigList.Rebuild();	// Это неправильная реализация.
 					});
 					$(this).dialog("close");
@@ -473,13 +498,14 @@
 				/*console.log(ui.item.index());
 				console.log(ui.item.attr('imei'));
 				console.log(ui);*/
-				var imei = ui.item.attr('imei');
+				//var imei = ui.item.attr('imei');
+				var skey = ui.item[0].dataset.skey;
 				var index = ui.item.index();
-				$.getJSON('/api/sys/sort?imei=' + imei + '&index=' + index, function (data) {
+				$.getJSON('/api/sys/sort?skey=' + skey + '&index=' + index, function (data) {
 					//window.location = "/config";
 					//$(this).dialog('close');
 					if(data.result){
-						log('Set new position for ' + imei + ' to ' + index);
+						log('Set new position for ' + skey + ' to ' + index);
 					}
 				});
 

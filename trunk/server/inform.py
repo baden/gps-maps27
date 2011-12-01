@@ -48,6 +48,14 @@ class Informer(db.Model):
 			return entity
 
 		return db.run_in_transaction(txn)
+
+#
+#	Добавить строки для системы по skey
+#
+	@classmethod
+	def add_by_skey(cls, skey, msg='MSG_OTHER'):
+		return cls.add_by_imei(skey.name())
+
 #
 #	Удалить все строки для системы по IMEI
 #

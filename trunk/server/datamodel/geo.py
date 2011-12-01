@@ -5,10 +5,13 @@
 """
 
 from google.appengine.ext import db
+from google.appengine.api import namespace_manager
 from datetime import datetime, timedelta
 import struct
 #import zlib
 import logging
+
+ROOT_NAMESPACE = 'point'
 
 TAIL_LEN = 20
 
@@ -296,6 +299,17 @@ class DBGeo(db.Model):
 			count += rec.count
 			rcount += 1
 		return {'points': count, 'records': rcount}
+
+	# Удаляет все записи до указанной даты
+	@classmethod
+	def DeleteTo(cls, skey, dtto):
+		namespace = namespace_manager.get_namespace();
+		namespace_manager.set_namespace(ROOT_NAMESPACE);
+		try:
+			db.delete(DBGeo.all(keys_only=True).filter('date <', dtto).order('date').ancestor(skey).fetch(200))	# Максимум 200 записей (дней) за раз
+		finally:
+			namespace_manager.set_namespace(namespace)
+
 
 class PointWorker(object):
 	def __init__(self, skey):

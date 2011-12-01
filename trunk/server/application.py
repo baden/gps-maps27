@@ -19,6 +19,7 @@ app = webapp2.WSGIApplication([
 	('/api/get_geo.*', 'api.GetGeo'),
 
 	('/api/geo/del.*', 'api.Geo_Del'),
+	('/api/geo/taskdel.*', 'api.Geo_Task_Del'),
 	('/api/geo/get*', 'api.Geo_Get'),
 	('/api/geo/dates*', 'api.Geo_Dates'),
 	('/api/geo/info*', 'api.Geo_Info'),

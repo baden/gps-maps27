@@ -7,7 +7,7 @@ GETFROM = "localhost:80"
 def main():
 	conn = httplib.HTTPConnection(GETFROM)
 	#conn.request("GET", "/addlog?imei=356895035359317&text=Hello")
-	conn.request("GET", "/addlog?imei=1234&text=Hello")
+	conn.request("GET", "/addlog?imei=5&text=Hello")
 	response = conn.getresponse()
 	print response.status, response.reason
 	data = response.read()

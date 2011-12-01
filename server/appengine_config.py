@@ -17,6 +17,7 @@ logging.info('Loading %s from %s', __name__, __file__)
 #    app = recording.appstats_wsgi_middleware(app)
 #    return app
 
+os.environ['ROOT_NAMESPACE'] = 'point'
 
 appstats_TZOFFSET = -2*3600
 appstats_DUMP_LEVEL = -1

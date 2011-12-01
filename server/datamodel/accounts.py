@@ -39,7 +39,7 @@ class DBAccounts(db.Model):
 
 	# Возвращает True если система с таким key контроллируется аккаунтом
 	def has_skey(self, skey):
-		return skey in systems_key
+		return skey in self.systems_key
 
 	def system_by_imei(self, imei):
 		skey = DBSystem.imei2key(imei)
@@ -75,13 +75,13 @@ class DBAccounts(db.Model):
 			return 1
 		return 2
 
-	def DelSystem(self, imei):
-		system = DBSystem.get_by_imei(imei)
-		if system is None:
-			return 0
+	def DelSystem(self, skey):
+		#system = DBSystem.get_by_imei(imei)
+		#if system is None:
+		#	return 0
 
-		if system.key() in self.systems_key:
-			self.systems_key.remove(system.key())
+		if skey in self.systems_key:
+			self.systems_key.remove(skey)
 			self.put()
 			return 1
 		return 2

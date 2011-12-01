@@ -34,19 +34,18 @@ class DBSystem(db.Model):
 	@classmethod
 	#def key_by_imei(cls, imei=FAKE_IMEI, collect_name=None):
 	def key_by_imei(cls, imei=FAKE_IMEI):
-		namespace = namespace_manager.get_namespace();
-		namespace_manager.set_namespace(ROOT_NAMESPACE);
-		value = memcache.get("DBSystem:%s" % imei)
+		value = memcache.get("DBSystem:%s" % imei, namespace=ROOT_NAMESPACE)
 
 		if value is not None:
-			namespace_manager.set_namespace(namespace)
 			return db.Key(value)
-		else:
-			#model = cls.get_or_insert(imei, parent = cls.collect_key(collect_name), imei=imei)
-			model = cls.get_or_insert(imei, imei=imei)
-			memcache.set("DBSystem:%s" % imei, str(model.key()))
-			namespace_manager.set_namespace(namespace)
-			return model.key()
+
+		namespace = namespace_manager.get_namespace();
+		namespace_manager.set_namespace(ROOT_NAMESPACE);
+		#model = cls.get_or_insert(imei, parent = cls.collect_key(collect_name), imei=imei)
+		model = cls.get_or_insert(imei, imei=imei)
+		memcache.set("DBSystem:%s" % imei, str(model.key()))
+		namespace_manager.set_namespace(namespace)
+		return model.key()
 
 	"""
 		В отличие от предыдущего метода не проверяет и не создает сущность в базе
@@ -77,7 +76,7 @@ class DBSystem(db.Model):
 		namespace = namespace_manager.get_namespace();
 		namespace_manager.set_namespace(ROOT_NAMESPACE);
 		try:
-			all = DBSystem.all(**kwds)
+			all = DBSystem.all(**kwds).fetch(100)
 		finally:
 			namespace_manager.set_namespace(namespace)
 		return all

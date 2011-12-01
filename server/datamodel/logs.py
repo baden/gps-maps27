@@ -1,6 +1,9 @@
 ﻿# -*- coding: utf-8 -*-
 
 from google.appengine.ext import db
+from google.appengine.api import namespace_manager
+
+ROOT_NAMESPACE = 'point'
 
 """
 	События не привязанные точно ко времени (включения/выключения, получение/выполнение SMS-команд и т.д.)
@@ -8,6 +11,6 @@ from google.appengine.ext import db
 class GPSLogs(db.Model):
 	text = db.StringProperty(multiline=True)
 	date = db.DateTimeProperty(auto_now_add=True)
-	mtype = db.StringProperty(default=None)	# Тип сообщения: none-обычное сообщение, debug-отладочное сообщение, alarm-срочное сообщение и т.д.
+	mtype = db.StringProperty(default=None)		# Тип сообщения: none-обычное сообщение, debug-отладочное сообщение, alarm-срочное сообщение и т.д.
 	label = db.IntegerProperty(default=0)		# Числовая метка для определения групп сообщений. (пока не используется)
 	pos = db.GeoPtProperty()

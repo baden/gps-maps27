@@ -138,7 +138,8 @@ def send_message(message, akeys=[], skeys=[], timeout=10):
 
 def inform(msg, skey, data):
 	send_message({
-		'msg': '%s' % msg,
+		'msg': str(msg),
+		'skey': str(skey),
 		'data': data
 	}, skeys=[skey])
 

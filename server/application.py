@@ -78,5 +78,6 @@ app = webapp2.WSGIApplication([
 	(r'/initconfig.js', 'main.InitConfig'),
 
 	#(r'/', 'main.MainPage'),
-], debug=True, config=config)
+#], debug=True, config=config)
+], debug=False, config=config)
 

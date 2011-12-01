@@ -18,6 +18,8 @@ SERVER_NAME = os.environ['SERVER_NAME']
 
 glogal_counter = 0
 
+logging.getLogger().setLevel(logging.ERROR)
+
 class DBGPSBin(db.Model):
 	dataid = db.IntegerProperty()
 	data = db.BlobProperty()		# Пакет данных (размер ориентировочно до 64кбайт)

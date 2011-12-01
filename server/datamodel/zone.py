@@ -37,7 +37,7 @@ class DBZone(db.Model):
 	_POLYLINE = 4
 
 	@classmethod
-	def addZone(cls, ztype, raw_points, zkey=None):
+	def addZone(cls, ztype, raw_points, zkey=None, bounds=[[0.0, 0.0], [0.0, 0.0]]):
 		collect_key = db.Key.from_path('DefaultCollect', 'DBZone')
 		try:
 			ztype = ZTYPE_TO_INT[ztype]
@@ -50,25 +50,8 @@ class DBZone(db.Model):
 
 		points = [db.GeoPt(lat=p[0], lon=p[1]) for p in raw_points]
 
-		if len(points) > 0:
-		# TBD! Необходимо вычислить и сохранить bounds.
-			min_lat = points[0].lat
-			max_lat = points[0].lat
-			min_lon = points[0].lon
-			max_lon = points[0].lon
-			for p in points:
-				min_lat = min(min_lat, points[0].lat)
-				max_lat = max(max_lat, points[0].lat)
-				min_lon = min(min_lon, points[0].lon)
-				max_lon = max(max_lon, points[0].lon)
-		else:
-			min_lat = 0
-			max_lat = 0
-			min_lon = 0
-			max_lon = 0
-
 		if zkey is None:
-			z = cls(parent=collect_key, ztype=ztype, points=points, radius=radius, boundssw=db.GeoPt(lat=min_lat, lon=min_lon), boundsne=db.GeoPt(lat=max_lat, lon=max_lon))
+			z = cls(parent=collect_key, ztype=ztype, points=points, radius=radius, boundssw=db.GeoPt(lat=bounds[0][0], lon=bounds[0][1]), boundsne=db.GeoPt(lat=bounds[1][0], lon=bounds[1][1]))
 			z.put()
 			return z.key()
 		else:
@@ -77,13 +60,14 @@ class DBZone(db.Model):
 				z.ztype=ztype
 				z.points=points
 				z.radius=radius
-				z.boundssw=db.GeoPt(lat=min_lat, lon=min_lon)
-				z.boundsne=db.GeoPt(lat=max_lat, lon=max_lon)
+				z.boundssw=db.GeoPt(lat=bounds[0][0], lon=bounds[0][1])
+				z.boundsne=db.GeoPt(lat=bounds[1][0], lon=bounds[1][1])
 				z.put()
 				return z.key()
 
 			return db.run_in_transaction(txn, zkey)
 
+	# db.GeoPt(lat=p[0], lon=p[1])
 	@classmethod
 	def getZones(cls, **kwds):
 		collect_key = db.Key.from_path('DefaultCollect', 'DBZone')

@@ -11,6 +11,8 @@ from datamodel.accounts import DBAccounts
 #import cPickle as pickle
 #import pickle
 
+logging.getLogger().setLevel(logging.ERROR)
+
 # В 1.6.0 наблюдаются проблемы с channel api.
 DISABLE_CHANNEL = True
 #DISABLE_CHANNEL = False
@@ -230,7 +232,7 @@ class Message(BaseApi):
 		logging.info('Broadcast message ')
 		args = self.request.arguments()
 		message = dict((a, self.request.get(a, '')) for a in args)
-		send_message(message, skeys=[db.Key.from_path('DBSystem', '356895035359317+1')])
+		send_message(message, skeys=[DBSystem.imei2key('356895035359317')])
 		#send_instant_message(message)
 
 		return {

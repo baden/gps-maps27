@@ -311,3 +311,89 @@ config.updater.add('change_slist', function(msg) {
 	UpdateAccountSystemList();
 });
 
+/* TBD! По возможности все перенести под function */
+
+(function( window, $, undefined ) {
+
+
+/* Расширение возможностей google.maps.* */
+
+// Получение LatLng в виде массива [lat, lon].
+google.maps.LatLng.prototype.toArray = function () {
+	return [this.lat(), this.lng()];
+}
+
+// Получение LatLngBounds в виде массива [[sw_lat, sw_lon], [ne_lat, ne_lon]].
+google.maps.LatLngBounds.prototype.toArray = function () {
+	return [this.getSouthWest().toArray(), this.getNorthEast().toArray()];
+}
+
+// метод getBounds для Polygon и Polyline
+// Оригинал тут: http://code.google.com/p/google-maps-extensions/source/browse/google.maps.Polygon.getBounds.js
+
+if (!google.maps.Polygon.prototype.getBounds) {
+	google.maps.Polygon.prototype.getBounds = function(latLng) {
+		var bounds = new google.maps.LatLngBounds();
+		var paths = this.getPaths();
+		var path;
+		for (var p = 0; p < paths.getLength(); p++) {
+			path = paths.getAt(p);
+			for (var i = 0; i < path.getLength(); i++) {
+				bounds.extend(path.getAt(i));
+			}
+		}
+		return bounds;
+	}
+}
+
+if (!google.maps.Polyline.prototype.getBounds) {
+	google.maps.Polyline.prototype.getBounds = function(latLng) {
+		var bounds = new google.maps.LatLngBounds();
+		var path = this.getPath();
+		for (var i = 0; i < path.getLength(); i++) {
+			bounds.extend(path.getAt(i));
+		}
+		return bounds;
+	}
+}
+
+// метод contains для Polygon
+// Определяет вхождение точки в полигон
+// Взято отсюда: http://google-maps-extensions.googlecode.com/hg/google.maps.Polygon.contains.js
+if (!google.maps.Polygon.prototype.contains) {
+	google.maps.Polygon.prototype.contains = function(latLng) {
+		// Outside the bounds means outside the polygon
+		if (this.getBounds && !this.getBounds().contains(latLng)) {
+			return false;
+		}
+		var lat = latLng.lat();
+		var lng = latLng.lng();
+		var paths = this.getPaths();
+		var path, pathLength, inPath, i, j, vertex1, vertex2;
+		// Walk all the paths
+		for (var p = 0; p < paths.getLength(); p++) {
+			path = paths.getAt(p);
+			pathLength = path.getLength();
+			j = pathLength - 1;
+			inPath = false;
+			for (i = 0; i < pathLength; i++) {
+				vertex1 = path.getAt(i);
+				vertex2 = path.getAt(j);
+				if (vertex1.lng() < lng && vertex2.lng() >= lng || vertex2.lng() < lng && vertex1.lng() >= lng) {
+					if (vertex1.lat() + (lng - vertex1.lng()) / (vertex2.lng() - vertex1.lng()) * (vertex2.lat() - vertex1.lat()) < lat) {
+						inPath = !inPath;
+					}
+				}
+				j = i;
+			}
+			if (inPath) {
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
+
+})(window, jQuery);
+

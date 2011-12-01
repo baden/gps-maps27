@@ -104,7 +104,7 @@ div#dir_panel {
 
 
 ul#map_zones_list li {
-	border: 1px solid black;
+	/*border: 1px solid black;*/
 	cursor: pointer;
 }
 
@@ -112,6 +112,10 @@ ul#map_zones_list li.highlight, ul#map_zones_list li:hover {
 	background-color: lime;
 }
 
+ul#map_zones_list li span {
+	display: inline-block;
+	float: right;
+}
 
 div#groupselect {
 	position: absolute;
@@ -472,8 +476,15 @@ div#alarm_popup {
 	z-index:1002;
 }
 
-#color-palette {
+div#zone_edit_panel {
+	display: none;
+	height: 24px;
+}
+
+div#color-palette {
 	clear: both;
+	display: inline-block;
+	vertical-align: middle;
 }
 
 .color-button {
@@ -483,4 +494,14 @@ div#alarm_popup {
 	margin: 2px;
 	float: left;
 	cursor: pointer;
+}
+
+input#input_map_address {
+	width: 250px;
+	-webkit-transition: all 0.3s ease-out;
+}
+
+input#input_map_address:hover {
+	width: 500px;
+	-webkit-transition: all 0.3s ease-out;
 }

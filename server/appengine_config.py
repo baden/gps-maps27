@@ -7,17 +7,15 @@ from google.appengine.api import namespace_manager
 import re
 from google.appengine.ext.appstats import recording
 
+logging.getLogger().setLevel(logging.ERROR)
 logging.info('Loading %s from %s', __name__, __file__)
 
 #apptrace_URL_PATTERNS  = ['^/$']
 #apptrace_TRACE_MODULES = ['api.py']
 
-def webapp_add_wsgi_middleware(app):
-    #import os
-    #from google.appengine.api import namespace_manager
-    #namespace_manager.set_namespace(os.environ['SERVER_NAME'])
-    app = recording.appstats_wsgi_middleware(app)
-    return app
+#def webapp_add_wsgi_middleware(app):
+#    app = recording.appstats_wsgi_middleware(app)
+#    return app
 
 
 appstats_TZOFFSET = -2*3600

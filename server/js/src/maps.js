@@ -562,8 +562,8 @@ var CreateMap = function () {
 	//if(google.'maps')
 	geocoder = new google.maps.Geocoder();
 	var $map = $('#map').gmap({
-		pos: new google.maps.LatLng(35.5, 48.5),
-		zoom: 10,
+		pos: new google.maps.LatLng(48.512283,34.641223),
+		zoom: 12,
 		//marker: 'center',
 		markertitme: 'aaa'
 	});
@@ -587,6 +587,32 @@ var CreateMap = function () {
 	log('create MyMarker');
 	ruler1 = new MyMarker(map);
 
+	var input = document.getElementById('input_map_address');
+        var autocomplete = new google.maps.places.Autocomplete(input);
+	autocomplete.bindTo('bounds', map);
+	google.maps.event.addListener(autocomplete, 'place_changed', function() {
+		var place = autocomplete.getPlace();
+		if (place.geometry.viewport) {
+			map.fitBounds(place.geometry.viewport);
+		} else {
+			map.setCenter(place.geometry.location);
+			map.setZoom(17);  // Why 17? Because it looks good.
+		}
+		var address = '';
+		if (place.address_components) {
+			address = [(place.address_components[0] &&
+				place.address_components[0].short_name || ''),
+				(place.address_components[1] &&
+				place.address_components[1].short_name || ''),
+				(place.address_components[2] &&
+				place.address_components[2].short_name || '')
+				].join(' ');
+		}
+
+		//infowindow.setContent('<div><strong>' + place.name + '</strong><br>' + address);
+		log('Address', place.name, address, place);
+
+	});
 }
 
 var lastpos = {};
@@ -1000,7 +1026,6 @@ $(document).ready(function() {
 
 	var zonekit = new ZoneKit();
 	$('#map_zone_show').click(zonekit.Show);
-	$('#map_zone_add').click(zonekit.AddPolygon);
 	$('#map_zone_edit').click(zonekit.Edit);
 
 	var dirkit = new DirKit();

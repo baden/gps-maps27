@@ -7,12 +7,16 @@ from system import DBSystem
 #import zlib
 #import pickle
 
+from namespace import at_local, private
+
 """
  Запись о пользователе
 """
 DEFAULT_CONFIG = repr({
 	'theme': 'cupertino',
 })
+
+DEFAULT_COLLECT = 'DefaultCollect'
 
 class DBAccounts(db.Model):
 	user = db.UserProperty()						# Пользователь
@@ -108,3 +112,27 @@ class DBAccounts(db.Model):
 	def putconfig(self, configdict):
 		self.config_list = repr(configdict)
 		self.put()
+
+	#@classmethod
+	#def key_from_user(cls, user):
+	#	return db.Key.from_path('DefaultCollect', cls.__name__, 'DBAccounts', user_id.user_id(), namespace=private())
+
+	@classmethod
+	def key_from_user_id(cls, user_id):
+		return db.Key.from_path(DEFAULT_COLLECT, cls.__name__, cls.__name__, user_id, namespace=private())
+
+	# Создает нового пользователя если это необходимо
+	@classmethod
+	@at_local
+	def get_by_user(cls, user):
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
+		return cls.get_or_insert(user.user_id(), user=user, parent=collect_key)
+
+	# Получает список всех пользователей.
+	#@at_local
+	@classmethod
+	def get_all(cls):
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__, namespace=private())
+		#for e in 
+		#return cls.all().ancestor(collect_key).run()	#fetch(1000)
+		return cls.all(namespace=private()).ancestor(collect_key)	#fetch(1000)

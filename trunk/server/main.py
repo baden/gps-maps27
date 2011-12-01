@@ -81,43 +81,41 @@ class BaseHandler(webapp2.RequestHandler):
 		return self.session_store.get_session()
 
 	def render_template(self, filename, **template_args):
-		namespace = namespace_manager.get_namespace()
-		try:
-			#namespace_manager.set_namespace(os.environ['SERVER_NAME'])
+		#namespace_manager.set_namespace(os.environ['SERVER_NAME'])
 
-			user = users.get_current_user()
-			#self.account = DBAccounts(key_name = "acc_%s" % self.user.user_id())
-			akey = db.Key.from_path('DBAccounts', user.user_id())
-			template_args['login_url'] = users.create_login_url(self.request.uri)
-			template_args['logout_url'] = users.create_logout_url(self.request.uri)
-			template_args['admin'] = users.is_current_user_admin()
-			#template_args['server_name'] = SERVER_NAME
-			template_args['server_name'] = os.environ['SERVER_NAME']
-			template_args['user'] = user
+		user = users.get_current_user()
+		#self.account = DBAccounts(key_name = "acc_%s" % self.user.user_id())
+		#akey = db.Key.from_path('DBAccounts', user.user_id())
+		akey = DBAccounts.key_from_user_id(user.user_id())
+		template_args['login_url'] = users.create_login_url(self.request.uri)
+		template_args['logout_url'] = users.create_logout_url(self.request.uri)
+		template_args['admin'] = users.is_current_user_admin()
+		#template_args['server_name'] = SERVER_NAME
+		template_args['server_name'] = os.environ['SERVER_NAME']
+		template_args['user'] = user
 
-			template_args['environ'] = os.environ
-			template_args['version'] = VERSION
+		template_args['environ'] = os.environ
+		template_args['version'] = VERSION
 
-			#account = DBAccounts.get(akey)
-			#if account is None:
-			#	account = DBAccounts(user.user_id(), user=user)
-	                account = DBAccounts.get_or_insert(user.user_id(), user=user)
-			template_args['account'] = account
-			template_args['akey'] = akey
+		#account = DBAccounts.get(akey)
+		#if account is None:
+		#	account = DBAccounts(user.user_id(), user=user)
+                #account = DBAccounts.get_or_insert(user.user_id(), user=user)
+		account = DBAccounts.get_by_user(user)
+		template_args['account'] = account
+		template_args['akey'] = akey
 
-			# To set a value:
-			#self.session['foo'] = 0
-			# To get a value:
-			#foo = self.session.get('foo')
+		# To set a value:
+		#self.session['foo'] = 0
+		# To get a value:
+		#foo = self.session.get('foo')
 
-			self.session['run_counter'] = self.session.get('run_counter', 0) + 1
-			logging.info('--------------> Increment session')
+		self.session['run_counter'] = self.session.get('run_counter', 0) + 1
+		logging.info('--------------> Increment session')
 
-			template_args['session'] = self.session
+		template_args['session'] = self.session
 
-			self.response.write(self.jinja2.render_template(filename, **template_args))
-		finally:
-			namespace_manager.set_namespace(namespace)
+		self.response.write(self.jinja2.render_template(filename, **template_args))
 
 
 class MainPage(BaseHandler):
@@ -156,8 +154,8 @@ class InitConfig(webapp2.RequestHandler):
 					'admin': users.is_current_user_admin(),
 				}
 			}
-
-		account = DBAccounts.get_or_insert(user.user_id(), user=user)
+		account = DBAccounts.get_by_user(user)
+		
 		if account is None:
 			return {
 				'answer': 'no',

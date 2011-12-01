@@ -3,7 +3,7 @@
 from google.appengine.ext import db
 from google.appengine.api import memcache
 from datetime import datetime, timedelta
-from datamodel import DBAccounts, DBSystem
+from datamodel import DBSystem
 import logging
 #
 #  Используется для отправки системе сообщений.

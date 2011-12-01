@@ -29,7 +29,7 @@
 	}
 
 	var UpdateLog = function() {
-		log('UpdateLog');
+		//log('UpdateLog');
 		var table = $("#log_table tbody");
 		table.empty();
 
@@ -56,7 +56,7 @@
 	$(document).ready(function() {
 //		log('Загрузка закладки. События.');
 
-		UpdateLog();
+		if(config.skey) UpdateLog();
 
 		config.syslist({
 			id: 'log_syslist',

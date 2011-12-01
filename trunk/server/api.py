@@ -35,7 +35,7 @@ class BaseApi(webapp2.RequestHandler):
 		self.user = users.get_current_user()
 		if self.user is None:
 			return {"answer": "no", "reason": "Required login."}
-		self.akey = db.Key.from_path('DBAccounts', self.user.user_id())
+		self.akey = DBAccounts.key_from_user_id(self.user.user_id())
 		if self.akey is None:
 			return {"answer": "no", "reason": "Required register user first (login)."}
 
@@ -127,6 +127,7 @@ class Info(BaseApi):
 		}
 
 class Sys_SecureList(BaseApi):
+	requred = ('admin')
 	def parcer(self):
 		from google.appengine.api import users
 		from google.appengine.ext.db.metadata import Namespace
@@ -179,7 +180,15 @@ class Sys_SecureList(BaseApi):
 				'user_id': user.user_id(),
 				'admin': users.is_current_user_admin(),
 			},
-			'name_spaces': name_spaces
+			'name_spaces': name_spaces,
+			'accounts': [{
+				'key': str(e.key()),
+				'name': e.name,
+				'systems_key': [s.name() for s in e.systems_key],
+				'register': str(e.register),
+				'config_list': str(e.config_list),
+				'access': e.access,
+			} for e in DBAccounts.get_all().fetch(1000)],
 		}
 
 # --------------------------------------------------------------------------------
@@ -1485,14 +1494,21 @@ class Logs_Get(BaseApi):
 class Logs_Del(BaseApi):
 	requred = ('skey')
 	def parcer(self):
-		from datamodel import GPSLogs
+		from datamodel.logs import GPSLogs
 
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 
 		lkey = self.request.get("lkey", None)
 		
 		#logsq = GPSLogs.all().ancestor(self.skey).order('-date').fetch(1000)
-		GPSLogs.get(lkey).delete()
+		#GPSLogs.get(lkey).delete()
+		try:
+			db.delete(db.Key(self.skey))
+		except e:
+			return {
+				"answer": "ok",
+				"comment": str(e)
+			}
 
 		return {
 			"answer": "ok",

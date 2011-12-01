@@ -5,10 +5,8 @@
 """
 
 from google.appengine.ext import db
-from google.appengine.api import namespace_manager
 from google.appengine.api import memcache
 
-ROOT_NAMESPACE = 'point'
 #DEFAULT_COLLECT = 'default_collect'
 FAKE_IMEI = '000000000000000'
 
@@ -34,17 +32,14 @@ class DBSystem(db.Model):
 	@classmethod
 	#def key_by_imei(cls, imei=FAKE_IMEI, collect_name=None):
 	def key_by_imei(cls, imei=FAKE_IMEI):
-		value = memcache.get("DBSystem:%s" % imei, namespace=ROOT_NAMESPACE)
+		value = memcache.get("DBSystem:%s" % imei)
 
 		if value is not None:
 			return db.Key(value)
 
-		namespace = namespace_manager.get_namespace();
-		namespace_manager.set_namespace(ROOT_NAMESPACE);
 		#model = cls.get_or_insert(imei, parent = cls.collect_key(collect_name), imei=imei)
 		model = cls.get_or_insert(imei, imei=imei)
 		memcache.set("DBSystem:%s" % imei, str(model.key()))
-		namespace_manager.set_namespace(namespace)
 		return model.key()
 
 	"""
@@ -53,19 +48,14 @@ class DBSystem(db.Model):
 	@classmethod
 	#def key_by_imei(cls, imei=FAKE_IMEI, collect_name=None):
 	def imei2key(cls, imei=FAKE_IMEI):
-		return db.Key.from_path("DBSystem", imei, namespace=ROOT_NAMESPACE)
+		return db.Key.from_path(cls.__name__, imei)
 
 	"""
 		Получает экземпляр системы без автоматического создания записи в базе
 	"""
 	@classmethod
 	def get_by_imei(cls, imei=FAKE_IMEI):
-		namespace = namespace_manager.get_namespace();
-		namespace_manager.set_namespace(ROOT_NAMESPACE);
-		try:
-			sys = DBSystem.get_by_key_name(imei)
-		finally:
-			namespace_manager.set_namespace(namespace)
+		sys = DBSystem.get_by_key_name(imei)
 		return sys
 
 	"""
@@ -73,10 +63,4 @@ class DBSystem(db.Model):
 	"""
 	@classmethod
 	def get_all(cls, **kwds):
-		namespace = namespace_manager.get_namespace();
-		namespace_manager.set_namespace(ROOT_NAMESPACE);
-		try:
-			all = DBSystem.all(**kwds).fetch(100)
-		finally:
-			namespace_manager.set_namespace(namespace)
-		return all
+		return DBSystem.all(**kwds).fetch(100)

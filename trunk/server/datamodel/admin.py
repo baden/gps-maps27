@@ -5,6 +5,9 @@
 """
 
 from google.appengine.ext import db
+from namespace import at_local, private
+
+DEFAULT_COLLECT = 'DefaultCollect'
 
 class DBAdmin(db.Model):
 	date = db.DateTimeProperty(auto_now_add=True)		# Время совершения операции
@@ -13,8 +16,9 @@ class DBAdmin(db.Model):
 	params = db.StringProperty(multiline=False)		# Представление словаря параметров операции
 
 	@classmethod
+	@at_local
 	def addOperation(cls, akey, desc, params):
-		collect_key = db.Key.from_path('DefaultCollect', 'DBAdmin')
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
 		cls(parent=collect_key, akey=str(akey), desc=desc, params=repr(params)).put()
 
 	"""
@@ -22,9 +26,9 @@ class DBAdmin(db.Model):
 	"""
 	@classmethod
 	def lastOperations(cls, **kwds):
-		collect_key = db.Key.from_path('DefaultCollect', 'DBAdmin')
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__, namespace=private())
 		cursor = kwds.pop('cursor', None)
-		q = cls.all().ancestor(collect_key).order('-date')
+		q = cls.all(namespace=private()).ancestor(collect_key).order('-date')
 		if cursor is None:
 			return q
 		else:

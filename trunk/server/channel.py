@@ -17,6 +17,10 @@ logging.getLogger().setLevel(logging.WARNING)
 #DISABLE_CHANNEL = True
 DISABLE_CHANNEL = False
 
+# Сообщения при поступлении ставятся в очередь и отправляются через указанный интервал. Если в течение этого времени приходит еще сообщение, то при
+# отправке они объединяются.
+DEFAULT_TIMEOUT = 2
+
 """
 	Призвана обеспечить механизм рассылки оповещений подключенным клиентам (открытым страницам).
 
@@ -35,7 +39,7 @@ def register(uuid):
 	user_id = uuid.split('_')[0]
 	#akey = db.Key.from_path('DBAccounts', user_id)
 	akey = DBAccounts.key_from_user_id(user_id)
-	logging.info('== Generate channel-token for account: %s, uuid=%s' % (akey, uuid))
+	logging.warning('== Generate channel-token for account: %s, uuid=%s' % (akey, uuid))
 	if not DISABLE_CHANNEL:
 	    token = channel.create_channel(uuid)
 	else:
@@ -43,7 +47,7 @@ def register(uuid):
 	return token
 
 def handle_connection(client_id):
-	logging.info('== Connect client: %s' % client_id)
+	logging.warning('== Connect client: %s' % client_id)
 	def txn():
 		root = DBUpdater.get_by_key_name('root')
 		if root is None:
@@ -59,7 +63,7 @@ def handle_connection(client_id):
 
 
 def handle_disconnection(client_id):
-	logging.info('== Disconnect client: %s' % client_id)
+	logging.warning('== Disconnect client: %s' % client_id)
 
 	def txn():
 		root = DBUpdater.get_by_key_name('root')
@@ -125,7 +129,7 @@ class DBMessages(db.Model):
 	skeys = db.ListProperty(db.Key)				# Заполняется есдт указан получатель по владению системой
 	message = db.TextProperty(default=u"")
 
-def send_message(message, akeys=[], skeys=[], timeout=2):
+def send_message(message, akeys=[], skeys=[], timeout=DEFAULT_TIMEOUT):
 	from google.appengine.api.labs import taskqueue
 
 	logging.warning('\n\nExecute: send_message.\n')
@@ -147,9 +151,16 @@ def inform(msg, skey, data):
 		'data': data
 	}, skeys=[skey])
 
+def inform_account(msg, akey, data):
+	send_message({
+		'msg': str(msg),
+		'akey': str(akey),
+		'data': data
+	}, akeys=[akey])
+
 class MessagePost(webapp2.RequestHandler):
 	def post(self):
-		logging.warning('\n\nExecute: messages post.\n')
+		logging.warning('Execute: messages post.')
 		collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
 		messages_bc = []
 		messages_akey = {}
@@ -157,7 +168,7 @@ class MessagePost(webapp2.RequestHandler):
 		mkeys = []
 		query = DBMessages.all().ancestor(collect_key)
 		for mesg in query:
-			logging.warning('\n\nMessage: %s' % mesg.message)
+			logging.warning('Message: %s' % mesg.message)
 			#messages.append(pickle.loads(mesg.message))
 			value = eval(mesg.message)
 			if (mesg.akeys is not None) and (len(mesg.akeys) > 0):
@@ -190,7 +201,7 @@ class MessagePost(webapp2.RequestHandler):
 
 		#dump = json.dumps(messages_bc)
 		for uuid in uuids:
-			_log = '\n\nMessages for: %s\n' % uuid
+			_log = 'Messages for: %s\n' % uuid
 			# Сообщения по "akey" (асинхронный запрос, мелочь а даст немного экономии)
 			#akey = db.Key.from_path('DBAccounts', uuid.split('_')[0])
 			akey = DBAccounts.key_from_user_id(uuid.split('_')[0])
@@ -223,6 +234,7 @@ class MessagePost(webapp2.RequestHandler):
 					_log += 'Send to client: %s\n' % uuid
 					if not DISABLE_CHANNEL:
 						channel.send_message(uuid, json.dumps(messages))
+					_log += 'Send successful.\n'
 				except channel.InvalidChannelClientIdError, e:
 					logging.error("Channed error: (%s). TBD! Remove uuid from list." % str(e))
 			else:

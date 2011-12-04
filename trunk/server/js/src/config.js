@@ -14,7 +14,6 @@
 		xhr.open('POST', url, true);
 		xhr.send(body);
 	}
-
 	var saveconfig = function(it, val){
 		$('#button_config_restart').button( "option", "disabled", true );
 		if(val) config.ui[it] = val;
@@ -30,11 +29,7 @@
 		});
 	}
 
-	var ConfigList = new SysList();
-
-	ConfigList.start = function(){
-		$("#config_sys_list").empty();
-	}
+	var ConfigList = new SysList('config_sys_list');
 
 	ConfigList.addItem = function(s){
 		log('addItem for ConfigList. sys:', s);
@@ -50,6 +45,10 @@
 			 '<button class="key bdel" title="Отказаться от слежения за системой">X</button>' +
 			'</li>'
 		);
+	}
+
+	ConfigList.changeItem = function(skey, desc){
+		log('changeItem for ConfigList. sys:', skey, desc);
 	}
 
 	ConfigList.finish = function(){
@@ -276,7 +275,7 @@
 	}
 
 	$(document).ready(function() {
-		if(window.config.user.admin) $('.admin').show();
+		if(window.config.account.user.admin) $('.admin').show();
 
 		// Закладка "Наблюдаемые системы"
 

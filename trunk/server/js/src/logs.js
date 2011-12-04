@@ -2,29 +2,39 @@
 */
 
 (function($){
+	var skey;	// skey выбранной системы
+
 	var log_line = function(d) {
-		var row = '<td>'+dt_to_datetime(d.time)+'</td><td>'+d.text+'<!--td>'+d.label+'</td-->';
+		var row = '<td>';
 		if(config.admin){
-			row += '<td class="del_log" title="Удалить сообщение\nБез подтверждения!" id="dellog_'+d.key+'" key="'+d.key+'"><span class="ui-icon ui-icon-close"></span></td>'
+			//row += '<span class="ui-icon ui-icon-close del_log" style="display: inline;" title="Удалить сообщение\nБез подтверждения!" id="dellog_'+d.key+'" key="'+d.key+'"></span>'
+			row += '<span class="ui-icon ui-icon-close del_log" style="display: inline-block;" title="Удалить сообщение\nБез подтверждения!" data-lkey="'+d.key+'"></span>'
 		}
-		/*$('#dellog_'+d.key).click(function(){
-			log('del:' + $(this).attr('key'));
-		});*/
+		row += dt_to_datetime(d.time)+'</td><td>'+d.text+'<!--td>'+d.label+'</td-->';
 		return row;
 	}
 
 	var UpdateDelProc = function() {
-		$('td.del_log').unbind('click');
-		$('td.del_log').bind('click', function(){
-			//log('del:' + $(this).attr('key'));
-			var row = this;
-			$(row).parent().remove();
-			$.getJSON('/api/logs/del?skey=' + config.skey+ '&lkey=' + $(this).attr('key'), function (data) {
+		$('span.del_log').unbind('click');
+		$('span.del_log').bind('click', function(){
+			//log('del:', this.dataset.lkey, this.parentNode.parentNode);
+			this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode);
+			/*
+			$.getJSON('/api/logs/del?skey=' + skey+ '&lkey=' + this.dataset.lkey, function (data) {
 				log('dellog complete');
 				if (data.answer && data.answer == 'ok') {
-					//$(row).parent().remove();
 				}
 			});
+			*/
+			var formData = new FormData();
+			formData.append('skey', skey);
+			formData.append('lkey', this.dataset.lkey);
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', '/api/logs/del', true);
+			xhr.onload = function(e) { log('Del log line', e); };
+			xhr.send(formData);
+			
+			return;
 		});
 	}
 
@@ -32,8 +42,9 @@
 		//log('UpdateLog');
 		var table = $("#log_table tbody");
 		table.empty();
+		config.working();
 
-		$.getJSON('/api/logs/get?skey=' + config.skey, function (data) {
+		$.getJSON('/api/logs/get?skey=' + skey, function (data) {
 			//$("#progress").html("Обрабатываем...");
 			log("getJSON parce");
 			if (data.answer && data.answer == 'ok') {
@@ -42,55 +53,39 @@
 				}
 			}
 			UpdateDelProc();
+			config.workingdone();
 		});
 	}
 
-	var Log_Make_SysList = function(list){
-		list.empty();
-		for(var i in config.systems){
-			var s = config.systems[i];
-			list.append('<option imei="'+s.imei+'" value="'+s.skey+'">'+s.desc+'</option>');
+	var LogSysList;
+
+	config.updater.tabs[2] = function(){
+		log('Tab Logs activated.');
+		if(!LogSysList){
+			LogSysList = new SysList('log_syslist');
+			LogSysList.selectSys = function(system){
+				console.log('LogSysList: selectSys', system);
+				skey = system.skey;
+				UpdateLog();
+			}
+			log('1st act', window.config.account.systems);
+			if(window.config.account.systems && window.config.account.systems.length>0) {
+				skey = window.config.account.systems[0].skey;
+				UpdateLog();
+			}
+			config.updater.add('addlog', function(msg) {
+				if(msg.data.skey == skey){
+					$("#log_table tbody tr:first").before('<tr>' + log_line(msg.data) + '</tr>');
+					UpdateDelProc();
+				}
+			});
 		}
 	}
 
 	$(document).ready(function() {
 //		log('Загрузка закладки. События.');
+//		if(config.skey) UpdateLog();
 
-		if(config.skey) UpdateLog();
-
-		config.syslist({
-			id: 'log_syslist',
-			change: function(){
-				log('LOG syslist change');
-				config.skey = $(this).attr('value');
-				UpdateLog();
-			}
-		});
-
-		/*
-		var list = $('#log_syslist');
-
-		Log_Make_SysList(list);
-		config.updater.add('changedesc', function(msg) {
-			//log('LOGS: Update descriptions');
-			$(list).find('option[value="' + msg.data.skey + '"]').html(msg.data.desc);
-		});
-		config.updater.add('changeslist', function(msg) {
-			Log_Make_SysList(list);
-		});
-
-		list.bind('change', function(){
-			config.skey = $(this).attr('value');
-			UpdateLog();
-		});
-		*/
-
-		config.updater.add('addlog', function(msg) {
-			if(msg.data.skey == config.skey){
-				$("#log_table tbody tr:first").before('<tr>' + log_line(msg.data) + '</tr>');
-				UpdateDelProc();
-			}
-		});
 	});
 	
 })(jQuery);

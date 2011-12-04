@@ -159,7 +159,7 @@ var geocode_to_addr = function (results) {
 		((comp.street_number != '')?(', ' + comp.street_number):'');
 }
 
-
+if(0){
 var geocode_to_addr2 = function (results) {
 
 	for(var i in results){
@@ -187,129 +187,8 @@ results[1]		Как повезет :)
 	}
 	return 'Адрес неизвестен';
 }
-
-
-var config = config || {};
-
-// Система автообновления
-config.updater = {}
-config.updater.queue = {};
-
-config.updater.add = function(msg, foo){
-	config.updater.queue[msg] = config.updater.queue[msg] || [];
-	config.updater.queue[msg].push(foo);
 }
 
-config.updater.process = function(msg){
-	/*
-	if(config.updater.queue[msg.msg]){
-		for(var i in config.updater.queue[msg.msg]){
-			config.updater.queue[msg.msg][i](msg);
-		}
-	}
-	*/
-
-	if(config.updater.queue[msg.msg]){
-		for(var i in config.updater.queue[msg.msg]){
-			config.updater.queue[msg.msg][i](msg);
-		}
-	}
-	if(config.updater.queue['*']){
-			for(var i in config.updater.queue['*']){
-				config.updater.queue['*'][i](msg);
-			}
-		}
-
-}
-
-config.updater.add('*', function(msg){
-	//console.log("goog.appengine.Channel: onMessage");
-	//console.log(msg);
-	//log('goog.appengine.Channel: onMessage:', msg);
-	//connected = true;
-	if(config.admin){
-		if(msg.msg) message('Получено сообщени об обновлении:<b>' + msg.msg + '</b>');
-	}
-});
-
-config.updater.tabs = [];
-
-config.updater.add('changedesc', function(msg) {
-	//log('Обработчик события для обновления списка config.systems', msg);
-	for(var i in config.systems){
-		if(config.systems[i].skey == msg.data.skey){
-			config.systems[i].desc = msg.data.desc;
-		}
-	}
-	if(msg.data.skey in config.sysbykey){
-		config.sysbykey[msg.data.skey].desc = msg.data.desc;
-	}
-	//log('CONFIG==', config);
-});
-
-config.syslist = function(options){
-	var list = $('#'+options.id);
-
-	var Make_SysList = function(){
-		list.empty();
-		for(var i in config.systems){
-			var s = config.systems[i];
-			//list.append('<option imei="'+s.imei+'" value="'+s.skey+'"'+(config.skey==s.skey?' selected':'')+'>'+s.desc+'</option>');
-			list.append('<option imei="'+s.imei+'" value="'+s.skey+'">'+s.desc+'</option>');
-		}
-	}
-
-	Make_SysList();
-
-	$(list).bind({
-		/*click: function(ev){
-			Make_SysList();
-			log('click');
-			},*/
-		change: options.change
-	});
-
-	config.updater.add('changeslist', function(msg) {
-		log('config.syslist: Update system list');
-		Make_SysList();
-	});
-
-	config.updater.add('changedesc', function(msg) {
-		$(list).children('option[value="'+msg.data.skey+'"]').html(msg.data.desc);
-	});
-
-}
-
-// TBD! Мне не нравится это повторное считывание списка. Лучше сделать локальное обновление (только изменившиеся данные)
-
-var UpdateAccountSystemList = function() {
-	$.getJSON('/api/info', function (data) {
-		if(data){
-			log('UpdateAccountSystemList data:', data);
-			//var config = config || {};
-			config.systems = [];
-			config.sysbykey = {};
-			for(var i in data.info.account.systems){
-				var s = data.info.account.systems[i];
-				config.systems.push({
-					'imei': s.imei,
-					'skey': s.key,
-					'desc': s.desc
-				});
-				config.sysbykey[s.key] = {imei: s.imei, desc: s.desc};
-			}
-
-			config.updater.process({msg: 'changeslist'});
-		}
-	});
-}
-
-//UpdateAccountSystemList();
-
-config.updater.add('change_slist', function(msg) {
-	log('BASE: Update system list');
-	UpdateAccountSystemList();
-});
 
 /* TBD! По возможности все перенести под function */
 
@@ -392,6 +271,75 @@ if (!google.maps.Polygon.prototype.contains) {
 		}
 		return false;
 	}
+}
+
+//var whorls = new Object();
+$(document).ready(function(){
+
+	if((document.body.clientWidth < (screen.width - 8)) || (document.body.clientWidth > (screen.width + 8))){
+		var msg = document.createElement('div');
+		msg.style.cssText = 'position: absolute; top: 30%; left: 30%; width: 30%; min-height: 30%; background: white; z-index: 2000; border: 1px solid black; border-radius: 8px; padding: 10px; box-shadow: 0px 0px 10px #404040;';
+		msg.innerHTML = '<b>Масштабирование страницы не рекомендуется.<br />Это может привести к серьезному снижению производительности.</b><br /> Установите масштаб 100%.<br />Нажмите Ctrl+0 (нажмите клавишу Ctrl, и не отпуская, нажмите клавишу "ноль").';
+		document.body.appendChild(msg);
+		var notcare = document.createElement('button');
+		notcare.style['margin-top'] = '30px';
+		notcare.innerHTML = 'Да я осознаю возможные трудности и совершаю свой выбор осознанно.';
+		msg.appendChild(notcare);
+		var t = setInterval(function(){
+			if((document.body.clientWidth > (screen.width - 8)) && (document.body.clientWidth < (screen.width + 8))){
+				document.body.removeChild(msg);
+				clearInterval(t);
+			}
+		}, 1000);
+		notcare.addEventListener('click', function(){
+			document.body.removeChild(msg);
+			clearInterval(t);
+		});
+
+		//alert('Масштабирование страницы не рекомендуется. Используйте масштаб 100%. Закройте окно с этим сообщением и нажмите Ctrl+0 (нажмите клавишу Ctrl и не отпуская нажмите клавишу "ноль").');
+	}
+
+	$('#a_login').attr('href', window.config.account.user.logout_url);
+	$('#a_login').html(window.config.account.user.nickname);
+
+	/*
+	//#clickme
+	$('#getdoc').bind('mouseover', function(){
+		$('#getadobe').stop(true, true).fadeIn("slow");
+		//$('#getadobe').show();
+	})
+			
+	$('#getdoc').bind('mouseout', function(){
+		//$('#getadobe').delay(5000).hide();
+		$('#getadobe').stop(true, true).delay(5000).fadeOut("slow");
+	})
+	$('#getadobe').mouseover(function(){
+		//alert('aa');
+		$('#getadobe').stop(true, true);
+	});
+	$('#getadobe').mouseout(function(){
+		//alert('aa');
+		$('#getadobe').stop(true, true).delay(5000).fadeOut("slow");
+	});
+	*/
+/*
+	try { 
+		whorls['timezone'] = new Date().getTimezoneOffset();
+		$("#timezone").html(whorls['timezone'] + " (" + whorls['timezone']/60 + " часов)");
+	} catch(ex) {
+		whorls['timezone'] = "permission denied";
+	}
+*/
+});
+
+window.config.working = function(){
+	var workingdiv = document.getElementById('working');
+	workingdiv.style.display = 'inline';
+}
+
+window.config.workingdone = function(){
+	var workingdiv = document.getElementById('working');
+	workingdiv.style.display = 'none';
 }
 
 

@@ -278,7 +278,7 @@ class AddLog(webapp2.RequestHandler):
 			gpslog = GPSLogs(parent = skey, text = text, label = label, mtype = mtype, pos = db.GeoPt(lat, lon))
 			gpslog.put()
 
-			channel.inform('addlog', skey, {
+			inform('addlog', skey, {
 				'skey': str(skey),
 				#'time': gpslog.date.strftime("%d/%m/%Y %H:%M:%S"),
 				'time': datetime.utcnow().strftime("%y%m%d%H%M%S"),

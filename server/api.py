@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import gc
 import logging
 
@@ -1291,7 +1292,7 @@ class Sys_Desc(BaseApi):
 		system.desc = desc
 		system.put()
 		
-		inform('changedesc', self.skey, {
+		inform('change_desc', self.skey, {
 			'desc': desc
 		})
 
@@ -1480,11 +1481,11 @@ class Logs_Del(BaseApi):
 		#logsq = GPSLogs.all().ancestor(self.skey).order('-date').fetch(1000)
 		#GPSLogs.get(lkey).delete()
 		try:
-			db.delete(db.Key(self.skey))
-		except e:
+			db.delete(db.Key(lkey))
+		except:
 			return {
-				"answer": "ok",
-				"comment": str(e)
+				"answer": "fail",
+				"comment": str(sys.exc_info()[0])
 			}
 
 		return {

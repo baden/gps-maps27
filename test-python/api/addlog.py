@@ -1,5 +1,6 @@
 import httplib
 import urllib
+import random
 
 #GETFROM = "gps-maps.appspot.com:80"
 GETFROM = "localhost:80"
@@ -7,7 +8,7 @@ GETFROM = "localhost:80"
 def main():
 	conn = httplib.HTTPConnection(GETFROM)
 	#conn.request("GET", "/addlog?imei=356895035359317&text=Hello")
-	conn.request("GET", "/addlog?imei=123&text=Hello")
+	conn.request("GET", "/addlog?imei=123&text=Hello%%20world-%s!" % random.randrange(0,10000))
 	response = conn.getresponse()
 	print response.status, response.reason
 	data = response.read()
@@ -15,4 +16,5 @@ def main():
 	print data
 
 if __name__ == "__main__":
+	main()
 	main()

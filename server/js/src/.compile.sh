@@ -10,5 +10,5 @@ compilation_level=SIMPLE_OPTIMIZATIONS
 #java -jar ./.lib/compiler.jar --compilation_level=$compilation_level $SRC --js_output_file build/all-min.js --charset utf-8 2>./js.errors.txt
 
 echo $src
-java -jar ../../../.lib/compiler/compiler.jar --js base.js --js alert.js --js syslist.js --js mymarker.js --js lastmarker.js --js gmap.js --js alarm.js --js config.js --js geos.js --js zones.js --js directions.js --js maps.js --js reports.js --js logs.js --compilation_level=$compilation_level $SRC --js_output_file ../all-min.js --charset utf-8 2>./js.errors.txt
+java -jar ../../../.lib/compiler/compiler.jar --js base.js --js updater.js --js alert.js --js syslist.js --js mymarker.js --js lastmarker.js --js gmap.js --js alarm.js --js config.js --js geos.js --js zones.js --js directions.js --js maps.js --js reports.js --js logs.js --compilation_level=$compilation_level $SRC --js_output_file ../all-min.js --charset utf-8 2>./js.errors.txt
 

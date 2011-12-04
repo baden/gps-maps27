@@ -111,50 +111,7 @@
 
 	console.log('Init config:', config);
 
-	InitUpdater();	// TBD! Это не самое элегантное решение вызова инициализации обновления.
-
-	// Установим chanel-соединение
-	// Получим токен для установки соединения
-	var uuid = new Date().getTime();
-	$.getJSON('/api/channel/gettoken?uuid=' + config.user.id + '_' + uuid, function (data) {
-		if(data.token != 'disabled'){
-			var token = data.token;
-			log('Token goted:' + token, 'uuid='+config.user.id);
-
-			var onOpened = function() {
-				log('goog.appengine.Channel: onOpened ('+token+')');
-				//connected = true;
-			}
-
-			var onMessage = function(m) {
-				var msg = JSON.parse(m.data);
-				log('goog.appengine.Channel: onMessage', token, m);
-				config.updater.process(msg);
-				//config.updater.process({msg: '*'});
-			}
-
-			var onError = function() {
-				log("goog.appengine.Channel: onError");
-			}
-
-			var onClose = function() {
-				log("goog.appengine.Channel: onClose (TBD! Reconnect?)");
-				//connected = false;
-			}
-			//if(window.location.hostname == 'localhost'){
-			//	goog.appengine.Socket.POLLING_TIMEOUT_MS = 10000;
-			//}
-
-			var channel = new goog.appengine.Channel(token);
-			var socket = channel.open();
-			socket.onopen = onOpened;
-			socket.onmessage = onMessage;
-			socket.onerror = onError;
-			socket.onclose = onClose;
-		} else {
-		    log('channel api is disabled');
-		}
-	});
+	//InitUpdater();	// TBD! Это не самое элегантное решение вызова инициализации обновления.
 
 	config.inits.push(function(){
 		log('== First init (TBD!)', config);
@@ -179,7 +136,6 @@
 			load: function(){
 				//log('TAB: tab loaded: ', $(this).tabs( "option", "selected" ));
 				$("button").button();
-
 			}
 		});
 
@@ -189,7 +145,6 @@
 		});
 
 		//var connected = false;
-	
 
 		$('#test').click(function(){
 			log('Test');
@@ -207,11 +162,15 @@
 		right: 10px;
 	}
 
-	{% if not admin %}
 	.admin {
 		display: none;
 	}
-	{% endif %}
+
+	div#working {
+		/*display: inline;*/
+		display: none;
+		margin-right: 30px;
+	}
 
   </style>
 
@@ -310,61 +269,10 @@
 		padding-right: 2px !important; 
 	}
 
-  </style>
-
-
-
-  <script>
-		var whorls = new Object();
-
-		$(document).ready(function(){
-			$('#a_login').attr('href', window.config.user.logout_url);
-			$('#a_login').html(window.config.user.nickname);
-			//#clickme
-			$('#getdoc').bind('mouseover', function(){
-				$('#getadobe').stop(true, true).fadeIn("slow");
-				//$('#getadobe').show();
-			})
-			
-			$('#getdoc').bind('mouseout', function(){
-				//$('#getadobe').delay(5000).hide();
-				$('#getadobe').stop(true, true).delay(5000).fadeOut("slow");
-			})
-			$('#getadobe').mouseover(function(){
-				//alert('aa');
-				$('#getadobe').stop(true, true);
-			});
-			$('#getadobe').mouseout(function(){
-				//alert('aa');
-				$('#getadobe').stop(true, true).delay(5000).fadeOut("slow");
-			});
-
-
-			try { 
-				whorls['timezone'] = new Date().getTimezoneOffset();
-				$("#timezone").html(whorls['timezone'] + " (" + whorls['timezone']/60 + " С‡Р°СЃР°)");
-			} catch(ex) {
-				whorls['timezone'] = "permission denied";
-			}
-			
-
-		});
-  </script>
-
-
-
-
-
-
-  <style>
 	#report_btn_do_by_day, #report_btn_do_by_int {
 		padding: 8px 32px 8px 32px;
 	}
   </style>
-
-
-
-
 
 </head>
 

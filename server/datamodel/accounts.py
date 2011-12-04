@@ -26,6 +26,7 @@ class DBAccounts(db.Model):
 	config_list = db.StringProperty(multiline=True, default=DEFAULT_CONFIG)	# Список записей конфигурации
 	access = db.IntegerProperty(default=0)					# Уровень доступа
 										# 0-только просмотр, 1-возможность конфигурирования, 2-возможность правки данных и т.д.
+	"""
 	@property
 	def systems(self):
 		system_list = []
@@ -40,6 +41,15 @@ class DBAccounts(db.Model):
 		if purge:
 			self.put()
 		return system_list
+	"""
+	@property
+	def systems(self):
+		for skey in self.systems_key:
+			try:
+				s = DBSystem.get(skey)
+				if s: yield s
+			except:
+				pass
 
 	# Возвращает True если система с таким key контроллируется аккаунтом
 	def has_skey(self, skey):

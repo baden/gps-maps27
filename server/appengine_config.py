@@ -7,18 +7,19 @@ import Cookie
 import re
 from google.appengine.ext.appstats import recording
 
-logging.getLogger().setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.WARNING)
 logging.info('Loading %s from %s', __name__, __file__)
 
 #apptrace_URL_PATTERNS  = ['^/$']
 #apptrace_TRACE_MODULES = ['api.py']
 
-#def webapp_add_wsgi_middleware(app):
-#    app = recording.appstats_wsgi_middleware(app)
-#    return app
+def webapp_add_wsgi_middleware(app):
+    #app = recording.appstats_wsgi_middleware(app)
+    return app
 
 #os.environ['ROOT_NAMESPACE'] = 'point'
 
+appstats_DEBUG = False
 appstats_TZOFFSET = -2*3600
 appstats_DUMP_LEVEL = -1
 appstats_FILTER_LIST = [{'PATH_INFO': '!^/favicon\.ico$'}]

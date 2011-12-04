@@ -59,6 +59,7 @@
   <!--script src="/js/all-min.js?v=1"></script-->
 
   <script src="/js/src/base.js?v=1"></script>
+  <script src="/js/src/updater.js?v=1"></script>
   <script src="/js/src/alert.js?v=1"></script>
   <script src="/js/src/syslist.js?v=1"></script>
   <script src="/js/src/mymarker.js?v=1"></script>
@@ -110,6 +111,8 @@
 
 	console.log('Init config:', config);
 
+	InitUpdater();	// TBD! Это не самое элегантное решение вызова инициализации обновления.
+
 	// Установим chanel-соединение
 	// Получим токен для установки соединения
 	var uuid = new Date().getTime();
@@ -125,6 +128,7 @@
 
 			var onMessage = function(m) {
 				var msg = JSON.parse(m.data);
+				log('goog.appengine.Channel: onMessage', token, m);
 				config.updater.process(msg);
 				//config.updater.process({msg: '*'});
 			}
@@ -137,9 +141,9 @@
 				log("goog.appengine.Channel: onClose (TBD! Reconnect?)");
 				//connected = false;
 			}
-			if(window.location.hostname == 'localhost'){
-				goog.appengine.Socket.POLLING_TIMEOUT_MS = 10000;
-			}
+			//if(window.location.hostname == 'localhost'){
+			//	goog.appengine.Socket.POLLING_TIMEOUT_MS = 10000;
+			//}
 
 			var channel = new goog.appengine.Channel(token);
 			var socket = channel.open();

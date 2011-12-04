@@ -5,7 +5,7 @@ import zipfile
 from datetime import datetime, timedelta
 import webapp2
 
-logging.getLogger().setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.WARNING)
 
 TYPES = {
 	'js': 'application/x-javascript',

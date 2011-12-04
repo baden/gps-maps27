@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import webapp2
+import logging
+
+logging.getLogger().setLevel(logging.WARNING)
 
 config = {}
 config['webapp2_extras.sessions'] = {

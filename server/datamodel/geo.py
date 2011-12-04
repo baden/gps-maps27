@@ -251,12 +251,12 @@ class DBGeo(db.Model):
 			return None
 
 	@classmethod
-	def get_items_by_range(cls, system_key, dtfrom, dtto, maxp):
+	def get_items_by_range(cls, skey, dtfrom, dtto, maxp):
 		#dhfrom = datetime(dtfrom.year, dtfrom.month, dtfrom.day, dtfrom.hour & ~7, 0, 0)
 		dhfrom = datetime(dtfrom.year, dtfrom.month, dtfrom.day, 0, 0, 0)
 		#dhto = datetime(dtto.year, dtto.month, dtto.day, dtto.hour & ~7, 0, 0)
 		dhto = datetime(dtto.year, dtto.month, dtto.day, 0, 0, 0)
-		recs = DBGeo.all().ancestor(system_key).filter("date >=", dhfrom).filter("date <=", dhto).order("date")#.fetch(1000)
+		recs = DBGeo.all().ancestor(skey).filter("date >=", dhfrom).filter("date <=", dhto).order("date")#.fetch(1000)
 		for rec in recs:
 			logging.info('==> API:GEO:GET  fetch DBGeo[%s]' % rec.key().name())
 			if maxp == 0: break
@@ -359,7 +359,19 @@ class PointWorker(object):
 """ Сохранение последних известных координат объектов """
 
 """
+	Разработка нового механизма.
+	Создать базу для сохранения последнего положения каждого объекта:
+	DBLastPos(key_name=imei, parent=collect):
+		timestamp
+		position
+
+	(!) запись значения производить один раз на пакет полученных данных.
+	с записью дополнительно создается memcache('DBLastPos:imei') содержащая копию данных.
+"""
+
+"""
 	Запрашивает последнее известное положение объекта skey
+	TBD! Необходимо переделать функцию. Не очень удачно запрашивается последнее положение при каждом изменении положения объектов.
 """
 def getGeoLast(skey):
 	from google.appengine.api import memcache

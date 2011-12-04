@@ -16,7 +16,7 @@ from datamodel.accounts import DBAccounts
 from datamodel.system import DBSystem
 from google.appengine.api import namespace_manager
 
-logging.getLogger().setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.WARNING)
 
 SERVER_NAME = os.environ['SERVER_NAME']
 VERSION = '0'
@@ -136,11 +136,19 @@ class TestMain2(BaseHandler):
 		template_args = {}
 		self.render_template(self.__class__.__name__ + '.html', **template_args)
 
-class InitConfig(webapp2.RequestHandler):
+
+#class InitConfig(webapp2.RequestHandler):
+class InitConfig(BaseHandler):
 	def config(self):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 
 		user = users.get_current_user()
+		test_value = self.session.get('test-value')
+		if test_value:
+			pass
+		else:
+			self.session['test-value'] = 1
+
 		if user is None:
 			return {
 				'answer': 'no',
@@ -172,6 +180,9 @@ class InitConfig(webapp2.RequestHandler):
 
 		return {
 			'version': VERSION,
+			'session': {
+				'test_value': test_value,
+			},
 			'server_name': os.environ['SERVER_NAME'],
 			'account': {
 				'key': str(account.key()),
@@ -185,7 +196,12 @@ class InitConfig(webapp2.RequestHandler):
 				},
 				'config': account.pconfig,
 				'name': account.name,
-				'systems': [{
+				'systems': [sys.todict() for sys in account.systems]
+			}
+		}
+
+		"""
+					'systems': [{
 					"key": str(sys.key()),
 					"skey": str(sys.key()),
 					"imei": sys.imei,
@@ -193,8 +209,7 @@ class InitConfig(webapp2.RequestHandler):
 					"desc": sys.desc,
 					"premium": sys.premium >= datetime.utcnow(),
 				} for sys in account.systems],
-			}
-		}
+		"""
 
 	@login_required
 	def get(self):
@@ -210,7 +225,7 @@ class AddLog(webapp2.RequestHandler):
 		from datetime import datetime
 		from inform import Informer
 		from alarm import Alarm
-		from channel import send_message
+		from channel import inform
 
 		self.response.headers['Content-Type'] = 'application/octet-stream'
 
@@ -263,18 +278,7 @@ class AddLog(webapp2.RequestHandler):
 			gpslog = GPSLogs(parent = skey, text = text, label = label, mtype = mtype, pos = db.GeoPt(lat, lon))
 			gpslog.put()
 
-			send_message({'msg': 'addlog', 'data':{
-				'skey': str(skey),
-				#'time': gpslog.date.strftime("%d/%m/%Y %H:%M:%S"),
-				'time': datetime.utcnow().strftime("%y%m%d%H%M%S"),
-				'text': text,
-				'label': label,
-				'mtype': mtype,
-				'key': "%s" % gpslog.key(),
-				'data': data,
-			}}, skeys=[skey])
-			"""
-			updater.inform('addlog', skey, {
+			channel.inform('addlog', skey, {
 				'skey': str(skey),
 				#'time': gpslog.date.strftime("%d/%m/%Y %H:%M:%S"),
 				'time': datetime.utcnow().strftime("%y%m%d%H%M%S"),
@@ -284,7 +288,6 @@ class AddLog(webapp2.RequestHandler):
 				'key': "%s" % gpslog.key(),
 				'data': data,
 			})	# Информировать всех пользователей, у которых открыта страница Отчеты
-			"""
 
 		#newconfigs = DBNewConfig.get_by_imei(imei)
 		#newconfig = newconfigs.config

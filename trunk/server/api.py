@@ -22,7 +22,7 @@ SERVER_NAME = os.environ['SERVER_NAME']
 MAXPOINTS = 100000
 
 #logging.getLogger().setLevel(logging.DEBUG)
-logging.getLogger().setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.WARNING)
 
 API_VERSION = 1.27
 
@@ -54,7 +54,7 @@ class BaseApi(webapp2.RequestHandler):
 
 		if 'skey' in self.requred:
 			skey = self.request.get("skey", None)
-			logging.info(skey)
+			#logging.info(skey)
 			if skey is None:
 				return {'answer': 'no', 'reason': 'skey not defined or None'}
 			try:
@@ -480,18 +480,8 @@ class Geo_Task_Del(webapp2.RequestHandler):
 class Geo_Del(BaseApi):
 	requred = ('admin', 'skey')
 	def parcer(self, **argw):
-		#logging.info('API: /api/geo/del');
-		#system = DBSystem.get_by_imei(self.imei)
-		#system = DBSystem.get(self.skey)
-		#if system is None:
-		#	logging.info('API: /api/geo/del: no sys');
-		#	return {
-		#		'answer': 'error',
-		#		'result': 'system not found (IMEI:%s)' % self.skey.name(),
-		#	}
-
 		logging.info('API: /api/geo/taskdel: create task');
-		url = "/api/geo/taskdel?skey=%s&to=%s" % (self.skey, self.request.get('to',''))
+		url = "/api/geo/taskdel?skey=%s&to=%s" % (str(self.skey), self.request.get('to',''))
 		countdown=0
 		taskqueue.add(url = url, method="GET", countdown=countdown)
 
@@ -728,7 +718,7 @@ class Geo_Get(BaseApi):
 		dtto = datetime.strptime(self.request.get("to"), "%y%m%d%H%M%S")
 
 		options = self.request.get('options', '').split(',')
-		logging.info('options=%s' % repr(options))
+		#logging.info('options=%s' % repr(options))
 
 		points = []
 		l_lat = []	# Список индексов (lat, index)
@@ -907,24 +897,20 @@ class Geo_Get(BaseApi):
 		#prof += "gc.get_objects()=%s\n" % repr(gc.get_objects())
 		logging.info(prof)
 		"""
-
+#TBD! Переделать на BaseApi
 class Geo_Info(webapp2.RequestHandler):
 	def get(self):
 		from time import sleep
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 		skey = self.request.get("skey")
 		if skey is None:
-			self.response.out.write(json.dumps({'answer': None}) + "\r")
+			self.response.write(json.dumps({'answer': None}) + "\r")
 			return
 
-		system_key = db.Key(skey)
+		skey = db.Key(skey)
 		dtpoint = datetime.strptime(self.request.get("point"), "%y%m%d%H%M%S")
-		#pointr = DBGeo.get_by_date(system_key, dtpoint)
-		#point = None
-		#if pointr:
-		#	point = pointr.get_item_by_dt(dtpoint)
 
-		point = DBGeo.get_by_datetime(system_key, dtpoint)
+		point = DBGeo.get_by_datetime(skey, dtpoint)
 		
 		jsonresp = {
 			'answer': 'ok',
@@ -937,22 +923,14 @@ class Geo_Info(webapp2.RequestHandler):
 				'vout': '%.1f' % point['vout'],
 				'vin': '%.2f' % point['vin'],
 				'sats': point['sats'],
-				'fsource': point['fsourcestr'],
-			},
-			#'bcount': len(recs),
-			#'count': len(points),
-			#'counts': counts,
-			#'format': ["date", "lat", "lon", "course", "minzoom"],
-			#'points': points, 
-			#'bounds': {'sw': (b_lat_l, b_lon_l), 'ne': (b_lat_r, b_lon_r)},
-			#'subbounds': subbounds,
-			#'slat': l_lat,
-			#'slon': l_lon,
+				'fsource': point['fsourcestr']
+			}
 		}
 		if SERVER_NAME=='localhost':
 			sleep(0.3)
-		self.response.out.write(json.dumps(jsonresp) + "\r")
+		self.response.write(json.dumps(jsonresp) + "\r")
 
+#TBD! Переделать на BaseApi
 class Geo_Dates(webapp2.RequestHandler):
 	def get(self):
 		from bisect import insort
@@ -979,7 +957,7 @@ class Geo_Dates(webapp2.RequestHandler):
 		system_key = db.Key(skey)
 
 		#req = DBGeo.all(keys_only=True).ancestor(system_key).filter('date >=', datetime(sy,sm,1)).filter('date <', datetime(ny,nm,1)).order('date').fetch(31*3) # пачки по 8 часов
-		req = DBGeo.all().ancestor(system_key).filter('date >=', datetime(sy,sm,1)).filter('date <', datetime(ny,nm,1)).order('date').fetch(31*3) # пачки по 8 часов
+		req = DBGeo.all().ancestor(system_key).filter('date >=', datetime(sy,sm,1)).filter('date <', datetime(ny,nm,1)).order('date').fetch(31+2) # Месяц +- 2 дня
 
 		#dates = []
 		#months = []
@@ -1029,7 +1007,6 @@ class Geo_Dates(webapp2.RequestHandler):
 		}
 
 		self.response.out.write(json.dumps(jsonresp, indent=2) + "\r")	#sort_keys=True,
-
 
 
 class Geo_Last(BaseApi):
@@ -1243,7 +1220,7 @@ class Sys_Add(BaseApi):
 		#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
 		send_message({'msg': 'change_slist', 'data':{'type': 'Adding'}}, akeys=[self.akey])
 
-		return {'answer': 'yes', 'result': 'added', 'skey': DBSystem.imei2key(self.imei)}
+		return {'answer': 'yes', 'result': 'added', 'skey': str(DBSystem.imei2key(self.imei))}
 
 class Sys_Del(BaseApi):
 	requred = ('account', 'skey')

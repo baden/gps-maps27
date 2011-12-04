@@ -16,7 +16,7 @@ $(document).ready(function() {
 	var $p = $('#geos_body table tr:first th:last')[0];
 
 	//$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
-/*
+
 	config.updater.tabs[3] = function(){
 		$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
 		if(!$gmap){
@@ -46,7 +46,7 @@ $(document).ready(function() {
 		//var $p = $('#geos_body table tr:first th:last')[0];
 		//$('#geomap').resize();
 	}
-*/
+
 
 	var tbody = $('#geos_body table tbody');
 	var skey;

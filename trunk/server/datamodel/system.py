@@ -22,7 +22,16 @@ class DBSystem(db.Model):
 	password = db.StringProperty(default=None)	# Если это поле задано, то все "наблюдатели" должны иметь этот-же ключ для доступа к системе
 	#groups = db.ListProperty(db.Key, default=None)	# Перечень ключей к записям групп, в которые входит система
 	#						# Это ссылки на "глобальные" группы. Локальные группы могут быть назначены каждым пользователем.
-
+	def todict(self):
+		from datetime import datetime
+		return {
+			"key": str(self.key()),
+			"skey": str(self.key()),
+			"imei": self.imei,
+			"phone": self.phone,
+			"desc": self.desc,
+			"premium": self.premium >= datetime.utcnow()
+		}
 
 	#@classmethod
 	#def collect_key(cls, collect_name=None):
@@ -38,7 +47,7 @@ class DBSystem(db.Model):
 			return db.Key(value)
 
 		#model = cls.get_or_insert(imei, parent = cls.collect_key(collect_name), imei=imei)
-		model = cls.get_or_insert(imei, imei=imei)
+		model = cls.get_or_insert(imei, imei=imei, desc=u"Cистема %s" % imei)
 		memcache.set("DBSystem:%s" % imei, str(model.key()))
 		return model.key()
 
@@ -64,3 +73,5 @@ class DBSystem(db.Model):
 	@classmethod
 	def get_all(cls, **kwds):
 		return DBSystem.all(**kwds).fetch(100)
+
+	

@@ -18,7 +18,7 @@ COUNT = 1
 # Where send to...
 
 HOST = "127.0.0.1"
-PORT = 8080
+PORT = 80
 
 #HOST = "gps-maps27.appspot.com"
 #PORT = 80
@@ -78,7 +78,7 @@ def senddata(body):
 	print("Waiting answer...\n");
 	#sleep(1)
 	while 1:
-		s.settimeout(30.0);
+		s.settimeout(15.0);
 		try:
 			received = s.recv(1024)
 		except:

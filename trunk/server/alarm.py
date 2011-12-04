@@ -5,6 +5,9 @@ from google.appengine.api import memcache
 from datetime import datetime, timedelta
 from datamodel import DBSystem
 import logging
+
+DEFAULT_COLLECT = 'DefaultCollect'
+
 #
 #  Используется для отправки системе сообщений.
 #  - информирование о смене конфигурации (пока не используется)
@@ -18,7 +21,7 @@ class Alarm(db.Model):
 	lpos = db.GeoPtProperty()				# Последняя позиция
 	fid = db.IntegerProperty()				# FID
 	ceng = db.StringProperty(default='')			# Строка инженерного меню (если есть)
-	confirmed = db.BooleanProperty(default=False)		# Получение тревоги подтверждено	TBD! Мне не нравятся Reference, так как могут вызывать лишние обращения к базе. Думаю можно переделать на user.id() или на UserProperty
+	confirmed = db.BooleanProperty(default=False)		# Получение тревоги подтверждено
 	confirmby = db.UserProperty()				# Оператор, подтвердивший тревогу
 	#confirmby = db.StringProperty(default=None)		# Оператор, подтвердивший тревогу
 	confirmwhen = db.DateTimeProperty()			# Время подтвердения тревоги
@@ -28,7 +31,7 @@ class Alarm(db.Model):
 		#entity = cls(key_name="alarm_%s" % system.imei, system_key=system)
 		#entity.put()
 		def txn():
-			collect_key = db.Key.from_path('DefaultCollect', 'Alarm')
+			collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
 			entity = cls.get_by_key_name(imei, parent=collect_key)
 			if entity is None:
 				entity = cls(key_name=imei, parent=collect_key, fid=fid, lpos=lpos, ceng=ceng, cdateHistory = [datetime.now()])
@@ -45,7 +48,7 @@ class Alarm(db.Model):
 
 	@classmethod
 	def getall(cls):
-		collect_key = db.Key.from_path('DefaultCollect', 'Alarm')
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
 		for r in cls.all().ancestor(collect_key):
 			usr = ''
 			if r.confirmed:
@@ -64,7 +67,7 @@ class Alarm(db.Model):
 			}
 	@classmethod
 	def confirm(cls, imei, user):
-		collect_key = db.Key.from_path('DefaultCollect', 'Alarm')
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
 		entity = cls.get_by_key_name(imei, parent=collect_key)
 		if entity is not None:
 			entity.confirmed = True
@@ -74,15 +77,9 @@ class Alarm(db.Model):
 
 	@classmethod
 	def cancel(cls, imei, account):
-		key = db.Key.from_path('DefaultCollect', 'Alarm', 'Alarm', imei)
+		key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__, cls.__name__, imei)
 		try:
 			db.delete(key)
 		except:
 			logging.warning('Error deleting Alarm: %s' % key)
-		"""
-		collect_key = db.Key.from_path('DefaultCollect', 'Alarm')
-		entity = cls.get_by_key_name(imei, parent=collect_key)
-		if entity is not None:
-			db.delete(entity)
-		"""
 		pass

@@ -18,7 +18,7 @@ SERVER_NAME = os.environ['SERVER_NAME']
 
 glogal_counter = 0
 
-logging.getLogger().setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.WARNING)
 
 class DBGPSBin(db.Model):
 	dataid = db.IntegerProperty()
@@ -292,6 +292,8 @@ class BinGpsParse(webapp2.RequestHandler):
 				_log += '\n==\tSaved points: %d\n' % points
 
 				# Временно запретим обновление, работате не так как задумано
+				# TBD! Необходимо переделать функцию. Не очень удачно запрашивается последнее положение при каждом изменении положения объектов.
+				# Нужно обновлять мягко последнее положение и отправлять только изменения (в идеале накапливая несколько систем за раз)
 				#updateLasts(skey);
 				#inform('geo_change', skey, {
 				#	'points': points

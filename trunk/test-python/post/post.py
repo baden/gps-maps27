@@ -16,8 +16,8 @@ def senddata(url, body):
 
 	send = "POST %s HTTP/1.1\r\n" % url
 	send+= "Host: %s\r\n" % HOSTNAME
-	#send+= "Content-type: application/octet-stream\r\n"
-	send+= "Content-type: application/x-www-form-urlencoded\r\n"
+	send+= "Content-type: application/octet-stream\r\n"
+	#send+= "Content-type: application/x-www-form-urlencoded\r\n"
 	send+= "Content-Length: %d\r\n" % len(body)
 	send+= "\r\n"
 	send+= body

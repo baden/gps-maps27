@@ -11,11 +11,11 @@ from datamodel.accounts import DBAccounts
 #import cPickle as pickle
 #import pickle
 
-logging.getLogger().setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.WARNING)
 
 # В 1.6.0 наблюдаются проблемы с channel api.
-DISABLE_CHANNEL = True
-#DISABLE_CHANNEL = False
+#DISABLE_CHANNEL = True
+DISABLE_CHANNEL = False
 
 """
 	Призвана обеспечить механизм рассылки оповещений подключенным клиентам (открытым страницам).
@@ -125,8 +125,10 @@ class DBMessages(db.Model):
 	skeys = db.ListProperty(db.Key)				# Заполняется есдт указан получатель по владению системой
 	message = db.TextProperty(default=u"")
 
-def send_message(message, akeys=[], skeys=[], timeout=10):
+def send_message(message, akeys=[], skeys=[], timeout=2):
 	from google.appengine.api.labs import taskqueue
+
+	logging.warning('\n\nExecute: send_message.\n')
 	# Для работы в High Replication необходимо все записи разместить в одной сущности.
 	collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
 	#messagedb = DBMessages(parent = collect_key, message = pickle.dumps(message, protocol=pickle.HIGHEST_PROTOCOL))
@@ -147,7 +149,7 @@ def inform(msg, skey, data):
 
 class MessagePost(webapp2.RequestHandler):
 	def post(self):
-		logging.info('\n\nExecute messages send.\n')
+		logging.warning('\n\nExecute: messages post.\n')
 		collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
 		messages_bc = []
 		messages_akey = {}
@@ -155,7 +157,7 @@ class MessagePost(webapp2.RequestHandler):
 		mkeys = []
 		query = DBMessages.all().ancestor(collect_key)
 		for mesg in query:
-			logging.info('\n\nMessage: %s' % mesg.message)
+			logging.warning('\n\nMessage: %s' % mesg.message)
 			#messages.append(pickle.loads(mesg.message))
 			value = eval(mesg.message)
 			if (mesg.akeys is not None) and (len(mesg.akeys) > 0):
@@ -166,14 +168,14 @@ class MessagePost(webapp2.RequestHandler):
 					else:
 						messages_akey[akey].append(value)
 			elif (mesg.skeys is not None) and (len(mesg.skeys) > 0):
-				logging.info('\n\n+skey')
+				logging.warning('\n\n+skey')
 				for skey in mesg.skeys:
 					if skey not in messages_skey:
 						messages_skey[skey] = [value]
 					else:
 						messages_skey[skey].append(value)
 			else:
-				logging.info('\n\n+broadcast')
+				logging.warning('\n\n+broadcast')
 				messages_bc.append(value)
 			mkeys.append(mesg.key())
 			#mesg.delete()
@@ -226,18 +228,19 @@ class MessagePost(webapp2.RequestHandler):
 			else:
 				_log += 'No messages for client: %s\n' % uuid
 
-			logging.info(_log)
+			logging.warning(_log)
 
 		db.delete(mkeys)
 		memcache.delete('DBMessages:lazzy_run')
 
 class Message(BaseApi):
 	def parcer(self):
-		logging.info('Broadcast message ')
+		from datamodel import DBSystem
+		logging.warning('Broadcast message ')
 		args = self.request.arguments()
 		message = dict((a, self.request.get(a, '')) for a in args)
-		send_message(message, skeys=[DBSystem.imei2key('356895035359317')])
-		#send_instant_message(message)
+		#send_message(message, skeys=[DBSystem.imei2key('356895035359317')])
+		send_message(message)
 
 		return {
 			'answer': 'ok',

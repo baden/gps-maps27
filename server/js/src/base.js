@@ -19,6 +19,36 @@ window.log = function(){
   }
 })(document);*/
 
+
+/* Загрузка темы оформления */
+var theme_css = document.createElement('link');
+theme_css.id = 'themecss';
+theme_css.setAttribute("rel", "stylesheet");
+theme_css.setAttribute("type", "text/css");
+//theme_css.className = 'alertmsg';
+config.setTheme = function(themename) {
+	//log('load-theme', themename, theme_css);
+	/*
+	if(theme_css.styleSheet) {
+		theme_css.styleSheet.cssText = '/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/'+themename+'/jquery-ui.css';
+	} else {
+		theme_css.appendChild(document.createTextNode('/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/'+themename+'/jquery-ui.css'));
+	}
+	*/
+	theme_css.setAttribute('href', '/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/'+themename+'/jquery-ui.css');
+} 
+//$(document).ready(function(){
+	config.setTheme(config.account.config.theme);
+	//if(!document.getElementById('themecss')) document.getElementsByTagName('head')[0].appendChild(theme_css);
+	if(!document.getElementById('themecss')) {
+		var h0 = document.getElementsByTagName('head')[0];
+		h0.insertBefore(theme_css, h0.firstChild);
+	}
+//});
+
+//  <link href="" rel="stylesheet">
+
+
 var f2d = function(n) {
   if (n < 10) {
     return '0' + n;
@@ -276,7 +306,7 @@ if (!google.maps.Polygon.prototype.contains) {
 //var whorls = new Object();
 $(document).ready(function(){
 
-	if((document.body.clientWidth < (screen.width - 8)) || (document.body.clientWidth > (screen.width + 8))){
+	if((document.body.clientWidth < (document.width - 8)) || (document.body.clientWidth > (document.width + 8))){
 		var msg = document.createElement('div');
 		msg.style.cssText = 'position: absolute; top: 30%; left: 30%; width: 30%; min-height: 30%; background: white; z-index: 2000; border: 1px solid black; border-radius: 8px; padding: 10px; box-shadow: 0px 0px 10px #404040;';
 		msg.innerHTML = '<b>Масштабирование страницы не рекомендуется.<br />Это может привести к серьезному снижению производительности.</b><br /> Установите масштаб 100%.<br />Нажмите Ctrl+0 (нажмите клавишу Ctrl, и не отпуская, нажмите клавишу "ноль").';
@@ -286,7 +316,7 @@ $(document).ready(function(){
 		notcare.innerHTML = 'Да я осознаю возможные трудности и совершаю свой выбор осознанно.';
 		msg.appendChild(notcare);
 		var t = setInterval(function(){
-			if((document.body.clientWidth > (screen.width - 8)) && (document.body.clientWidth < (screen.width + 8))){
+			if((document.body.clientWidth > (document.width - 8)) && (document.body.clientWidth < (document.width + 8))){
 				document.body.removeChild(msg);
 				clearInterval(t);
 			}
@@ -302,26 +332,6 @@ $(document).ready(function(){
 	$('#a_login').attr('href', window.config.account.user.logout_url);
 	$('#a_login').html(window.config.account.user.nickname);
 
-	/*
-	//#clickme
-	$('#getdoc').bind('mouseover', function(){
-		$('#getadobe').stop(true, true).fadeIn("slow");
-		//$('#getadobe').show();
-	})
-			
-	$('#getdoc').bind('mouseout', function(){
-		//$('#getadobe').delay(5000).hide();
-		$('#getadobe').stop(true, true).delay(5000).fadeOut("slow");
-	})
-	$('#getadobe').mouseover(function(){
-		//alert('aa');
-		$('#getadobe').stop(true, true);
-	});
-	$('#getadobe').mouseout(function(){
-		//alert('aa');
-		$('#getadobe').stop(true, true).delay(5000).fadeOut("slow");
-	});
-	*/
 /*
 	try { 
 		whorls['timezone'] = new Date().getTimezoneOffset();
@@ -332,15 +342,64 @@ $(document).ready(function(){
 */
 });
 
+/*
+	Динамическая иконка приложения.
+*/
+var favicon;
+var faviconCtx;
+
+$(document).ready(function(){
+	favicon = document.createElement('canvas'),
+	faviconCtx = favicon.getContext('2d');
+	favicon.width = favicon.height = 16;
+});
+
 window.config.working = function(){
 	var workingdiv = document.getElementById('working');
 	workingdiv.style.display = 'inline';
+
+// Draw dynamic favicon
+//log('faviconCtx', faviconCtx);
+	faviconCtx
+		.clearRect(0,0,16,16)
+		.prop('fillStyle', '#0a0')
+		.roundRect(0, 0, 16, 16, 2)
+		.fill();
+	//	.drawImage(current, 0, 0, 16, 16);
+	
+	document.querySelector('link[rel="shortcut icon"]').setAttribute('href', favicon.toDataURL());
 }
 
 window.config.workingdone = function(){
 	var workingdiv = document.getElementById('working');
 	workingdiv.style.display = 'none';
+	faviconCtx
+		.clearRect(0,0,16,16)
+		.prop('fillStyle', '#0ab')
+		.roundRect(0, 0, 16, 16, 2)
+		.fill();
+	//	.drawImage(current, 0, 0, 16, 16);
+	
+	document.querySelector('link[rel="shortcut icon"]').setAttribute('href', favicon.toDataURL());
 }
+
+var appCache = window.applicationCache;
+// Check if a new cache is available on page load.
+window.addEventListener('load', function(e) {
+  window.applicationCache.addEventListener('updateready', function(e) {
+    if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+      // Browser downloaded a new app cache.
+      // Swap it in and reload the page to get the new hotness.
+      window.applicationCache.swapCache();
+      if (confirm('Доступна новая версия сайта. Перезагрузить страницу?')) {
+        window.location.reload();
+      }
+    } else {
+      // Manifest didn't changed. Nothing new to server.
+    }
+  }, false);
+}, false);
+
 
 
 })(window, jQuery);

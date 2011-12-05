@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html manifest="/manifest/gps-maps27.appcache">
 
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ --> 
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
@@ -16,14 +16,27 @@
   <meta name="description" content="GPS monitoring">
   <meta name="author" content="Batrak Denis (denis@batrak.net">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">	<!--  Mobile viewport optimized: j.mp/bplateviewport -->
+
+  <link rel="shortcut icon"  type="image/png" href="about:blank" />
+
   <!--link rel="stylesheet" media="handheld" href="css/handheld.css?v=2"-->	<!-- Uncomment if you are specifically targeting less enabled mobile browsers -->
 
   <!--link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/{{ account.pconfig.theme }}/jquery.ui.all.css" rel="stylesheet"-->
   <!--link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/{{ account.pconfig.theme }}/jquery-ui.css" rel="stylesheet"-->
 
   <script type="text/javascript" src="/initconfig.js"></script>
+  <script>
+	if(!window.config){
+		alert('Ошибка инициализации. Проверьте интернет соединение.');
+	} else {
+		if(window.config.answer == 'no'){
+			//alert('Heобходима авторизация');
+			window.location.href = window.config.user.login_url;
+		}
+	}
+  </script>
 
-  <link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/jquery-ui.css" rel="stylesheet">
+  <!--link id="themecss" type="text/css" href="/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/jquery-ui.css" rel="stylesheet"-->
   <link type="text/css" href="/plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.css" rel="stylesheet">
 
   <script type="text/javascript" src="/_ah/channel/jsapi"></script>
@@ -50,6 +63,7 @@
 
   <script src="/js/jquery.min-1.7.js"></script>
   <script src="/js/jquery.cookie.js"></script>
+  <script src="/js/chainvas.min.js"></script>
   <!--link type="text/css" href="/stylesheets/e.css" rel="stylesheet"-->
   <!--link type="text/css" href="/stylesheets/tabs.css" rel="stylesheet"-->
   <link rel="stylesheet" href="/stylesheets/all.css?v=1">	<!-- CSS : implied media="all" -->

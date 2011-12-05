@@ -71,6 +71,13 @@ class BaseApi(webapp2.RequestHandler):
 			if self.imei is None:
 				return {'answer': 'no', 'result': 'imei not defined'}
 
+		'''
+			Имитация задержки запроса сервера
+		'''
+		if SERVER_NAME=='localhost':
+			from time import sleep
+			sleep(3.0)
+
 		return self.parcer()
 
 	def get(self):
@@ -901,7 +908,6 @@ class Geo_Get(BaseApi):
 #TBD! Переделать на BaseApi
 class Geo_Info(webapp2.RequestHandler):
 	def get(self):
-		from time import sleep
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 		skey = self.request.get("skey")
 		if skey is None:
@@ -927,8 +933,6 @@ class Geo_Info(webapp2.RequestHandler):
 				'fsource': point['fsourcestr']
 			}
 		}
-		if SERVER_NAME=='localhost':
-			sleep(0.3)
 		self.response.write(json.dumps(jsonresp) + "\r")
 
 #TBD! Переделать на BaseApi
@@ -1439,6 +1443,7 @@ class Logs_Get(BaseApi):
 	requred = ('skey')
 	def parcer(self):
 		from datamodel.logs import GPSLogs
+		#from time import sleep
 
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 
@@ -1463,6 +1468,9 @@ class Logs_Get(BaseApi):
 				'label': log.label,
 				'key': "%s" % log.key()
 			} for log in logsq]
+
+		#if SERVER_NAME=='localhost':
+		#	sleep(3.0)
 
 		return {
 			"answer": "ok",
@@ -1512,34 +1520,13 @@ class Logs_Del(BaseApi):
 #			'token': token
 #		}
 
-class SystemConfig(webapp2.RequestHandler):
-	def get(self):
-		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
+#class SystemConfig(webapp2.RequestHandler):
+class SystemConfig(BaseApi):
+	requred = ('account')
+	def parcer(self):
+		#from urllib import unquote_plus
 
-		akey = self.request.get('akey', None)
-		if akey is None:
-			return {'answer': 'no', 'reason': 'akey not defined or None'};
-
-		account = DBAccounts.get(db.Key(akey))
-
-		self.response.out.write(json.dumps(account.getconfig) + "\r")
-
-	def post(self):
-		from urllib import unquote_plus
-		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
-
-		akey = self.request.get('akey', None)
-		if akey is None:
-			return {'answer': 'no', 'reason': 'akey not defined or None'};
-
-		#logging.info(self.request.body)
-		#logging.info(unquote_plus(self.request.body))
-		#logging.info(repr(self.request.body))
-		#logging.info(self.request.arguments())
-
-		account = DBAccounts.get(db.Key(akey))
-
-		config = account.getconfig()
+		config = self.account.getconfig()
 		#newconfig = {(k:self.request.get(k)) for k in self.request.arguments()}
 		newconfig = dict((k, self.request.get(k)) for k in self.request.arguments())
 		#newconfig = {}
@@ -1552,9 +1539,9 @@ class SystemConfig(webapp2.RequestHandler):
 		#config.
 		#for k in self.request.arguments():
 		#	if k in config
-		account.putconfig(config)
+		self.account.putconfig(config)
 
-		self.response.out.write(json.dumps(config) + "\r")
+		return {'answer': 'ok', 'dump': json.dumps(config) + "\r"}
 
 class Zone_Add(BaseApi):
 	#requred = ('akey')

@@ -512,7 +512,6 @@
 		});
 		//$("#config_sys_list").disableSelection();
 
-
 		// Выбор темы оформления
 
 		$('#config_list select#config_set_theme option[value="'+config.ui.theme+'"]').attr('selected', 'selected');
@@ -523,8 +522,11 @@
 			//log(themename);
 			saveconfig('theme', themename);
 
-			var hl = $('head #themecss');
-			hl.attr('href', '/plugins/jquery-ui-themes-1.8.9/jquery-ui-themes-1.8.9/themes/'+themename+'/jquery.ui.all.css');
+			//var hl = $('head #themecss');
+			//hl.attr('href', '/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/'+themename+'/jquery-ui.css');
+			config.account.config.theme = themename;
+			window.config.setTheme(config.account.config.theme);
+
 			//log(hl);
 		});
 

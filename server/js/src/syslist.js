@@ -126,7 +126,8 @@ SysList.prototype.start = function(){
 }
 
 SysList.prototype.addItem = function(s){
-	if(this.nodename == 'select'){
+//	if(this.nodename == 'select') {
+	if(/^select$/i.test(this.element.nodeName)) {
 		var option = document.createElement('option');
 		option.dataset.imei = s.imei;
 		option.dataset.skey = s.skey;

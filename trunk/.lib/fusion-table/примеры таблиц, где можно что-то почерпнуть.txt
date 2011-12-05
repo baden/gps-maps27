@@ -1,0 +1,13 @@
+
+Иконки:
+http://www.google.com/fusiontables/DataSource?snapid=99003
+
+Мультиполигоны:
+https://www.google.com/fusiontables/DataSource?snapid=S329940JUuw
+Примечание! Поддерживается только до 10 полигонов.
+
+Просто пример:
+https://www.google.com/fusiontables/DataSource?dsrcid=297050
+
+
+https://www.google.com/fusiontables/DataSource?dsrcid=2041640

@@ -80,6 +80,7 @@ app = webapp2.WSGIApplication([
 	(r'/params.*', 'main.Params'),	# Запрос параметров системы, например localhost/params?cmd=check&imei=353358019726996
 
 	(r'/initconfig.js', 'main.InitConfig'),
+	(r'/manifest/gps-maps27\.appcache', 'main.Appcache'),
 
 	#(r'/', 'main.MainPage'),
 #], debug=True, config=config)

@@ -68,10 +68,19 @@ handlers:
 #- url: /_ah/channel/.*
 #  script: channel.app
 
+#- url: /manifest/(.*\.appcache)
+#  static_files: static/\1
+#  mime_type: text/cache-manifest
+#  upload: static/(.*\.appcache)
+
+- url: /offline.html
+  static_files: static/offline.html
+  upload: static/offline.html
+
 - url: /
   static_files: html/all.html
   upload: html/all.html
-  login: required
+  #login: required
 
 - url: /.*
   script: application.app

@@ -137,6 +137,53 @@ class TestMain2(BaseHandler):
 		self.render_template(self.__class__.__name__ + '.html', **template_args)
 
 
+class Appcache(webapp2.RequestHandler):
+	def get(self):
+		self.response.headers['Content-Type'] = 'text/cache-manifest'
+		user = users.get_current_user()
+		if user == None:
+			user = 'None'
+		else:
+			user = user.nickname()
+
+		manifest = """CACHE MANIFEST
+# AppName: %s
+# User: %s
+# Version: %s
+
+CACHE:
+/stylesheets/all.css
+/plugins/jquery-ui-1.8.16/jquery-ui-1.8.16/ui/jquery-ui.js
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/jquery-ui.css
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-icons_72a7cf_256x240.png
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-bg_highlight-hard_100_f2f5f7_1x100.png
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-bg_highlight-soft_100_deedf7_1x100.png
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-bg_glass_50_3baae3_1x400.png
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-icons_ffffff_256x240.png
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-bg_glass_80_d7ebf9_1x400.png
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-icons_3d80b3_256x240.png
+/plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.js
+/plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.css
+/plugins/jquery-ui-1.8.16/jquery-ui-1.8.16/ui/i18n/jquery.ui.datepicker-ru.js
+/plugins/colorpicker/js/colorpicker.js
+/plugins/colorpicker/css/colorpicker.css
+/js/jquery.min-1.7.js
+/js/jquery.cookie.js
+/stylesheets/all.css?v=1
+/svg/arrow.svg
+
+NETWORK:
+/
+initconfig.js
+/_ah/channel
+http://localhost/_ah/login
+*
+""" % (os.environ['APPLICATION_ID'] + '@' + os.environ['SERVER_NAME'], user, os.environ['CURRENT_VERSION_ID'])
+
+		#for i in os.environ.keys():
+		#	manifest += '# ' + i + ' = ' + str(os.environ[i]) + '\n'
+		self.response.write(manifest)
+
 #class InitConfig(webapp2.RequestHandler):
 class InitConfig(BaseHandler):
 	def config(self):
@@ -154,12 +201,12 @@ class InitConfig(BaseHandler):
 				'answer': 'no',
 				'reason': 'Required login.',
 				'user': {
-					'email': user.email(),
-					'nickname': user.nickname(),
-					'id': user.user_id(),
+					#'email': user.email(),
+					#'nickname': user.nickname(),
+					#'id': user.user_id(),
 					'login_url': users.create_login_url('/'),
 					'logout_url': users.create_logout_url('/'),
-					'admin': users.is_current_user_admin(),
+					#'admin': users.is_current_user_admin(),
 				}
 			}
 		account = DBAccounts.get_by_user(user)
@@ -211,7 +258,7 @@ class InitConfig(BaseHandler):
 				} for sys in account.systems],
 		"""
 
-	@login_required
+	#@login_required
 	def get(self):
 		self.response.write('config = ' + json.dumps(self.config(), indent=2) + '\r')
 

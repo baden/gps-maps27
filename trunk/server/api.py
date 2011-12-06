@@ -73,10 +73,10 @@ class BaseApi(webapp2.RequestHandler):
 
 		'''
 			Имитация задержки запроса сервера
-		'''
 		if SERVER_NAME=='localhost':
 			from time import sleep
 			sleep(3.0)
+		'''
 
 		return self.parcer()
 
@@ -1448,33 +1448,25 @@ class Logs_Get(BaseApi):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 
 		cursor = self.request.get("cursor", None)
-		
-		logsq = GPSLogs.all().ancestor(self.skey).order('-date').fetch(100)
+		if cursor is None:
+			q = GPSLogs.all().ancestor(self.skey).order('-date')
+		else:
+			q = GPSLogs.all().ancestor(self.skey).order('-date').with_cursor(cursor)
 
-		"""
-		logs = []
-		for log in logsq:
-			logs.append({
-				'time': log.ldate.strftime("%d/%m/%Y %H:%M:%S"),
-				'text': log.text,
-				'label': log.label,
-				'key': "%s" % log.key()
-			})
-                """
-                # Более короткая и понятная запись. Интересно будет сравнить производительность на очень большом списке
+		qlen = 5
+
 		logs = [{
 				'time': log.date.strftime("%y%m%d%H%M%S"),
 				'text': log.text,
 				'label': log.label,
 				'key': "%s" % log.key()
-			} for log in logsq]
-
-		#if SERVER_NAME=='localhost':
-		#	sleep(3.0)
+			} for log in q.fetch(qlen)]
 
 		return {
-			"answer": "ok",
-			"logs": logs,
+			'answer': "ok",
+			'logs': logs,
+			'cursor': q.cursor(),
+			'done': len(logs) < qlen
 		}
 
 class Logs_Del(BaseApi):

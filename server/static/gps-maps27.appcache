@@ -1,0 +1,29 @@
+CACHE MANIFEST
+# 2010-06-18:v3
+
+# Explicitly cached entries
+# index.html
+
+#FALLBACK:
+#/ /offline.html
+
+CACHE:
+/stylesheets/all.css
+/plugins/jquery-ui-1.8.16/jquery-ui-1.8.16/ui/jquery-ui.js
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/jquery-ui.css
+/plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.js
+/plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.css
+/plugins/jquery-ui-1.8.16/jquery-ui-1.8.16/ui/i18n/jquery.ui.datepicker-ru.js
+/plugins/colorpicker/js/colorpicker.js
+/plugins/colorpicker/css/colorpicker.css
+/js/jquery.min-1.7.js
+/js/jquery.cookie.js
+/stylesheets/all.css?v=1
+/svg/arrow.svg
+
+NETWORK:
+/
+initconfig.js
+/_ah/channel
+http://localhost/_ah/login
+*

@@ -120,9 +120,10 @@ SysList.prototype.start = function(){
 	log('SysList: start', this);
 	//document.getElementById('log_syslist')
 	// Удалить все элементы если они есть.
-	while (this.element.firstChild) {
+	config.helper.empty(this.element);
+	/*while (this.element.firstChild) {
 		this.element.removeChild(this.element.firstChild);
-	}
+	}*/
 }
 
 SysList.prototype.addItem = function(s){

@@ -401,6 +401,53 @@ window.addEventListener('load', function(e) {
 }, false);
 
 
+/*
+	Всякие вспомогательные функции для избавления от jQuery.
+*/
+config.helper = {
+	/*
+		Удаляет всех наследников определенного элемента DOM
+	*/
+	empty: function(element){
+		while (element.firstChild) {
+			element.removeChild(element.firstChild);
+		}
+	},
+	postJSON: function(url, data, callback){
+		config.working();
+		var formData = new FormData();
+		for(k in data){
+			formData.append(k, data[k]);
+		}
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', url, true);
+		xhr.onreadystatechange = function() {
+			if(xhr.readyState === xhr.DONE) {
+				if(xhr.status === 200 || xhr.status === 304) {
+					callback(JSON.parse(xhr.responseText));
+				}
+				config.workingdone();
+			}
+		}
+		//xhr.onload = function(e) { /*log('Del log line', e);*/ };
+		xhr.send(formData);
+	},
+	getJSON: function(url, callback){
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', url, true);
+		xhr.onreadystatechange = function() {
+			if(xhr.readyState === 4) {
+				if(xhr.status === 200 || xhr.status === 304) {
+					callback(JSON.parse(xhr.responseText));
+				}
+				config.workingdone();
+			}
+		}
+		xhr.send(null);
+	}
+
+}
+
 
 })(window, jQuery);
 

@@ -84,10 +84,5 @@
 			});
 		}
 	}
-
-//	$(document).ready(function() {
-//		log('Загрузка закладки. События.');
-//		if(config.skey) UpdateLog();
-//	});
 	
 })(window);

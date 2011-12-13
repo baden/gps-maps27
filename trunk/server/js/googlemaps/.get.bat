@@ -4,7 +4,32 @@ SET curl=D:\Programs\Git\bin\curl.exe
 SET grep=D:\Programs\Git\bin\grep.exe
 SET sed=D:\Programs\Git\bin\sed.exe
 
-%curl% -s http://maps.google.com/maps/api/js?sensor=false --output js.js.tmp
+
+rem Прямая загрузка без анализа версий
+  for %%i in (common,util,controls,map,overlay,marker,geocoder,infowindow,onion,poly,stats,streetview) do (
+	echo File: %%i
+	%curl% -s http://maps.gstatic.com/intl/ru_ALL/mapfiles/api-3/7/4/%%i.js --output "api-3/7/4/%%i.js"
+  )
+
+exit
+
+rem %curl% -s "http://maps.google.com/maps/api/js?sensor=false&language=ru&libraries=drawing,places" --output js.js.tmp
+rem %curl% -s "http://www.google.com/jsapi" --output jsapi.js.tmp
+
+%curl% -s http://maps.gstatic.com/cat_js/intl/ru_ALL/mapfiles/api-3/7/4/%7Bmain,drawing,places%7D.js --output main.js
+
+%grep% -e 'getScript.*api' js.js.tmp | %sed% 's/.*getScript..//' | %sed% 's/.).*//' >api.txt
+rem for /F %%a in (api.txt) do (
+rem   %curl% -s %%a -o temp-api.js
+rem )
+
+rem %grep% -e 'getScript.*api' js.js.tmp | %sed% 's/.*mapfiles\///' | %sed% 's/\/main.*//' >api.txt
+
+rem %grep% -e 'getScript.*api' js.js.tmp | %sed% 's/.*mapfiles\///' | %sed% 's/.js.*//' >api.txt
+rem %sed% 's/http:\/\/maps\.gstatic\.com\/c.*mapfiles/\/js\/googlemaps/g' js.js.tmp >js.js
+
+
+exit
 
 md "cb/mod_cb_scout"
 

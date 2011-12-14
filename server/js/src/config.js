@@ -32,13 +32,13 @@
 	var ConfigList = new SysList('config_sys_list');
 
 	ConfigList.addItem = function(s){
-		log('addItem for ConfigList. sys:', s);
+		//log('addItem for ConfigList. sys:', s);
 		$("#config_sys_list").append(
 			'<li class="ui-widget ui-widget-content ui-widget-header" data-imei="'+s.imei+'" data-skey="'+s.key+'"><span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
 			 '<span class="bico hl mm" title="Выбрать пиктограмму">P</span>' +
 			 (config.admin?'<span class="bpurge hl mm" title="Удалить GPS данные!">D</span>':'') +
 			 '<span class="bconf hl mm" title="Настроить систему">C</span>' +
-			 '<span class="spanbrd" title="IMEI">' + s.imei + '</span><span class="spanbrd" title="Телефон">' + (s.phone!='None'?(s.phone):'не определен') + '</span> <desc>' + s.desc + '</desc>' +
+			 '<span class="spanbrd" title="IMEI">' + s.imei + '</span><span class="spanbrd" title="Телефон">' + (s.phone!='None'?(s.phone):'не определен') + '</span>' + s.desc +
 			 '<button class="key bdesc" title="Изменить описание">...</button>' +
 			 '<button class="key bzone" title="Привязать ГЕО-зону">З</button>' +
 			 (config.admin?'<button class="key calarm" title ="Принудительная отмена тревоги">x!</button>':'') +
@@ -47,9 +47,9 @@
 		);
 	}
 
-	ConfigList.changeItem = function(skey, desc){
-		log('changeItem for ConfigList. sys:', skey, desc);
-	}
+	//ConfigList.changeItem = function(skey, desc){
+	//	log('TBD! changeItem for ConfigList. sys:', skey, desc);
+	//}
 
 	ConfigList.finish = function(){
 		//log('ConfigList: finish');
@@ -66,6 +66,8 @@
 		$("#config_sys_list .bdesc").button().click(function(){
 			//alert(this.attributes['imei'].value);
 			//var i = this.attributes['index'].value;
+			var prnt = this.parentNode;
+			log('prnt', prnt);
 
 			var par = $(this).parent();
 			//window['dbg_aa'] = par;
@@ -73,17 +75,20 @@
 
 			var imei = this.parentNode.dataset.imei;
 			var skey = this.parentNode.dataset.skey;
-			var desc = par.find('desc').html();
-			var dialog = $('#config_dialog_sys_desc');
+			//var desc = par.find('desc').html();
+			// Я пока не знаю простого способа искать текстовые ноды, поэтому такой вот выебон с подвывертом
+			var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
+			//var dialog = $('#config_dialog_sys_desc');
+			var dialog = document.getElementById('config_dialog_sys_desc');
 
 			/* Почему-то .data(key, value) от jQuery не работает. Воспользуюсь dataset */
-			dialog[0].dataset.imei = imei;
-			dialog[0].dataset.skey = skey;
-			dialog[0].dataset.desc = desc;
+			dialog.dataset.imei = imei;
+			dialog.dataset.skey = skey;
+			dialog.dataset.desc = desc;
 
-			dialog.find('label').html(imei);
-			dialog.find('textarea').val(desc);
-			dialog.dialog('open');
+			$(dialog).find('label').html(imei);
+			$(dialog).find('textarea').val(desc);
+			$(dialog).dialog('open');
 		});
 
 		$("#config_sys_list .bzone").button().click(function(){
@@ -92,7 +97,9 @@
 			var skey = this.parentNode.dataset.skey;
 
 			$('#config_zone_link_imei').html(imei);
-			var desc = par.find('desc').html();
+			//var desc = par.find('desc').html();
+			var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
+
 			$('#config_zone_link_desc').html(desc);
 
 			var dialog = $('#config_zone_link');
@@ -104,7 +111,8 @@
 			var par = $(this).parent();
 			var imei = this.parentNode.dataset.imei;
 			var skey = this.parentNode.dataset.skey;
-			var desc = par.find('desc').html();
+			//var desc = par.find('desc').html();
+			var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
 			//log('TBD! config', i);
 
 			if($('#config_params').length === 0){
@@ -232,7 +240,10 @@
 				//div.children('button').button().click(function(){
 				//});
 			}
-			$('#config_purgegps label').first().html(imei+':'+$(this).parent().children('desc').html());
+			var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
+
+			//$('#config_purgegps label').first().html(imei+':'+$(this).parent().children('desc').html());
+			$('#config_purgegps label').first().html(imei+':'+desc);
 			//div.children('strong').children('label').first().html(imei+':'+$(this).parent().children('desc').html());
 			$('#config_purgegps').dialog({
 				autoOpen: true,
@@ -269,10 +280,15 @@
 			$('#config_dialog_delsys')[0].dataset.skey = skey;
 
 			$('#config_del_imei').html(imei);
-			$('#config_del_desc').html($(this).parent().find('desc').html());
+			var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
+			//$('#config_del_desc').html($(this).parent().find('desc').html());
+			$('#config_del_desc').html(desc);
+
 			$('#config_dialog_delsys').dialog('open');
 		});
 	}
+
+	ConfigList.Rebuild();
 
 	$(document).ready(function() {
 		if(window.config.account.user.admin) $('.admin').show();
@@ -308,10 +324,17 @@
 							} else if(result == "already"){
 								$("#dialog_addsys_already").dialog('open');
 							} else if(result == "added") {
+								log('manual add', data.system);
+								ConfigList.addItem(data.system);
+
+								//var system = clone(msg.data.system);
+								//config.account.systems.push(system);
+								//config.sysbykey[system.key] = system;
+
 								//UpdateSysList();
 								//$(this).dialog('close');
 								// TBD! Это неправильная реализация!
-								ConfigList.Rebuild();
+								//ConfigList.Rebuild();
 							}
 						}
 					});
@@ -341,26 +364,37 @@
 
 					var desc = dialog.find('textarea').val();
 
-					log('Compare:', olddesc, desc);
+					//log('Compare:', olddesc, desc);
 
 					if(desc != olddesc){
 						// Мгновенное обновление названия
-						$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(desc);
+						//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(desc);
+						// Если я еще пару раз напишу этот цикл, я точно свихнусь
+						[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
+							if(el.nodeType === Node.TEXT_NODE) el.data = desc;
+						});
 	
-						$.getJSON('/api/sys/desc?skey=' + skey + '&desc=' + desc, function (data) {
+						$.getJSON('/api/sys/desc?skey=' + skey + '&desc=' + encodeURIComponent(desc), function (data) {
 							if(data.result){
 								var result = data.result;
 								if(result == "disabled"){
 									//$("#dialog-need-admin").dialog('open');
 									alert('Изменение описание заблокировано.');
-									$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
+									//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
+									[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
+										if(el.nodeType === Node.TEXT_NODE) el.data = olddesc;
+									});
+
 								} else if(result == "ok") {
 									//UpdateSysList();
 									// Отложенное обновление названия
 									//$("#config_sys_list").find('li[imei="'+imei+'"]>desc').html(desc);
 								} else {
 									alert('Ошибка изменения описания. Отменено.');
-									$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
+									//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
+									[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
+										if(el.nodeType === Node.TEXT_NODE) el.data = olddesc;
+									});
 								}
 							}
 						});
@@ -478,8 +512,14 @@
 					var skey = this.dataset.skey;
 
 					$.getJSON('/api/sys/del?skey=' + skey, function (data) {
-						ConfigList.Rebuild();	// Это неправильная реализация.
+						//ConfigList.Rebuild();	// Это неправильная реализация.
 					});
+					var ul = ConfigList.element;
+					var li = ConfigList.element.querySelector('li[data-skey='+skey+']');
+					if(ul && li){
+						ul.removeChild(li);
+					}
+					//log('del:', skey, li, ul);
 					$(this).dialog("close");
 				}
 			}

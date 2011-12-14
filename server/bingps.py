@@ -32,6 +32,7 @@ class DBGPSBinBackup(db.Model):
 
 def SaveGPSPointFromBin(pdata, result):
 	from datetime import datetime, timedelta
+
 	def LogError():
 		sstr = "==  pdata: "
 		for p in pdata:
@@ -210,6 +211,7 @@ class BinGpsParse(webapp2.RequestHandler):
 		result = None
 		crc = 0
 		key = None
+		point = None	# Тут будет последняя добавленная точка
 
 		payload = pickle.loads(decompress(self.request.body))
 		#logging.info('payload: %s' % repr(payload))
@@ -290,16 +292,7 @@ class BinGpsParse(webapp2.RequestHandler):
 
 			if points > 0:
 				_log += '\n==\tSaved points: %d\n' % points
-
-				# Временно запретим обновление, работате не так как задумано
-				# TBD! Необходимо переделать функцию. Не очень удачно запрашивается последнее положение при каждом изменении положения объектов.
-				# Нужно обновлять мягко последнее положение и отправлять только изменения (в идеале накапливая несколько систем за раз)
-				#updateLasts(skey);
-				#inform('geo_change', skey, {
-				#	'points': points
-				#})
-				#geoLast.update(skey)	# Обновить последнюю известную координату.
-
+				updateLasts(skey, point, points)
 			else:
 				logging.error("Packet has no data or data is corrupted.\n")
 
@@ -342,6 +335,7 @@ class BinGps(webapp2.RequestHandler):
 
 		imei = self.request.get('imei', '000000000000000')
 
+		"""
 		# TBD! Реализовать проверку премиум-аккаунтов. Естественно с кэшированием.
 		block_bingps = memcache.get("block_bingps:%s" % imei)
 		if block_bingps is not None:
@@ -349,6 +343,7 @@ class BinGps(webapp2.RequestHandler):
 			self.response.out.write('BINGPS: TIMEIN\r\n')
 			return
 		memcache.set("block_bingps:%s" % imei, '*', time = 60*1)
+		"""
 
 		if imei in IMEI_BLACK_LIST:
 			logging.error("IMEI in black list. Denied.")
@@ -357,7 +352,7 @@ class BinGps(webapp2.RequestHandler):
 
 		#skey = DBSystem.getkey_or_create(imei)
 		skey = DBSystem.key_by_imei(imei)
-		logging.info("system key: %s" % str(skey))
+		#logging.warning("system key: %s" % str(skey))
 
 		dataid = int(self.request.get('dataid', '0'), 16)
 		pdata = ''

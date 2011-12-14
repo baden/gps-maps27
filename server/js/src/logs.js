@@ -42,12 +42,18 @@
 				//	table.appendChild(log_line(data.logs[i]));
 				//}
 				// Другой вид обработки массива. Не уверен что так оптимальнее, но читается на мой взгял лучше.
+				if(data.logs.length == 0){
+					var tr = document.createElement('tr');
+					tr.innerHTML = '<td colspan="2">Нет событий</td>';
+					table.appendChild(tr);
+				}
 				[].forEach.call(data.logs, function(l){
 					table.appendChild(log_line(l));
 				});
 				cursor = data.cursor;
 				//log(' == data', data, cursor);
 				tfoot.style.display = ((data.logs.length == 0) || (data.done))?'none':'';
+			} else {
 			}
 		});
 	}
@@ -60,7 +66,7 @@
 	var LogSysList;
 
 	config.updater.tabs[2] = function(){
-		//log('Tab Logs activated.');
+		log('Tab Logs activated.');
 		if(!LogSysList){
 			table = document.querySelector('#log_table tbody');
 			tfoot = document.querySelector('#log_table tfoot');
@@ -74,6 +80,7 @@
 				skey = system.skey;
 				UpdateLog();
 			}
+			LogSysList.Rebuild();
 			//log('1st act', window.config.account.systems);
 			if(window.config.account.systems && window.config.account.systems.length>0) {
 				skey = window.config.account.systems[0].skey;

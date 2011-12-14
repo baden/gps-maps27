@@ -14,6 +14,8 @@ $(document).ready(function() {
 	var gmap = null;
 	var gmarker;
 	var $p = $('#geos_body table tr:first th:last')[0];
+	var skey;
+	var GeosSysList;
 
 	//$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
 
@@ -37,6 +39,18 @@ $(document).ready(function() {
 				icon: $.gmap.images['center'],
 			        draggable: false
 			});
+
+			GeosSysList = new SysList('geos_syslist');
+			GeosSysList.selectSys = function(system) {
+				skey = system.skey;
+				genReport();
+			}
+			GeosSysList.Rebuild();
+			
+			if(window.config.account.systems && window.config.account.systems.length>0) {
+				skey = window.config.account.systems[0].skey;
+				genReport();
+			}
 
 		} else {
 			log('== resize');
@@ -76,7 +90,7 @@ $(document).ready(function() {
 
 	var genReport = function(){
 		log('GEOS: Update report');
-		skey = $('#geos_syslist').val();
+		//skey = $('#geos_syslist').val();
 
 		var type = $('#geos_type_last').attr('checked');
 
@@ -250,6 +264,7 @@ $(document).ready(function() {
 		}
 	});
 
+	/*
 	config.syslist({
 		id: 'geos_syslist',
 		change: function(){
@@ -258,6 +273,7 @@ $(document).ready(function() {
 	});
 
 	if(config.skey) genReport();
+	*/
 
 	$('#geos_viewtype').buttonset({
 	}).change(function(){

@@ -7,5 +7,61 @@
 		<!--button id="tabreload">Reload</button-->
 		<!--button id="test">Test</button-->
 	</div>
+
+  <script src="/js/src/base.js?v=1"></script>
+  <script src="/js/src/updater.js?v=1"></script>
+  <script src="/js/src/alert.js?v=1"></script>
+  <script src="/js/src/syslist.js?v=1"></script>
+  <script src="/js/src/mymarker.js?v=1"></script>
+  <script src="/js/src/lastmarker.js?v=1"></script>
+  <script src="/js/src/gmap.js?v=1"></script>
+  <script src="/js/src/alarm.js?v=1"></script>
+  <script src="/js/src/config.js?v=1"></script>
+  <script src="/js/src/geos.js?v=1"></script>
+  <script src="/js/src/zones.js?v=1"></script>
+  <script src="/js/src/directions.js?v=1"></script>
+  <script src="/js/src/maps.js?v=1"></script>
+  <script src="/js/src/reports.js?v=1"></script>
+  <script src="/js/src/logs.js?v=1"></script>
+
+  <script>
+	$(document).ready(function() {
+		config.inits.map(function(single){single();});
+		
+		$("button").button();
+		var $tabs = $("#tabs").tabs({
+			cookie: { expires: 30, name: 'maintab' },
+			effect: 'ajax',
+			cache: true,
+			spinner: 'Retrieving data...',
+			show: function(){
+				var index = $(this).tabs( "option", "selected" );
+				log('TAB: show: ', index, $(this));
+				//log('config:', config);
+				config.tab = index;
+				if(('tabs' in config.updater) && (config.updater.tabs[index])) config.updater.tabs[index]();
+			},
+			load: function(){
+				log('TAB: tab loaded: ', $(this).tabs( "option", "selected" ));
+				$("button").button();
+			}
+		});
+
+		$("button#tabreload").click(function(){
+			log('Reload tab...');
+			$tabs.tabs('load', $tabs.tabs('option', 'selected'));
+		});
+
+		//var connected = false;
+
+		$('#test').click(function(){
+			log('Test');
+			//window.location.reload();
+			window.location.href = window.location.href;
+		});
+
+	});
+  </script>
+
 </body>
 </html>

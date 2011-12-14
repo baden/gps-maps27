@@ -1,7 +1,6 @@
 (function( $, undefined ) {
 
 
-
 var alertcnt = 0;
 var geocoder;
 if('google' in window) geocoder = new google.maps.Geocoder();
@@ -16,7 +15,7 @@ config.updater.add('inform', function(msg) {
 		for(var i in infs){
 			if(infs[i].msg == msg.data.msg){
 				infs[i].callback();
-				delete infs[i];		// Не совсем правильное удаление, оно не удаляет, а ставит undefined
+				delete infs[i];		// TBD. Не совсем правильное удаление, оно не удаляет, а ставит undefined. Нужно переделать под splice(i, 1), но не знаю как поведет себя for
 			}
 		}
 	}

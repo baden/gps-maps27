@@ -57,11 +57,11 @@ config.updater.tabs = [];
 	// Установим chanel-соединение
 	// Получим токен для установки соединения
 function UpdaterInit() {
-	var uuid = new Date().getTime();
-	$.getJSON('/api/channel/gettoken?uuid=' + config.account.user.id + '_' + uuid, function (data) {
+	var uuid = (new Date()).getTime().toString(36) + Math.floor(Math.random() * 2147483648).toString(36);
+	$.getJSON('/api/channel/gettoken?uuid=' + uuid, function (data) {
 		if(data.token != 'disabled'){
 			var token = data.token;
-			log('Token goted:' + token, 'uuid='+config.account.user.id);
+			log('Token goted:' + token, 'uuid='+uuid);
 
 			var onOpened = function() {
 				log('goog.appengine.Channel: onOpened ('+token+')');

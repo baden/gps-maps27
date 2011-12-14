@@ -2,102 +2,34 @@
 
 import webapp2
 import logging
+import json
+import os
+
 from google.appengine.ext import db
 from google.appengine.api import memcache
 from google.appengine.api import channel
-import json
-
 from datamodel.accounts import DBAccounts
-#import cPickle as pickle
-#import pickle
+from datamodel.channel import DBUpdater, DBMessages, DISABLE_CHANNEL, register, handle_connection, handle_disconnection, send_message
 
 logging.getLogger().setLevel(logging.WARNING)
 
-# В 1.6.0 наблюдаются проблемы с channel api.
-#DISABLE_CHANNEL = True
-DISABLE_CHANNEL = False
-
-# Сообщения при поступлении ставятся в очередь и отправляются через указанный интервал. Если в течение этого времени приходит еще сообщение, то при
-# отправке они объединяются.
-DEFAULT_TIMEOUT = 2
-
-"""
-	Призвана обеспечить механизм рассылки оповещений подключенным клиентам (открытым страницам).
-
-	Механизм:
-	При открытии страницы, запрашивется открытие канала.
-
-
-	Модель DBUpdater связывает системы (ключ=skey) с открытыми клиентами (поле uuids)
-	запись с ключем ('root' содержит список всех подключенных клиентов)
-"""
-
-class DBUpdater(db.Model):
-	uuids = db.ListProperty(str, default=None)	# Список всех подключенных клиентов, которые наблюдают за этой системой (стек)
-
-def register(uuid):
-	user_id = uuid.split('_')[0]
-	#akey = db.Key.from_path('DBAccounts', user_id)
-	akey = DBAccounts.key_from_user_id(user_id)
-	logging.warning('== Generate channel-token for account: %s, uuid=%s' % (akey, uuid))
-	if not DISABLE_CHANNEL:
-	    token = channel.create_channel(uuid)
-	else:
-	    token = 'disabled'
-	return token
-
-def handle_connection(client_id):
-	logging.warning('== Connect client: %s' % client_id)
-	def txn():
-		root = DBUpdater.get_by_key_name('root')
-		if root is None:
-			root = DBUpdater(key_name='root', uuids=[client_id])
-			memcache.set('DBUpdater:root', root.uuids)
-			root.put()
-		else:
-			if client_id not in root.uuids:
-				root.uuids.append(client_id)
-				memcache.set('DBUpdater:root', root.uuids)
-				root.put()
-	db.run_in_transaction(txn)
-
-
-def handle_disconnection(client_id):
-	logging.warning('== Disconnect client: %s' % client_id)
-
-	def txn():
-		root = DBUpdater.get_by_key_name('root')
-		if root is not None:
-			if client_id in root.uuids:
-				root.uuids.remove(client_id)
-				memcache.set('DBUpdater:root', root.uuids)
-				root.put()
-	db.run_in_transaction(txn)
-
-	#q = model.Subscription.all().filter('client_id =', client_id)
-	#subscriptions = q.fetch(1000)
-	#for sub in subscriptions:
-	#	prospective_search.unsubscribe(model.RequestRecord, str(sub.key()))
-	#db.delete(subscriptions)
 
 from api import BaseApi
 
 class Chanel_GetToken(BaseApi):
 	#requred = ('account')
 	def parcer(self):
-		#import updater
-
 		uuid = self.request.get("uuid")
 		if uuid is None:
 			return {'answer': 'no', 'reason': 'uuid not defined or None'};
 
-		token = register(uuid)
+		token = register(self.user.user_id() + ':' + uuid + ':' + os.environ['SERVER_NAME'])
 
-		logging.info('== Goted token %s ' % token)
+		logging.warning('== Goted token %s ' % token)
 
 		return {
 			'answer': 'ok',
-			'akey': '%s' % DBAccounts.key_from_user_id(uuid.split('_')[0]),	#db.Key.from_path('DBAccounts', uuid.split('_')[0]),
+			#'akey': '%s' % DBAccounts.key_from_user_id(uuid.split('_')[0]),	#db.Key.from_path('DBAccounts', uuid.split('_')[0]),
 			'uuid': uuid,
 			'token': token
 		}
@@ -110,53 +42,6 @@ class ChannelDisconnectHandler(webapp2.RequestHandler):
 	def post(self):
 		handle_disconnection(self.request.get('from'))
 
-"""
-	Для некоторого снятия нагрузки с процедур, требующих передачи сообщений, сам сообщения отправляются с задержкой в 10 секунд.
-	Для срочной отправки сообщений когда это нужно необходимо воспользоваться функцией send_instant_message
-	Необходимо обязательно фильтровать отправку клиентам по ключам систем. В противном случае "продвинутые" пользователи увидят чужие сообщения
-	и смогут даже добавить системы, которые они не видят.
-"""
-
-"""
-	Типы сообщений:
-		broadcast - Сообщение всем подключенным клиентам
-		by_skey	- Сообщение всем подключенным клиентам у которых в списке наблюдения присутствует система с заданным ключем (IMEI)
-		by_akey - Сообщение всем подключенным клиентам для выбранного пользователя (если на одном компьютере открыть несколько копий приложения)
-"""
-class DBMessages(db.Model):
-	#dest_uuid = db.ListProperty(str, default=None)			# Список адресов - получателей. На данном этапе не используется
-	akeys = db.ListProperty(db.Key)				# Заполняется если указан получатель по пользователю
-	skeys = db.ListProperty(db.Key)				# Заполняется есдт указан получатель по владению системой
-	message = db.TextProperty(default=u"")
-
-def send_message(message, akeys=[], skeys=[], timeout=DEFAULT_TIMEOUT):
-	from google.appengine.api.labs import taskqueue
-
-	logging.warning('\n\nExecute: send_message.\n')
-	# Для работы в High Replication необходимо все записи разместить в одной сущности.
-	collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
-	#messagedb = DBMessages(parent = collect_key, message = pickle.dumps(message, protocol=pickle.HIGHEST_PROTOCOL))
-	messagedb = DBMessages(parent = collect_key, akeys=akeys, skeys=skeys, message = repr(message))
-	messagedb.put()
-	#lazzy_run()
-	lazzyrun = memcache.get('DBMessages:lazzy_run')
-	if lazzyrun is None:
-		memcache.set('DBMessages:lazzy_run', 'wait', time=timeout*2)
-		taskqueue.add(url='/channel/message', countdown=timeout)
-
-def inform(msg, skey, data):
-	send_message({
-		'msg': str(msg),
-		'skey': str(skey),
-		'data': data
-	}, skeys=[skey])
-
-def inform_account(msg, akey, data):
-	send_message({
-		'msg': str(msg),
-		'akey': str(akey),
-		'data': data
-	}, akeys=[akey])
 
 class MessagePost(webapp2.RequestHandler):
 	def post(self):
@@ -200,11 +85,19 @@ class MessagePost(webapp2.RequestHandler):
 				uuids = root.uuids
 
 		#dump = json.dumps(messages_bc)
+		olduuids = []
 		for uuid in uuids:
 			_log = 'Messages for: %s\n' % uuid
 			# Сообщения по "akey" (асинхронный запрос, мелочь а даст немного экономии)
 			#akey = db.Key.from_path('DBAccounts', uuid.split('_')[0])
-			akey = DBAccounts.key_from_user_id(uuid.split('_')[0])
+			parts = uuid.split(':')		# user_id:uniq:domain
+			try:
+				akey = DBAccounts.key_from_user_id(parts[0], domain=parts[2])
+			except:
+				logging.error('Error parce uuid. (uuid=%s)' % uuid)
+				olduuids.append(uuid)
+				continue
+				
 			#account_future = DBAccounts.get_async(akey)
 			account_future = db.get_async(akey)
 
@@ -219,7 +112,14 @@ class MessagePost(webapp2.RequestHandler):
 					messages.append(msg)
 					_log += '\nMessage by akey:\n%s\n' % repr(msg)
 
+			logging.warning('uuid: %s, akey: %s (%s)' %(uuid, uuid.split('_')[0], str(akey)))
+
 			account = account_future.get_result()
+			if account is None:
+				logging.error('Error accont. (uuid=%s)' % uuid)
+				olduuids.append(uuid)
+				continue
+			
 			skeys = account.systems_key
 
 			# Сообщения по "skey"
@@ -237,10 +137,28 @@ class MessagePost(webapp2.RequestHandler):
 					_log += 'Send successful.\n'
 				except channel.InvalidChannelClientIdError, e:
 					logging.error("Channed error: (%s). TBD! Remove uuid from list." % str(e))
+					olduuids.append(uuid)
 			else:
 				_log += 'No messages for client: %s\n' % uuid
 
 			logging.warning(_log)
+
+		if len(olduuids)>0:
+			root = DBUpdater.get_by_key_name('root')
+			for i in olduuids:
+				root.uuids.remove(i)
+			root.put()
+			memcache.set('DBUpdater:root', root.uuids)
+		"""
+		uuids = memcache.get('DBUpdater:root')
+		if uuids is None:
+			root = DBUpdater.get_by_key_name('root')
+			if root is None:
+				uuids = []
+			else:
+				uuids = root.uuids
+					
+		"""
 
 		db.delete(mkeys)
 		memcache.delete('DBMessages:lazzy_run')

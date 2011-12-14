@@ -272,7 +272,7 @@ class AddLog(webapp2.RequestHandler):
 		from datetime import datetime
 		from inform import Informer
 		from alarm import Alarm
-		from channel import inform
+		from datamodel.channel import inform
 
 		self.response.headers['Content-Type'] = 'application/octet-stream'
 
@@ -369,7 +369,7 @@ class Config(webapp2.RequestHandler):
 	def post(self):
 		from datamodel import DBConfig
 		from urllib import unquote_plus
-		from channel import send_message
+		from datamodel.channel import send_message
 		#from zlib import compress
 
 		self.response.headers['Content-Type'] = 'application/octet-stream'
@@ -932,7 +932,7 @@ class Inform(webapp2.RequestHandler):
 	def get(self):
 		from datetime import datetime
 		from inform import Informer
-		from channel import send_message
+		from datamodel.channel import send_message
 		# Это единственный (пока) способ побороть Transfer-Encoding: chunked
 		imei = self.request.get('imei', 'unknown')
 		msg = self.request.get('msg', 'unknown')

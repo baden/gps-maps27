@@ -78,16 +78,15 @@ class DBAccounts(db.Model):
 			self.systems_key.append(system.key())
 			self.put()
 	"""
-	def AddSystem(self, imei):
-		system = DBSystem.get_by_imei(imei)
-		if system is None:
-			return 0
-
-		if system.key() not in self.systems_key:
-			self.systems_key.append(system.key())
-			self.put()
-			return 1
-		return 2
+	#def AddSystem(self, imei):
+	#	system = DBSystem.get_by_imei(imei)
+	#	if system is None:
+	#		return 0
+	#	if system.key() not in self.systems_key:
+	#		self.systems_key.append(system.key())
+	#		self.put()
+	#		return 1
+	#	return 2
 
 	def DelSystem(self, skey):
 		#system = DBSystem.get_by_imei(imei)
@@ -128,8 +127,10 @@ class DBAccounts(db.Model):
 	#	return db.Key.from_path('DefaultCollect', cls.__name__, 'DBAccounts', user_id.user_id(), namespace=private())
 
 	@classmethod
-	def key_from_user_id(cls, user_id):
-		return db.Key.from_path(DEFAULT_COLLECT, cls.__name__, cls.__name__, user_id, namespace=private())
+	def key_from_user_id(cls, user_id, domain=None):
+		if domain is None:
+			domain = private()
+		return db.Key.from_path(DEFAULT_COLLECT, cls.__name__, cls.__name__, user_id, namespace=domain)
 
 	# Создает нового пользователя если это необходимо
 	@classmethod

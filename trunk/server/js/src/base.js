@@ -348,11 +348,11 @@ $(document).ready(function(){
 var favicon;
 var faviconCtx;
 
-$(document).ready(function(){
+//$(document).ready(function(){
 	favicon = document.createElement('canvas'),
 	faviconCtx = favicon.getContext('2d');
 	favicon.width = favicon.height = 16;
-});
+//});
 
 window.config.working = function(){
 	var workingdiv = document.getElementById('working');
@@ -433,6 +433,7 @@ config.helper = {
 		xhr.send(formData);
 	},
 	getJSON: function(url, callback){
+		config.working();
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', url, true);
 		xhr.onreadystatechange = function() {

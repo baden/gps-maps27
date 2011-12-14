@@ -624,11 +624,11 @@ var CreateLastMarker = function(p){
 	if(p.data == null) return;
 
 	var pos = new google.maps.LatLng(p.data.point.lat, p.data.point.lon);
-	var tail_path = [];
-	for(var j in p.data.tail){
-		tail_path.push(new google.maps.LatLng(p.data.tail[j][1], p.data.tail[j][2]));
+	//var tail_path = [];
+	//for(var j in p.data.tail){
+	//	tail_path.push(new google.maps.LatLng(p.data.tail[j][1], p.data.tail[j][2]));
 		//console.log(p.data.tail[j]);
-	}
+	//}
 
 	if(lastpos[p.skey]){
 		//log('Move makrer ', lastpos[p.skey].marker, ' to ', pos);
@@ -686,13 +686,14 @@ var GetLastPositions = function() {
 	});
 
 	/* TBD! Исключить запрос положения. Обеспечить отправку нового положения в команде оповещения geo_change */
-	config.updater.add('geo_change', function(msg) {
-		//log('MAPS: GEO_Update: ', msg.data);
-		var skey = msg.data.skey;
+	config.updater.add('geo_change_last', function(msg) {
+		log('MAPS: GEO_Update: ', msg);
+		//var skey = msg.data.skey;
+		CreateLastMarker(msg);
 		//map.panTo(lastpos[skey].position);
-		$.getJSON('/api/geo/last?skey=' + skey, function (data) {
+		//$.getJSON('/api/geo/last?skey=' + skey, function (data) {
 			//log('Update last positions and tail for...', data);
-			CreateLastMarker(data.geo[0]);
+			//CreateLastMarker(data.geo[0]);
 			/*
 			var p = data.geo[0];
 			var pos = new google.maps.LatLng(p.data.point.lat, p.data.point.lon);
@@ -703,7 +704,7 @@ var GetLastPositions = function() {
 				//map.panTo(pos);
 			}
 			*/
-		});
+		//});
 
 		//$(list).find('option[value="' + msg.data.skey + '"]').html(msg.data.desc);
 	});
@@ -869,21 +870,12 @@ var Map_SysList = function (list){
 	list.empty();
 	for(var i in config.systems){
 		var s = config.systems[i];
-		/*if(i==10){
-			list.append(
-				'<li class="ui-widget ui-state-error" imei="'+s.imei+'" skey="'+s.skey+'">'+
-				'  <span class="ui-icon ui-icon-alert" title="Центровать последнее положение на карте"></span>'+
-				s.desc+
-				'</li>'
-			);
-		} else {*/
 			list.append(
 				'<li class="ui-widget ui-state-default" imei="'+s.imei+'" skey="'+s.skey+'">'+
 				'  <span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>'+
 				s.desc+
 				'</li>'
 			);
-		/*}*/
 	}
 
 	list.find('li').click(function(){
@@ -913,7 +905,6 @@ var Map_SysList = function (list){
 	});
 }
 
-$(document).ready(function() {
 	config.cur_month = null;
 	//$(document).disableSelection();
 	//$('*').not('input').disableSelection();
@@ -981,10 +972,10 @@ $(document).ready(function() {
 	GetLastPositions();
 	if(config.skey)	UpdateDayList(config.skey);
 
-	var list = $('ul#map_ul_sys');
+	//var list = $('ul#map_ul_sys');
 
-	Map_SysList(list);
-
+	//Map_SysList(list);
+	/*
 	config.updater.add('changedesc', function(msg) {
 		//log('MAP: Update descriptions');
 		//updateLogList();
@@ -998,42 +989,68 @@ $(document).ready(function() {
 		});
 		//console.log(l);
 	});
-
-	config.updater.add('changeslist', function(msg) {
+	*/
+	/*config.updater.add('changeslist', function(msg) {
 		//log('MAP: Update system list');
 		Map_SysList(list);
 		//updateLogList();
 		//$(list).find('li[skey="' + msg.data.skey + '"]').html(msg.data.desc);
 		//console.log(l);
-	});
+	});*/
 
-	config.updater.tabs[0] = function(){
-		//log('MAP: tab update');
-		//$('#map').resize();
-		google.maps.event.trigger(map, 'resize');
+var MapSysList;
+
+config.updater.tabs[0] = function(){
+	if(!MapSysList){
+		MapSysList = new SysList('map_ul_sys');
+		MapSysList.addItem = function(s){
+			log('TBD! addItem for MapSysList. sys:', s, this);
+			var li = document.createElement('li');
+			li.className = "ui-widget ui-state-default";
+			li.dataset.skey = s.skey;
+			li.addEventListener('click', function(e){
+				log('click on item', this, e);
+			});
+			li.innerHTML = '<span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>' + s.desc;
+			li.firstChild.addEventListener('click', function(e){
+				var skey = e.target.parentNode.dataset.skey;
+				//log('click on span', this, e);
+				map.panTo(lastpos[skey].position);
+			});
+			//log('first child: ', li.firstChild);
+			this.element.appendChild(li);
+		}
+		//MapSysList.changeItem = function(skey, desc){
+		//	log('TBD! changeItem for MapSysList. sys:', skey, desc);
+		//}
+
+		MapSysList.Rebuild()
 	}
+	log('MAP: tab update');
+	//$('#map').resize();
+	google.maps.event.trigger(map, 'resize');
+}
 
-	$('#map_btn_cleartrack').click(function(){
-		//if(showed_path.length != 0){
-		//log('clear path:', flightPath);
-		if(flightPath) flightPath.setPath([]);
-		// Маркеры начала и конца
-		if(marker_start) marker_start.setMap(null);
-		if(marker_finish) marker_finish.setMap(null);
-		flightPlanCoordinates = [];
-		showed_path = [];
-	});
-
-	var zonekit = new ZoneKit();
-	$('#map_zone_show').click(zonekit.Show);
-	$('#map_zone_edit').click(zonekit.Edit);
-
-	var dirkit = new DirKit();
-	$('#map_track_calc').click(dirkit.Route)
-
-
-	window.config.alarm.show_alert_icons();
-
+$('#map_btn_cleartrack').click(function(){
+	//if(showed_path.length != 0){
+	//log('clear path:', flightPath);
+	if(flightPath) flightPath.setPath([]);
+	// Маркеры начала и конца
+	if(marker_start) marker_start.setMap(null);
+	if(marker_finish) marker_finish.setMap(null);
+	flightPlanCoordinates = [];
+	showed_path = [];
 });
+
+var zonekit = new ZoneKit();
+$('#map_zone_show').click(zonekit.Show);
+$('#map_zone_edit').click(zonekit.Edit);
+
+var dirkit = new DirKit();
+$('#map_track_calc').click(dirkit.Route)
+
+
+window.config.alarm.show_alert_icons();
+
 
 })();

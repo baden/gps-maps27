@@ -382,15 +382,15 @@ def getGeoLast(skey):
 	req = DBGeo.all().ancestor(skey).order('-date').get()
 	if req is not None:
 		point = req.get_last()
-
+		"""
 		tail = []
 		for it in DBGeo.get_tail_items(skey, count=TAIL_LEN):
 			tail.append(repr_short(it))
-
+		"""
 		value = {
 			'point': repr_middle(point),
-			'tail': tail,
-			'tailformat': ["date", "lat", "lon", "course"],
+			#'tail': tail,
+			#'tailformat': ["date", "lat", "lon", "course"],
 		}
 		memcache.add("geoLast:%s" % imei, value)
 		return value
@@ -400,9 +400,14 @@ def getGeoLast(skey):
 """
 	Обновляет последнее известное положение объекта skey и отправляет обновление клиентам если это потребуется.
 """
-def updateLasts(skey):
+def updateLasts(skey, point, points):
+	from channel import inform
+	from google.appengine.api import memcache
 	imei = skey.name()
-	#logging.info('== geoLast.update()')
+	value = {'point': repr_middle(point)}
+	memcache.set("geoLast:%s" % imei, value)
+	logging.warning('== geo.updateLasts(%s, %s, %s)' % (skey, repr_middle(point), points))
+	inform('geo_change_last', skey, value)
 
 """
 	Измерение расстояния между двумя точками

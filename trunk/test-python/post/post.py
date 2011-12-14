@@ -1,54 +1,26 @@
-import socket
+import httplib
 from time import sleep
 
 #HOST = 'localhost'
 #PORT = 8080
 #HOSTNAME = 'localhost'
 
-HOST = 'gps-maps27.appspot.com'
+HOST = 'localhost'
+#HOST = 'gps-maps27.appspot.com'
 PORT = 80
-HOSTNAME = 'gps-maps27.appspot.com'
+
+IMEI = "356895035359317"
 
 def senddata(url, body):
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	print("Connecting to %s:%d" % (HOST, PORT))
-	s.connect((HOST, PORT))
+	conn = httplib.HTTPConnection(HOST, PORT, timeout=10)
+	conn.request("POST", url, body)
+	response = conn.getresponse()
+	print response.status, response.reason
+	data = response.read()
+	conn.close()
+	print data
 
-	send = "POST %s HTTP/1.1\r\n" % url
-	send+= "Host: %s\r\n" % HOSTNAME
-	send+= "Content-type: application/octet-stream\r\n"
-	#send+= "Content-type: application/x-www-form-urlencoded\r\n"
-	send+= "Content-Length: %d\r\n" % len(body)
-	send+= "\r\n"
-	send+= body
-	send+= '>'
+	#bindata = response.getheader("BinData", None)
 
-	#print(send)
-	#print("{BODY}\n")
-
-
-	s.send(send)
-
-	while 1:
-		s.settimeout(30.0);
-		try:
-			received = s.recv(1024)
-		except:
-			print(" Error! Timeout")
-			break
-
-		print('DATA:%s' % received)
-		if received:
-			print received
-			break
-		else:
-			#pass
-			sleep(1)
-			print(" Error. No server response.")
-			#break
-
-	sleep(2)
-	s.close()
-
-senddata('/post1', 'a=1&b=2')
-senddata('/post2', 'a=1&b=2')
+body = file('binbackup', 'rb').read()
+senddata("/bingps?imei=%s" % (IMEI), body)

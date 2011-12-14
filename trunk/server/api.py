@@ -1205,32 +1205,46 @@ class Report_Get(BaseApi):
 			'report': self.report,
 		}
 
+#def inform_change_slist():
+
 class Sys_Add(BaseApi):
 	requred = ('account', 'imei')
 	def parcer(self, **argw):
-		from channel import send_message
+		from datamodel.channel import send_message
 
-		res = self.account.AddSystem(self.imei)
-		if res == 0:
-			#DBAdmin.addOperation(self.akey, u"Не найдена", {'imei': self.imei})
-			DBAdmin.addOperation(self.akey, u'Пользователь пытался добавить несуществующую систему.', {'imei': self.imei})
-			return {'answer': 'no', 'result': 'not found'}
-		elif res == 2:
-			DBAdmin.addOperation(self.akey, u'Пользователь пытался добавить систему за которой уже наблюдает.', {'imei': self.imei})
-			#DBAdmin.addOperation(self.akey, u'already', {'imei': self.imei})
+		#res = self.account.AddSystem(self.imei)
+
+		skey = DBSystem.imei2key(self.imei)
+
+		if skey in self.account.systems_key:
+			#DBAdmin.addOperation(self.akey, u'Пользователь пытался добавить систему за которой уже наблюдает.', {'imei': self.imei})
 			return {'answer': 'no', 'result': 'already'}
 
-		DBAdmin.addOperation(self.akey, u'Пользователь добавил систему.', {'imei': self.imei})
-		#DBAdmin.addOperation(self.akey, 'ok.', {'imei': self.imei})
-		#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
-		send_message({'msg': 'change_slist', 'data':{'type': 'Adding'}}, akeys=[self.akey])
+		#system = DBSystem.get_by_imei(self.imei)
+		system = DBSystem.get(skey)
 
-		return {'answer': 'yes', 'result': 'added', 'skey': str(DBSystem.imei2key(self.imei))}
+		if system is None:
+			DBAdmin.addOperation(self.akey, u'Пользователь пытался добавить несуществующую систему.', {'imei': self.imei})
+			return {'answer': 'no', 'result': 'not found'}
+
+		self.account.systems_key.append(system.key())
+		self.account.put()
+
+		DBAdmin.addOperation(self.akey, u'Пользователь добавил систему.', {'imei': self.imei})
+		send_message({
+			'msg': 'change_slist',
+			'data':{
+				'type': 'Adding',
+				'system': system.todict()
+			}
+		}, akeys=[self.akey])
+
+		return {'answer': 'yes', 'result': 'added', 'system': system.todict()}
 
 class Sys_Del(BaseApi):
 	requred = ('account', 'skey')
 	def parcer(self, **argw):
-		from channel import send_message
+		from datamodel.channel import send_message
 		res = self.account.DelSystem(self.skey)
 		if res == 0:
 			return {'answer': 'no', 'result': 'not found'}		# Этот ответ больше не поддерживается
@@ -1243,7 +1257,7 @@ class Sys_Del(BaseApi):
 class Sys_Sort(BaseApi):
 	requred = ('account', 'skey')
 	def parcer(self, **argw):
-		from channel import send_message
+		from datamodel.channel import send_message
 		index = self.request.get('index', None)
 		if index is None:
 			return {'result': 'no', 'reason': 'index not defined'}
@@ -1282,7 +1296,7 @@ class Sys_Desc(BaseApi):
 	#requred = ('account', 'imei')
 	requred = ('account', 'skey')
 	def parcer(self, **argw):
-		from channel import inform
+		from datamodel.channel import inform
 
 		desc = self.request.get('desc', None)
 		if desc is None:

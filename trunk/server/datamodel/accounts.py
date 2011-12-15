@@ -44,12 +44,17 @@ class DBAccounts(db.Model):
 	"""
 	@property
 	def systems(self):
+		"""
 		for skey in self.systems_key:
 			try:
 				s = DBSystem.get(skey)
 				if s: yield s
 			except:
 				pass
+		"""
+		rpc = db.create_rpc(deadline=10, read_policy=db.EVENTUAL_CONSISTENCY)	# Это позволяет генерировать один вызов для всех ключей (и дает значительную экономию по скорости)
+		return DBSystem.get(self.systems_key, rpc=rpc)
+		#return db.get(self.systems_key, rpc=rpc)
 
 	# Возвращает True если система с таким key контроллируется аккаунтом
 	def has_skey(self, skey):

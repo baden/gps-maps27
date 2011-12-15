@@ -84,9 +84,12 @@ function UpdaterInit() {
 				log("goog.appengine.Channel: onClose (TBD! Reconnect?)");
 				//connected = false;
 			}
-			//if(window.location.hostname == 'localhost'){
-			//	goog.appengine.Socket.POLLING_TIMEOUT_MS = 10000;
-			//}
+			if(window.location.hostname == 'localhost'){
+				// Для корректной работы длинных пулов необходимо подправить файл
+				// \google\appengine\api\channel\channel_service_stub.py 
+				// Установить CHANNEL_TIMEOUT_SECONDS = 60	# (или более, на усмотрение)
+				goog.appengine.Socket.POLLING_TIMEOUT_MS = 30000;
+			}
 
 			var channel = new goog.appengine.Channel(token);
 			var socket = channel.open();

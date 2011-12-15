@@ -16,7 +16,7 @@ CACHE:
 /plugins/jquery-ui-1.8.16/jquery-ui-1.8.16/ui/i18n/jquery.ui.datepicker-ru.js
 /plugins/colorpicker/js/colorpicker.js
 /plugins/colorpicker/css/colorpicker.css
-/js/jquery.min-1.7.js
+/js/jquery-1.7.1.min.js
 /js/jquery.cookie.js
 /stylesheets/all.css?v=1
 /svg/arrow.svg

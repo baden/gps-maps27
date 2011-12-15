@@ -2,9 +2,6 @@
 */
 
 window.log = function(){
-//  log.history = log.history || [];   // store logs to an array for reference
-//  log.history.push(arguments);
-//  if(this.console){
   if(window.console){
     console.log( Array.prototype.slice.call(arguments) );
   }
@@ -18,6 +15,14 @@ window.log = function(){
     if (/docwriteregexwhitelist/.test(q)) write.apply(doc,arguments);  
   }
 })(document);*/
+/*
+window._id = function(id, where) {
+	return (where || (window.document)).getElementById(id);
+}
+
+window._tag = function(tag, where) {
+	return (where || (window.document)).getElementsByTagName(tag);
+}*/
 
 
 /* Загрузка темы оформления */
@@ -139,6 +144,12 @@ var Date_to_daystop = function (d) {
 var Date_to_url = function (d) {
 	return f2d(d.getUTCFullYear()-2000) + f2d(d.getUTCMonth()+1) + f2d(d.getUTCDate()) + 
 		f2d(d.getUTCHours()) + f2d(d.getUTCMinutes()) + f2d(d.getUTCSeconds());
+}
+
+/*
+	Показывает разницу между теперешним значением и указанной датой
+*/
+var DateDiff = function(d) {
 }
 
 var ln_to_km = function (l) {

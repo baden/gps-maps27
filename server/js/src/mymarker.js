@@ -212,6 +212,7 @@ MyMarker.prototype.setSysKey = function(skey) {
 }
 
 MyMarker.prototype.setPosition = function(point) {
+//	log('ruler: ', point);
 //	log('Marker change position');
 	this.point = point;
 	this.arrdiv.setAttribute("style", "-webkit-transform: rotate(" + point.angle + "deg);z-index:-1;");
@@ -236,7 +237,7 @@ MyMarker.prototype.onRemove = function() {
 
 MyMarker.prototype.draw = function() {
 	//log('MyMarker.prototype.draw: This:', this);
-/*
+
 	if(this.point){
 		// Size and position the overlay. We use a southwest and northeast
 		// position of the overlay to peg it to the correct position and size.
@@ -254,7 +255,7 @@ MyMarker.prototype.draw = function() {
 		div.style.left = divpx.x - 8 + 'px';
 		div.style.top = divpx.y - 8 + 'px';
 	}
-*/
+
 /*
 	if(this.arrdiv){
 		var arrdiv = this.arrdiv;

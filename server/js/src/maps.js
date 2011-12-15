@@ -632,6 +632,7 @@ var CreateLastMarker = function(p){
 
 	if(lastpos[p.skey]){
 		//log('Move makrer ', lastpos[p.skey].marker, ' to ', pos);
+		lastpos[p.skey].time = dt_to_Date(p.data.point.time).getTime();
 		lastpos[p.skey].position = pos;
 		lastpos[p.skey].marker.setPosition(p.data.point, pos);
 
@@ -666,11 +667,37 @@ var CreateLastMarker = function(p){
 
 		lastpos[p.skey] = {
 			position: pos,
+			time: dt_to_Date(p.data.point.time).getTime(),
 			//tail: tailPath,
 			marker: last_pos_marker
 		};
 	}
 }
+
+var dateInterval = function(){
+	//window.console.group('update lasts');
+	//log('update last values', lastpos);
+	for(var i in lastpos){
+		var now = +new Date();
+		var dt = (now - lastpos[i].time)/1000;
+		var dt_days = Math.floor(dt/60/60/24)
+		var dt_days_lab = ((dt_days%10 == 1)&&(dt_days!=11))?' день ':((dt_days%10 in {2:0,3:0,4:0})&&!(dt_days in {12:0,13:0,14:0}))?' дня ':' дней ';
+
+		dt = dt - dt_days*60*60*24;
+		var dt_hours = Math.floor(dt/60/60)
+		var dt_hours_lab = ((dt_hours%10 == 1)&&(dt_hours!=11))?' час ':((dt_hours%10 in {2:0,3:0,4:0})&&!(dt_hours in {12:0,13:0,14:0}))?' часа ':' часов ';
+
+		dt = dt - dt_hours*60*60;
+		var dt_mins = Math.floor(dt/60);
+		var dt_mins_lab = ((dt_mins%10 == 1)&&(dt_mins!=11))?' минута ':((dt_mins%10 in {2:0,3:0,4:0})&&!(dt_mins in {12:0,13:0,14:0}))?' минуты ':' минут ';
+
+		//try{
+		MapSysList.element.querySelector('li[data-skey="'+i+'"]>span:first-child').title = 'Поледнее известное положение\n'+
+			dt_days + dt_days_lab + dt_hours + dt_hours_lab + dt_mins + dt_mins_lab + 'назад';
+		//} finally {}
+	}
+}
+setInterval(dateInterval, 60000);
 
 var GetLastPositions = function() {
 	//log('Get last positions...');
@@ -682,31 +709,15 @@ var GetLastPositions = function() {
 			for(var i in data.geo){
 				CreateLastMarker(data.geo[i]);
 			}
+			dateInterval();
 		}
 	});
 
 	/* TBD! Исключить запрос положения. Обеспечить отправку нового положения в команде оповещения geo_change */
 	config.updater.add('geo_change_last', function(msg) {
 		log('MAPS: GEO_Update: ', msg);
-		//var skey = msg.data.skey;
 		CreateLastMarker(msg);
-		//map.panTo(lastpos[skey].position);
-		//$.getJSON('/api/geo/last?skey=' + skey, function (data) {
-			//log('Update last positions and tail for...', data);
-			//CreateLastMarker(data.geo[0]);
-			/*
-			var p = data.geo[0];
-			var pos = new google.maps.LatLng(p.data.point.lat, p.data.point.lon);
-			if(lastpos[p.skey]){
-				log('Move makrer ', lastpos[p.skey].marker, ' to ', pos);
-				lastpos[p.skey].position = pos;
-				lastpos[p.skey].marker.setPosition(pos);
-				//map.panTo(pos);
-			}
-			*/
-		//});
-
-		//$(list).find('option[value="' + msg.data.skey + '"]').html(msg.data.desc);
+		dateInterval();
 	});
 }
 
@@ -879,17 +890,7 @@ var Map_SysList = function (list){
 	}
 
 	list.find('li').click(function(){
-		//log(this, $(this), this.attributes['imei'].value);
-		//map_ul_sys
-		$(this).parent().find('li').removeClass('ui-state-highlight');
-		$(this).addClass('ui-state-highlight');
-		config.skey = this.attributes['skey'].value;
-		UpdateDayList();
-		if(lastpos[config.skey]) map.panTo(lastpos[config.skey].position);
 	}).mouseover(function(){
-		var skey = $(this).attr('skey');
-		$('.lastmarker').removeClass('lastup');
-		$('.lastmarker[skey="' + skey + '"]').addClass('lastup');
 	}).mouseout(function(){
 		$('.lastmarker[skey="' + $(this).attr('skey') + '"]').removeClass('lastup');
 	/*}).bind('mousewheel', function(ev){
@@ -972,31 +973,6 @@ var Map_SysList = function (list){
 	GetLastPositions();
 	if(config.skey)	UpdateDayList(config.skey);
 
-	//var list = $('ul#map_ul_sys');
-
-	//Map_SysList(list);
-	/*
-	config.updater.add('changedesc', function(msg) {
-		//log('MAP: Update descriptions');
-		//updateLogList();
-		$(list).find('li[skey="' + msg.data.skey + '"]').html(
-			'  <span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>'+
-			msg.data.desc
-		).find('span').click(function(){
-			var skey = $(this).parent().attr('skey');
-			//log('span:click', skey, lastpos[skey]);
-			map.panTo(lastpos[skey].position);
-		});
-		//console.log(l);
-	});
-	*/
-	/*config.updater.add('changeslist', function(msg) {
-		//log('MAP: Update system list');
-		Map_SysList(list);
-		//updateLogList();
-		//$(list).find('li[skey="' + msg.data.skey + '"]').html(msg.data.desc);
-		//console.log(l);
-	});*/
 
 var MapSysList;
 
@@ -1009,20 +985,37 @@ config.updater.tabs[0] = function(){
 			li.className = "ui-widget ui-state-default";
 			li.dataset.skey = s.skey;
 			li.addEventListener('click', function(e){
-				log('click on item', this, e);
+				var skey = this.dataset.skey;
+				[].forEach.call(this.parentNode.querySelectorAll('li'), function(el){el.classList.remove('ui-state-highlight');});
+				this.classList.add('ui-state-highlight');
+
+				config.skey = skey;
+				UpdateDayList();
+				if(lastpos[config.skey]) map.panTo(lastpos[config.skey].position);
+
 			});
+			li.addEventListener('mouseover', function(e){
+				[].forEach.call(document.querySelectorAll('.lastmarker'), function(el){el.classList.remove('lastup');});
+				document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]').classList.add('lastup');
+			});
+			li.addEventListener('mouseout', function(e){
+				document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]').classList.remove('lastup');
+			});
+
 			li.innerHTML = '<span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>' + s.desc;
-			li.firstChild.addEventListener('click', function(e){
+			/*li.firstChild.addEventListener('click', function(e){
 				var skey = e.target.parentNode.dataset.skey;
 				//log('click on span', this, e);
 				map.panTo(lastpos[skey].position);
-			});
+			});*/
 			//log('first child: ', li.firstChild);
 			this.element.appendChild(li);
 		}
 		//MapSysList.changeItem = function(skey, desc){
 		//	log('TBD! changeItem for MapSysList. sys:', skey, desc);
 		//}
+		//setTimeout(dateInterval, 5000);
+		//dateInterval();
 
 		MapSysList.Rebuild()
 	}
@@ -1049,8 +1042,6 @@ $('#map_zone_edit').click(zonekit.Edit);
 var dirkit = new DirKit();
 $('#map_track_calc').click(dirkit.Route)
 
-
 window.config.alarm.show_alert_icons();
-
 
 })();

@@ -22,7 +22,7 @@ $(document).ready(function() {
 	config.updater.tabs[3] = function(){
 		$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
 		if(!$gmap){
-			log('== create');
+			//log('== create');
 			//$("#geomap").resizable();
 			$gmap = $('#geomap').gmap({
 					//pos: new google.maps.LatLng(45, 35),

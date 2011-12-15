@@ -324,7 +324,7 @@ $(document).ready(function(){
 		document.body.appendChild(msg);
 		var notcare = document.createElement('button');
 		notcare.style['margin-top'] = '30px';
-		notcare.innerHTML = 'Да я осознаю возможные трудности и совершаю свой выбор осознанно.';
+		notcare.innerHTML = 'Да я осознаю возможные трудности и изменил масштаб умышленно.';
 		msg.appendChild(notcare);
 		var t = setInterval(function(){
 			if((document.body.clientWidth > (document.width - 8)) && (document.body.clientWidth < (document.width + 8))){

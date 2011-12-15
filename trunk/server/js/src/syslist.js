@@ -122,124 +122,103 @@ config.updater.add('change_slist', function(msg) {
 	//var s = msg.data.system;
 });
 
-function SysList(elementid){
+function SysList(elementid, handlers){
 	var me = this;
-	lists_count += 1;
-	this.listnum = lists_count;
-	this.elementid = elementid;
 
-	log('SysList: init', elementid, this);
+	me.handlers = {};
+	for(var k in me.default_handlers) me.handlers[k] = me.default_handlers[k];
+	//if(handlers) {
+	for(var k in handlers) me.handlers[k] = handlers[k];
+	//}
+	lists_count += 1;
+	me.listnum = lists_count;
+	me.elementid = elementid;
+
+	//log('SysList: init', elementid);
 	
 	//$(document).ready(function() {
 	me.element = document.getElementById(me.elementid);
 	me.nodename = me.element.nodeName.toLowerCase();
-	//me.Rebuild();
+	me.Rebuild();
+
 	//});
 	if(me.nodename == 'select'){
 		//var me = this;
 		this.element.addEventListener('change', function(e){
-			console.log('SysList: change event', e, e.target.selectedIndex);
-			me.selectSys(window.config.account.systems[e.target.selectedIndex]);
+			//console.log('SysList: change event', e, e.target.selectedIndex);
+			//me.selectSys(window.config.account.systems[e.target.selectedIndex]);
+			me.handlers.select(window.config.account.systems[e.target.selectedIndex]);
 		});
 	}
 
-
 	config.updater.add('change_slist', function(msg) {
-		log('SysList: change_slist. Update system list.', msg);
+		//log('SysList: change_slist. Update system list.', msg);
 		me.Rebuild();
 	});
 
 	config.updater.add('change_desc', function(msg) {
-		log('SysList: change_desc. Update system description.', msg);
-		me.changeItem(msg.skey, msg.data.desc);
-		//$(list).children('option[value="'+msg.data.skey+'"]').html(msg.data.desc);
+		//log('SysList: change_desc. Update system description.', msg);
+		me.handlers.change(msg.skey, msg.data.desc);
 	});
+}
+
+SysList.prototype.default_handlers = {
+	start: function(){
+		this.element = this.element || document.getElementById(this.elementid);
+		//log('SysList: start', this);
+		//document.getElementById('log_syslist')
+		// Удалить все элементы если они есть.
+		//config.helper.empty(this.element);
+		while (this.element.firstChild) {
+			this.element.removeChild(this.element.firstChild);
+		}
+	},
+	element: function(s){
+		//log('SysList.element', this, s);
+		if(/^select$/i.test(this.element.nodeName)) {
+			var option = document.createElement('option');
+			//option.dataset.imei = s.imei;
+			//option.dataset.skey = s.skey;
+			option.title = 'IMEI: ' + s.imei.replace(/-.*/,'');
+			option.innerHTML = s.desc;
+			//this.element.appendChild(option);
+			return option;
+		} else {
+			log('SysList: Warning! You must define handlers.item method');
+		}
+	},
+	finish: function(){
+		//log('SysList: finish');
+	},
+	select: function(system){
+	},
+	change: function(skey, desc){
+		//log('SysList.changeItem', this.element);
+		var node = this.element.querySelector('*[data-skey="'+skey+'"]');
+		// Я не знаю как выбирать текстовые ноды через селектор, поэтому перебор
+		[].forEach.call(node.childNodes, function(el){
+			if(el.nodeType === Node.TEXT_NODE) el.data = desc;
+		});
+	},
+	additem: function(s){
+		var el = this.handlers.element.call(this, s);
+		el.dataset.skey = s.key;
+		el.dataset.imei = s.imei;
+		this.element.appendChild(el);
+	},
+	remove: function(skey){
+		log('SysList: Warning! You must define remove handler');
+	}
 }
 
 SysList.prototype.Rebuild = function(){
-	//log('SysList: rebuild', this, lists_count, this.listnum);
-	this.start();
+	//log('SysList.prototype.Rebuild');
+	this.handlers.start.call(this);
 	for(var i in window.config.account.systems){
 		var s = window.config.account.systems[i];
-		this.addItem(s);
+		this.handlers.additem.call(this, s);
 	}
-	this.finish();
-}
-
-SysList.prototype.start = function(){
-	this.element = this.element || document.getElementById(this.elementid);
-	log('SysList: start', this);
-	//document.getElementById('log_syslist')
-	// Удалить все элементы если они есть.
-	config.helper.empty(this.element);
-	/*while (this.element.firstChild) {
-		this.element.removeChild(this.element.firstChild);
-	}*/
-}
-
-SysList.prototype.addItem = function(s){
-//	if(this.nodename == 'select') {
-	if(/^select$/i.test(this.element.nodeName)) {
-		var option = document.createElement('option');
-		option.dataset.imei = s.imei;
-		option.dataset.skey = s.skey;
-		option.title = 'IMEI: ' + s.imei;
-		option.innerHTML = s.desc;
-		this.element.appendChild(option);
-	} else {
-		log('SysList: Warning! You must define addItem method');
-	}
-}
-
-SysList.prototype.finish = function(){
-	//log('SysList: finish');
-}
-
-SysList.prototype.selectSys = function(system){
-	log('SysList: Warning! You must define selectSys method', system);
-}
-
-
-SysList.prototype.changeItem = function(skey, desc){
-	log('SysList.changeItem', this.element);
-
-	var node = this.element.querySelector('*[data-skey="'+skey+'"]');
-
-	// Я не знаю как выбирать текстовые ноды через селектор, поэтому перебор
-	[].forEach.call(node.childNodes, function(el){
-		if(el.nodeType === Node.TEXT_NODE) el.data = desc;
-	});
-
-	//for(var i=0; i<this.element.childNodes.length; i++){	// Пройдемся по всем элементам списка.
-		//var node=this.element.childNodes[i];
-		//log('   -> node', node);
-/*
-	for(var j=0; j<node.childNodes.length; j++){
-		var elnode = node.childNodes[j];
-		//log('   -> elnode', elnode);
-		if(elnode.nodeType === Node.TEXT_NODE){
-			log('     -> text Node');
-			elnode.data = desc;
-		}
-	}
-*/
-	//}
-/*
-	if(/^select$/i.test(this.element.nodeName)) {
-		var p = this.element.querySelector('option[data-skey='+skey+']');
-		if(p){
-			//p.innerHTML = desc;
-			p.firstChild.textContent = desc;	// Вот почему-то мне не нравится использовать innerHTML
-		}
-		//log('change item:', p, this.element);
-	} else {
-		log('SysList: Warning! You must define changeItem method', skey, desc);
-	}
-*/
-}
-
-SysList.prototype.deleteItem = function(){
-	log('SysList: Warning! You must define deleteItem method');
+	this.handlers.finish.call(this);
 }
 
 config.updater.add('changedesc', function(msg) {

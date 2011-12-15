@@ -20,6 +20,7 @@ CACHE:
 /js/jquery.cookie.js
 /stylesheets/all.css?v=1
 /svg/arrow.svg
+/js/all-min.js
 
 NETWORK:
 /

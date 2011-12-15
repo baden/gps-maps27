@@ -24,7 +24,7 @@ config.updater.process = function(msg){
 		}
 	}
 	*/
-	log('updater.process', msg);
+	//log('updater.process', msg);
 
 	if(config.updater.queue[msg.msg]){
 		for(var i in config.updater.queue[msg.msg]){
@@ -44,10 +44,12 @@ config.updater.add('*', function(msg){
 	//console.log(msg);
 	//log('goog.appengine.Channel: onMessage:', msg);
 	//connected = true;
+/*
 	if(config.admin){
 		//if(msg.msg) message('Получено сообщени об обновлении:<b>' + msg.msg + '</b>');
 		if(msg.msg) log('Получено сообщение от сервера:<b>', msg);
 	}
+*/
 });
 
 config.updater.tabs = [];
@@ -70,7 +72,7 @@ function UpdaterInit() {
 
 			var onMessage = function(m) {
 				var msg = JSON.parse(m.data);
-				//log('goog.appengine.Channel: onMessage', token, m.data, msg);
+				log('goog.appengine.Channel: onMessage', token, msg);
 				//config.updater.process(msg);
 				msg.map(function f(m){config.updater.process(m)});
 				//config.updater.process({msg: '*'});
@@ -82,6 +84,20 @@ function UpdaterInit() {
 
 			var onClose = function() {
 				log("goog.appengine.Channel: onClose (TBD! Reconnect?)");
+
+				var msg = document.createElement('div');
+				msg.style.cssText = 'position: absolute; top: 30%; left: 30%; width: 30%; min-height: 30%; background: white; z-index: 2000; border: 1px solid black; border-radius: 8px; padding: 10px; box-shadow: 0px 0px 10px #404040;';
+				msg.innerHTML = '<b>Утеряно соединение с сервером.<br />Для восстановления соединения перезагрузите страницу.</b><br />Нажмите F5.';
+				document.body.appendChild(msg);
+				var notcare = document.createElement('button');
+				notcare.style['margin-top'] = '30px';
+				notcare.innerHTML = 'Перезагрузить.';
+				msg.appendChild(notcare);
+				notcare.addEventListener('click', function(){
+					document.body.removeChild(msg);
+					window.location.reload();
+				});
+
 				//connected = false;
 			}
 			if(window.location.hostname == 'localhost'){
@@ -107,6 +123,9 @@ $(document).ready(function(){
 	UpdaterInit();
 });
 
+// Может понадобятся воркеры. Вот пример использования:
+if(0){
+
 var BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.BlobBuilder;
 var bb = new BlobBuilder();
 
@@ -123,6 +142,6 @@ worker.onmessage = function(e) {
 	log('worker in main', e);
 };
 worker.postMessage(); // Start the worker.
-
+}
 
 })(window, jQuery);

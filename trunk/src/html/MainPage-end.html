@@ -4,8 +4,6 @@
 		<audio id="sound_alarm" loop="loop"><source src="sound/alarm.ogg" /><source src="sound/alarm.mp3" /></audio>
 		<div id="working">Работаем...</div>
 		<a id="a_login" href="/">nickname</a>
-		<!--button id="tabreload">Reload</button-->
-		<!--button id="test">Test</button-->
 	</div>
 
   <script src="/js/src/base.js?v=1"></script>
@@ -23,44 +21,11 @@
   <script src="/js/src/maps.js?v=1"></script>
   <script src="/js/src/reports.js?v=1"></script>
   <script src="/js/src/logs.js?v=1"></script>
+  <script src="/js/src/post.js?v=1"></script>
+
+  <!--script src="/js/all-min.js?v=1"></script-->
 
   <script>
-	$(document).ready(function() {
-		config.inits.map(function(single){single();});
-		
-		$("button").button();
-		var $tabs = $("#tabs").tabs({
-			cookie: { expires: 30, name: 'maintab' },
-			effect: 'ajax',
-			cache: true,
-			spinner: 'Retrieving data...',
-			show: function(){
-				var index = $(this).tabs( "option", "selected" );
-				log('TAB: show: ', index, $(this));
-				//log('config:', config);
-				config.tab = index;
-				if(('tabs' in config.updater) && (config.updater.tabs[index])) config.updater.tabs[index]();
-			},
-			load: function(){
-				log('TAB: tab loaded: ', $(this).tabs( "option", "selected" ));
-				$("button").button();
-			}
-		});
-
-		$("button#tabreload").click(function(){
-			log('Reload tab...');
-			$tabs.tabs('load', $tabs.tabs('option', 'selected'));
-		});
-
-		//var connected = false;
-
-		$('#test').click(function(){
-			log('Test');
-			//window.location.reload();
-			window.location.href = window.location.href;
-		});
-
-	});
   </script>
 
 </body>

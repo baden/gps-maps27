@@ -23,9 +23,9 @@ function GMap() {
 		closeText: 'Close' // Display text for close link
 	}
 	this._defaults = { // Global defaults for all the gmap widget instances
-		pos: new google.maps.LatLng(48.5000, 34.599), // Default position
+		pos: new google.maps.LatLng(48.370848,32.717285), // Default position - Ukraine
+		zoom: 6,
 		maptype: google.maps.MapTypeId.ROADMAP,
-		zoom: 10,
 		marker: 'none',
 		markertitme: 'Ooooops!'
 	}

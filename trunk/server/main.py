@@ -162,15 +162,34 @@ CACHE:
 /plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-icons_ffffff_256x240.png
 /plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-bg_glass_80_d7ebf9_1x400.png
 /plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-icons_3d80b3_256x240.png
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-icons_2694e8_256x240.png
+/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/cupertino/images/ui-bg_glass_100_e4f1fb_1x400.png
 /plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.js
 /plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.css
 /plugins/jquery-ui-1.8.16/jquery-ui-1.8.16/ui/i18n/jquery.ui.datepicker-ru.js
 /plugins/colorpicker/js/colorpicker.js
 /plugins/colorpicker/css/colorpicker.css
-/js/jquery.min-1.7.js
+/plugins/colorpicker/images/colorpicker_background.png
+/js/jquery-1.7.1.min.js
 /js/jquery.cookie.js
+/js/chainvas.min.js
 /stylesheets/all.css?v=1
 /svg/arrow.svg
+/sound/alarm.ogg
+/js/all-min.js?v=1
+#/_ah/channel/jsapi
+
+
+# Text external caching
+http://maps.gstatic.com/mapfiles/cb/mod_cb_scout/cb_scout_sprite_api_003.png
+http://maps.gstatic.com/mapfiles/google_white.png
+http://maps.gstatic.com/mapfiles/mv/imgs8.png
+http://maps.gstatic.com/mapfiles/mapcontrols3d6.png
+http://maps.gstatic.com/mapfiles/rotate2.png
+http://maps.gstatic.com/mapfiles/szc4.png
+http://maps.gstatic.com/mapfiles/transparent.png
+#https://talkgadget.google.com/talkgadget/channel.js
+
 
 NETWORK:
 /
@@ -741,7 +760,7 @@ class BinBackup(BaseHandler):
 # обновление программного обеспечения
 class Firmware(BaseHandler):
 	def get(self):
-		from datamodel import DBFirmware
+		from datamodel.firmware import DBFirmware
 		from utils import CRC16
 		#user = users.get_current_user()
 		#username = ''
@@ -902,7 +921,7 @@ class Firmware(BaseHandler):
 					'desc': fw.desc,
 				})
 			template_values['firmwares'] = nfw
-			self.write_template(template_values)
+			self.render_template(self.__class__.__name__ + '.html', **template_values)
 
 	def post(self):
 		from datamodel import DBFirmware

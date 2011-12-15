@@ -29,41 +29,16 @@
 		});
 	}
 
-	var ConfigList = new SysList('config_sys_list');
+	var ConfigList;
 
-	ConfigList.addItem = function(s){
-		//log('addItem for ConfigList. sys:', s);
-		$("#config_sys_list").append(
-			'<li class="ui-widget ui-widget-content ui-widget-header" data-imei="'+s.imei+'" data-skey="'+s.key+'"><span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
-			 '<span class="bico hl mm" title="Выбрать пиктограмму">P</span>' +
-			 (config.admin?'<span class="bpurge hl mm" title="Удалить GPS данные!">D</span>':'') +
-			 '<span class="bconf hl mm" title="Настроить систему">C</span>' +
-			 '<span class="spanbrd" title="IMEI">' + s.imei + '</span><span class="spanbrd" title="Телефон">' + (s.phone!='None'?(s.phone):'не определен') + '</span>' + s.desc +
-			 '<button class="key bdesc" title="Изменить описание">...</button>' +
-			 '<button class="key bzone" title="Привязать ГЕО-зону">З</button>' +
-			 (config.admin?'<button class="key calarm" title ="Принудительная отмена тревоги">x!</button>':'') +
-			 '<button class="key bdel" title="Отказаться от слежения за системой">X</button>' +
-			'</li>'
-		);
+	var cancel_alarm = function(){
+		var skey = this.parentNode.dataset.skey;		// Лучший способ доступа к dataset !
+		$.getJSON('/api/alarm/cancel?skey=' + skey, function (data) {
+			log('Alarm canceled.');
+		});
 	}
 
-	//ConfigList.changeItem = function(skey, desc){
-	//	log('TBD! changeItem for ConfigList. sys:', skey, desc);
-	//}
-
-	ConfigList.finish = function(){
-		//log('ConfigList: finish');
-		$("#config_sys_list .calarm").button().click(function(){
-			//var imei = par.attr('imei');
-			//var skey = $(this).parent()[0].dataset.skey;
-			var skey = this.parentNode.dataset.skey;		// Лучший способ доступа к dataset !
-
-			$.getJSON('/api/alarm/cancel?skey=' + skey, function (data) {
-				log('Alarm canceled.');
-			});
-		});
-
-		$("#config_sys_list .bdesc").button().click(function(){
+	var ch_desc = function(){
 			//alert(this.attributes['imei'].value);
 			//var i = this.attributes['index'].value;
 			var prnt = this.parentNode;
@@ -89,7 +64,42 @@
 			$(dialog).find('label').html(imei);
 			$(dialog).find('textarea').val(desc);
 			$(dialog).dialog('open');
-		});
+	}
+
+	config.updater.tabs[4] = function(){
+		log('Tab Config activated.');
+		$("#config_list").accordion("resize");
+		if(!ConfigList){
+			ConfigList = new SysList('config_sys_list', {
+				element: function(s){
+					var li = document.createElement('li');
+					li.className = 'ui-widget ui-widget-content ui-widget-header';
+					//li.className = 'ui-widget ui-widget-content';
+					li.innerHTML = '<span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
+					 '<span class="bico hl mm" title="Выбрать пиктограмму">P</span>' +
+					 (config.admin?'<span class="bpurge hl mm" title="Удалить GPS данные!">D</span>':'') +
+					 '<span class="bconf hl mm" title="Настроить систему">C</span>' +
+					 '<span class="spanbrd" title="IMEI">' + s.imei.replace(/-.*/,'') + '</span><span class="spanbrd" title="Телефон">' + (s.phone!='None'?(s.phone):'не определен') + '</span>' + s.desc +
+					 '<button class="key bdesc" title="Изменить описание">...</button>' +
+					 '<button class="key bzone" title="Привязать ГЕО-зону">З</button>' +
+					 (config.admin?'<button class="key calarm" title ="Принудительная отмена тревоги">x!</button>':'') +
+					 '<button class="key bdel" title="Отказаться от слежения за системой">X</button>';
+					var $li = $(li);	// TBD! Отказаться бып оп jQuery
+					//$(li).find('button').button();	// Декорируем
+					$li.find('.bdesc').button().click(ch_desc);
+					$li.find('.calarm').button().click(cancel_alarm);
+					return li;
+				},
+
+				/*
+					TBD! Правильнее перенести обработчики в element.
+					Это несколько снизит скорость генерации, но даст большую гибкость и определенность.
+					И устранит дефект отображения при добавлении системы в наблюдение.
+				*/
+				finish: function(){
+
+		//$("#config_sys_list .bdesc").button().click(function(){
+		//});
 
 		$("#config_sys_list .bzone").button().click(function(){
 			var par = $(this).parent();
@@ -288,7 +298,9 @@
 		});
 	}
 
-	ConfigList.Rebuild();
+			});
+		}
+	}
 
 	$(document).ready(function() {
 		if(window.config.account.user.admin) $('.admin').show();
@@ -325,7 +337,7 @@
 								$("#dialog_addsys_already").dialog('open');
 							} else if(result == "added") {
 								log('manual add', data.system);
-								ConfigList.addItem(data.system);
+								ConfigList.handlers.additem.call(ConfigList, data.system);
 
 								//var system = clone(msg.data.system);
 								//config.account.systems.push(system);
@@ -653,12 +665,6 @@
 		});
 		setTimeout(function(){$("#config_list").accordion("resize")}, 1000);
 
-		config.updater.tabs[4] = function(){
-			//log('CONFIG: tab update');
-			$("#config_list").accordion("resize");
-			//$('#map').resize();
-			//google.maps.event.trigger(map, 'resize');
-		}
 
 		var show_admin_opetaions = function(cursor){
 			var url;

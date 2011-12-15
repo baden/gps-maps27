@@ -120,9 +120,9 @@
 
 	//InitUpdater();	// TBD! Это не самое элегантное решение вызова инициализации обновления.
 
-	config.inits.push(function(){
-		log('== First init (TBD!)', config);
-	});
+	//config.inits.push(function(){
+	//	log('== First init (TBD!)', config);
+	//});
 	
 	//$("#draggable").draggable();
   </script>
@@ -389,15 +389,15 @@
 
 
 	<div id="report_dlg_byday" title="Отчет за сутки" hidden>
-		Система: <select id="report_dlg_byday_syslist" name="report_dlg_byday_syslist" style="width:auto;" />
-		<div id="report_date_by_day" />
-		<input id="report_dlg_byday_alternate" style="width: 100%;" disabled="disabled"/>
+		Система: <select id="report_dlg_byday_syslist" name="report_dlg_byday_syslist" style="width:auto;"></select>
+		<div id="report_date_by_day"></div>
+		<input id="report_dlg_byday_alternate" style="width: 100%;" disabled="disabled">
 	</div>
 
 	<div id="report_dlg_byint" title="Отчет за интервал" hidden>
-		Система: <select id="report_dlg_byint_syslist" name="report_dlg_byint_syslist" style="width:auto;" />
+		Система: <select id="report_dlg_byint_syslist" name="report_dlg_byint_syslist" style="width:auto;"></select>
 		<table style="width: 100%;"><thead><tr><th>Начало</th><th>Конец</th></tr></thead><tbody>
-		  <tr><td><div id="report_date_by_int_from" /></td><td><div id="report_date_by_int_to" /></td></tr>
+		  <tr><td><div id="report_date_by_int_from"></div></td><td><div id="report_date_by_int_to"></div></td></tr>
 		  <!--tr><td><div id="report_dlg_byint_time_from_tp" /></td><td><div id="report_dlg_byint_time_to_tp" /></td></tr-->
 		  <tr><td><input id="report_dlg_byint_alternate_from" style="width: 100%;" disabled="disabled"/></td><td><input id="report_dlg_byint_alternate_to" style="width: 100%;" disabled="disabled"/></td></tr>
 		  <tr><td><input id="report_dlg_byint_time_from" style="width: 100%;" value="00:00:00"/></td><td><input id="report_dlg_byint_time_to" style="width: 100%;" value="23:59:59"/></td></tr>
@@ -433,8 +433,8 @@
 		<!--Cистема: <button id="geos_syslist" name="geos_syslist" style="width:auto;">Система</button>-->
 		Cистема: <select id="geos_syslist" name="geos_syslist" style="width:auto;"></select>
 		<span id="geos_viewtype">
-		<input type="radio" id="geos_type_last" value="0" name="geos_viewtype" checked="checked" /><label for="geos_type_last">Сегодня</label>
-		<input type="radio" id="geos_type_for_day" value="1" name="geos_viewtype"/><label for="geos_type_for_day">В выбранные сутки: <input id="geos_datepicker"></input></label>
+		<input type="radio" id="geos_type_last" value="0" name="geos_viewtype" checked="checked"><label for="geos_type_last">Сегодня</label>
+		<input type="radio" id="geos_type_for_day" value="1" name="geos_viewtype"><label for="geos_type_for_day">В выбранные сутки: <input id="geos_datepicker"></input></label>
 		</span>
 		<!--div id="progressbar"></div-->
 	</div>
@@ -713,8 +713,6 @@
 		<audio id="sound_alarm" loop="loop"><source src="sound/alarm.ogg" /><source src="sound/alarm.mp3" /></audio>
 		<div id="working">Работаем...</div>
 		<a id="a_login" href="/">nickname</a>
-		<!--button id="tabreload">Reload</button-->
-		<!--button id="test">Test</button-->
 	</div>
 
   <script src="/js/src/base.js?v=1"></script>
@@ -732,44 +730,11 @@
   <script src="/js/src/maps.js?v=1"></script>
   <script src="/js/src/reports.js?v=1"></script>
   <script src="/js/src/logs.js?v=1"></script>
+  <script src="/js/src/post.js?v=1"></script>
+
+  <!--script src="/js/all-min.js?v=1"></script-->
 
   <script>
-	$(document).ready(function() {
-		config.inits.map(function(single){single();});
-		
-		$("button").button();
-		var $tabs = $("#tabs").tabs({
-			cookie: { expires: 30, name: 'maintab' },
-			effect: 'ajax',
-			cache: true,
-			spinner: 'Retrieving data...',
-			show: function(){
-				var index = $(this).tabs( "option", "selected" );
-				log('TAB: show: ', index, $(this));
-				//log('config:', config);
-				config.tab = index;
-				if(('tabs' in config.updater) && (config.updater.tabs[index])) config.updater.tabs[index]();
-			},
-			load: function(){
-				log('TAB: tab loaded: ', $(this).tabs( "option", "selected" ));
-				$("button").button();
-			}
-		});
-
-		$("button#tabreload").click(function(){
-			log('Reload tab...');
-			$tabs.tabs('load', $tabs.tabs('option', 'selected'));
-		});
-
-		//var connected = false;
-
-		$('#test').click(function(){
-			log('Test');
-			//window.location.reload();
-			window.location.href = window.location.href;
-		});
-
-	});
   </script>
 
 </body>

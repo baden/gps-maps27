@@ -14,7 +14,7 @@ logging.info('Loading %s from %s', __name__, __file__)
 #apptrace_TRACE_MODULES = ['api.py']
 
 def webapp_add_wsgi_middleware(app):
-    #app = recording.appstats_wsgi_middleware(app)
+    app = recording.appstats_wsgi_middleware(app)
     return app
 
 #os.environ['ROOT_NAMESPACE'] = 'point'

@@ -1,26 +1,19 @@
 /*
 */
 
-(function(){
-
+(function(window, $){
+var doc = window.document;
 var map = null;
-
 var show_bounds = false;
-
 var geocoder;
-
 var ruler1 = null;
 var skey = null;
 //var rulers = [];
-
 var prev_minp = -1;
-
 var flightPlanCoordinates = [];
 //var zooms = []
-
 var showed_path = [];
 //showed_path = new google.maps.MVCArray();
-
 var flightPath = null; //[];
 var flightPathBounds = null;
 //var fpi = 0;
@@ -61,42 +54,14 @@ function LoadPoints1(){
 var GetPath = function(skey_, from, to){
 	skey = skey_;
 	ruler1.setSysKey(skey);
-	//log("::GetPath.start");
 	$.getJSON('/api/geo/get?skey=' + skey + '&from=' + from + '&to=' + to, function (data) {
-		//$("#progress").html("Обрабатываем...");
-		//log("getJSON parce");
 		if (data.answer && data.points.length > 0) {
 			ParcePath(data);
 		}
 	});
-	//log("::GetPath.end");
 }
 
-/*
-mLatLng = function(la, lo, z){
-//	base.constructor.call(la, lo);
-//	google.maps.LatLng.prototype.constructor(la, lo);
-//	mLatLng_base(la, lo);
-	this.constructor.prototype.constructor.call(this, la, lo);
-	this.zoom = z;
-};
-
-mLatLng.prototype = new google.maps.LatLng.prototype.constructor();
-*/
-
 var dt_to_Date = function (d){
-/*	var h = parseInt(d.slice(6, 8), 10);
-	var dat = new Date(
-			parseInt('20' + d[0]+d[1], 10),	// год
-			parseInt(d[2]+d[3], 10) - 1,	// месяц
-			parseInt(d[4]+d[5], 10),	// день
-			parseInt(d[6]+d[7], 10),	// часы
-			parseInt(d[8]+d[9], 10),	// минуты
-			parseInt(d[10]+d[11], 10)	// секунды
-	);
-	console.log('d=' + d + ' h:' + h + '  new Date =', dat);
-	return dat;
-*/
 	return new Date(Date.UTC(
 			parseInt('20' + d[0]+d[1], 10),	// год
 			parseInt(d[2]+d[3], 10) - 1,	// месяц
@@ -105,36 +70,7 @@ var dt_to_Date = function (d){
 			parseInt(d[8]+d[9], 10),	// минуты
 			parseInt(d[10]+d[11], 10)	// секунды
 	));
-
 }
-
-/*
-function t_to_hms(d){
-	var minutes = (d - (d % 60)) / 60;
-	var hours = (minutes - (minutes % 60)) / 60;
-	minutes = minutes % 60;
-	var seconds = d % 60;
-	if(hours) return hours + ' ч ' + minutes + ' мин ' + seconds + ' сек';
-	else if(minutes) return minutes + ' мин ' + seconds + ' сек';
-	else return seconds + ' сек';
-}
-*/
-
-/*
-var Image_Stop = new google.maps.MarkerImage(
-	'/images/marker-stop.png',
-	new google.maps.Size(16, 20),
-	new google.maps.Point(0, 0),
-	new google.maps.Point(7, 19)
-);
-
-var Image_Halt = new google.maps.MarkerImage(
-	'/images/marker-halt.png',
-	new google.maps.Size(16, 20),
-	new google.maps.Point(0, 0),
-	new google.maps.Point(7, 19)
-);
-*/
 
 var stop_infowindow;
 
@@ -562,8 +498,8 @@ var CreateMap = function () {
 	//if(google.'maps')
 	geocoder = new google.maps.Geocoder();
 	var $map = $('#map').gmap({
-		pos: new google.maps.LatLng(48.512283,34.641223),
-		zoom: 12,
+		pos: new google.maps.LatLng(48.370848,32.717285), // Default position - Ukraine
+		zoom: 6,
 		//marker: 'center',
 		markertitme: 'aaa'
 	});
@@ -691,10 +627,12 @@ var dateInterval = function(){
 		var dt_mins = Math.floor(dt/60);
 		var dt_mins_lab = ((dt_mins%10 == 1)&&(dt_mins!=11))?' минута ':((dt_mins%10 in {2:0,3:0,4:0})&&!(dt_mins in {12:0,13:0,14:0}))?' минуты ':' минут ';
 
-		//try{
-		MapSysList.element.querySelector('li[data-skey="'+i+'"]>span:first-child').title = 'Поледнее известное положение\n'+
-			dt_days + dt_days_lab + dt_hours + dt_hours_lab + dt_mins + dt_mins_lab + 'назад';
-		//} finally {}
+		if(MapSysList){
+			var el = MapSysList.element.querySelector('li[data-skey="'+i+'"]>span:first-child');
+			if(el) {
+				el.title = 'Поледнее известное положение\n'+dt_days+dt_days_lab + dt_hours+dt_hours_lab + dt_mins+dt_mins_lab + 'назад';
+			}
+		}
 	}
 }
 setInterval(dateInterval, 60000);
@@ -978,57 +916,46 @@ var MapSysList;
 
 config.updater.tabs[0] = function(){
 	if(!MapSysList){
-		MapSysList = new SysList('map_ul_sys');
-		MapSysList.addItem = function(s){
-			log('TBD! addItem for MapSysList. sys:', s, this);
-			var li = document.createElement('li');
-			li.className = "ui-widget ui-state-default";
-			li.dataset.skey = s.skey;
-			li.addEventListener('click', function(e){
-				var skey = this.dataset.skey;
-				[].forEach.call(this.parentNode.querySelectorAll('li'), function(el){el.classList.remove('ui-state-highlight');});
-				this.classList.add('ui-state-highlight');
+		MapSysList = new SysList('map_ul_sys', {
+			element: function(s){
+				var li = document.createElement('li');
+				li.className = "ui-widget ui-state-default";
+				//li.dataset.skey = s.skey;
+				li.addEventListener('click', function(e){
+					var skey = this.dataset.skey;
+					[].forEach.call(this.parentNode.querySelectorAll('li'), function(el){el.classList.remove('ui-state-highlight');});
+					this.classList.add('ui-state-highlight');
 
-				config.skey = skey;
-				UpdateDayList();
-				if(lastpos[config.skey]) map.panTo(lastpos[config.skey].position);
+					config.skey = skey;
+					UpdateDayList();
+					if(lastpos[config.skey]) map.panTo(lastpos[config.skey].position);
 
-			});
-			li.addEventListener('mouseover', function(e){
-				[].forEach.call(document.querySelectorAll('.lastmarker'), function(el){el.classList.remove('lastup');});
-				document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]').classList.add('lastup');
-			});
-			li.addEventListener('mouseout', function(e){
-				document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]').classList.remove('lastup');
-			});
+				});
+				li.addEventListener('mouseover', function(e){
+					[].forEach.call(document.querySelectorAll('.lastmarker'), function(el){el.classList.remove('lastup');});
+					document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]').classList.add('lastup');
+				});
+				li.addEventListener('mouseout', function(e){
+					document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]').classList.remove('lastup');
+				});
 
-			li.innerHTML = '<span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>' + s.desc;
-			/*li.firstChild.addEventListener('click', function(e){
-				var skey = e.target.parentNode.dataset.skey;
-				//log('click on span', this, e);
-				map.panTo(lastpos[skey].position);
-			});*/
-			//log('first child: ', li.firstChild);
-			this.element.appendChild(li);
-		}
-		//MapSysList.changeItem = function(skey, desc){
-		//	log('TBD! changeItem for MapSysList. sys:', skey, desc);
-		//}
-		//setTimeout(dateInterval, 5000);
-		//dateInterval();
-
-		MapSysList.Rebuild()
+				li.innerHTML = '<span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>' + s.desc;
+				/*li.firstChild.addEventListener('click', function(e){
+					var skey = e.target.parentNode.dataset.skey;
+					//log('click on span', this, e);
+					map.panTo(lastpos[skey].position);
+				});*/
+				//log('first child: ', li.firstChild);
+				return li;
+			}
+		});
 	}
-	log('MAP: tab update');
-	//$('#map').resize();
+	//log('MAP: tab update');
 	google.maps.event.trigger(map, 'resize');
 }
 
-$('#map_btn_cleartrack').click(function(){
-	//if(showed_path.length != 0){
-	//log('clear path:', flightPath);
+document.getElementById('map_btn_cleartrack').addEventListener('click', function(){
 	if(flightPath) flightPath.setPath([]);
-	// Маркеры начала и конца
 	if(marker_start) marker_start.setMap(null);
 	if(marker_finish) marker_finish.setMap(null);
 	flightPlanCoordinates = [];
@@ -1042,6 +969,6 @@ $('#map_zone_edit').click(zonekit.Edit);
 var dirkit = new DirKit();
 $('#map_track_calc').click(dirkit.Route)
 
-window.config.alarm.show_alert_icons();
+//window.config.alarm.show_alert_icons();
 
-})();
+})(window, jQuery);

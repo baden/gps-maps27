@@ -2,7 +2,7 @@
 
 */
 
-(function(){
+(function(window, $){
 
 var geocoder;
 
@@ -310,15 +310,14 @@ if(0){
 	} 
 }
 
-var Report_Make_SysList = function(list){
-	list.empty();
-	for(var i in config.systems){
-		var s = config.systems[i];
-		list.append('<option imei="'+s.imei+'" value="'+s.skey+'">'+s.desc+'</option>');
-	}
-}
+var init;
+config.updater.tabs[1] = function(){
+	log('Tab Reports activated.');
+	if(!init){
+		init = true;
 
-$(document).ready(function() {
+
+
 
 	if('google' in window) geocoder = new google.maps.Geocoder();
 	$("#nav_reports").button("option", "disabled", true);
@@ -340,71 +339,13 @@ $(document).ready(function() {
 	$('.control').button();
 
 	$.datepicker.setDefaults( $.datepicker.regional[ "ru" ] );
-	/*$( "#datepicker" ).datepicker($.datepicker.regional[ "ru" ], {altField: "#alternate",
-		altFormat: "DD, d MM, yy"});*/
-
-/*
-	$('#indatepicker').datepicker({altField: "#alternate",
-		altFormat: "DD, d MM, yy",
-		onSelect: function(dateText, inst) {
-			//console.log(inst);
-			log(dateText);
-			var start = date_to_url(dateText) + '000000'; //inst.currentYear, inst.currentMonth, inst.currentDay, '000000');
-			var stop = date_to_url(dateText) + '235959'; //inst.currentYear, inst.currentMonth, inst.currentDay, '235959');
-			config.skey = $('#rep_syslist').attr('value');
-			\genReport($('#rep_syslist').attr('value'), start, stop);
-			//console.log(dateText);
-			//console.log(inst);
-		}
-	});
-	$('#control_day').click(function(){
-		//alert('bu');
-	});
-*/
 
 	$('#total tbody tr td').bind('click', function(me){
 		log(me);
 		//showMap();
 	});
 
-//	log('Загрузка закладки. Отчеты.');
-
-if(0){
-	var list = $('#rep_syslist');
-	Report_Make_SysList(list);
-	//}
-	//updateLogList();
-	config.updater.add('changedesc', function(msg) {
-		log('LOGS: Update descriptions');
-		//updateLogList();
-		$(list).find('option[value="' + msg.data.skey + '"]').html(msg.data.desc);
-		//console.log(l);
-	});
-	config.updater.add('changeslist', function(msg) {
-		Report_Make_SysList(list);
-	});
-}
-	//$('#log_syslist').bind('change', function(){
-	/*
-	list.bind('change', function(){
-		config.skey = $(this).attr('value');
-		//Report_Make_SysList(list);
-	});
-	*/
-
-
-/*
-		onSelect: function(dateText, inst) {
-			//console.log(inst);
-			log(dateText);
-			var start = date_to_url(dateText) + '000000'; //inst.currentYear, inst.currentMonth, inst.currentDay, '000000');
-			var stop = date_to_url(dateText) + '235959'; //inst.currentYear, inst.currentMonth, inst.currentDay, '235959');
-			config.skey = $('#rep_syslist').attr('value');
-			genReport($('#rep_syslist').attr('value'), start, stop);
-			//console.log(dateText);
-			//console.log(inst);
-		}
-*/
+	log('Загрузка закладки. Отчеты.', $('#report_date_by_day'));
 
 	$('#report_date_by_day').datepicker({
 		altField: "#report_dlg_byday_alternate",
@@ -432,7 +373,6 @@ if(0){
 				log('start:', start, 'stop:', stop);
 				//SetDay(config.skey, start, stop);
 
-
 				config.skey = $('#report_dlg_byday_syslist').val();
 
 				genReport(config.skey, Date_to_url(start), Date_to_url(stop), $.datepicker.formatDate('dd/mm/yy', start));
@@ -446,7 +386,7 @@ if(0){
 			}
 		},
 		open: function(event, ui){
-			log('Dialog open:', this, ui, event);
+			//log('Dialog open:', this, ui, event);
 			var list = $('#report_dlg_byday_syslist');
 			list.empty();
 			for(var i in config.systems){
@@ -455,8 +395,6 @@ if(0){
 			}
 		}
 	});
-
-
 
 	var dates = $('#report_date_by_int_from, #report_date_by_int_to').datepicker({
 	//var dates = $('#report_date_by_int_from, #report_date_by_int_to').datetimepicker({
@@ -551,7 +489,7 @@ if(0){
 			}
 		},
 		open: function(event, ui){
-			log('Dialog open:', this, ui, event);
+			//log('Dialog open:', this, ui, event);
 			var list = $('#report_dlg_byint_syslist');
 			list.empty();
 			for(var i in config.systems){
@@ -621,9 +559,16 @@ if(0){
 	});
 	}
 
+
+
+
+
+
+	}
+}
+
+
+$(document).ready(function() {
 });
 
-})();
-
-
-
+})(window, jQuery);

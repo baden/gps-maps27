@@ -1013,7 +1013,7 @@ class Geo_Dates(webapp2.RequestHandler):
 
 		self.response.out.write(json.dumps(jsonresp, indent=2) + "\r")	#sort_keys=True,
 
-
+"""
 class Geo_Last(BaseApi):
 	requred = ('account')
 	def parcer(self, **argw):
@@ -1042,6 +1042,16 @@ class Geo_Last(BaseApi):
 			#'years': years,
 			#'len': dlen,
 		}
+"""
+class Geo_Last(BaseApi):
+	requred = ('account')
+	def parcer(self, **argw):
+		from datamodel.geo import getGeoLast
+		return {
+			'answer': 'ok',
+			'data': getGeoLast(self.account.systems_key)
+		}
+
 
 class Geo_Count(BaseApi):
 	requred = ('skey')
@@ -1350,6 +1360,7 @@ class Sys_Add(BaseApi):
 	requred = ('account', 'imei')
 	def parcer(self, **argw):
 		from datamodel.channel import send_message
+		from datamodel.geo import getGeoLast
 
 		#res = self.account.AddSystem(self.imei)
 
@@ -1370,15 +1381,17 @@ class Sys_Add(BaseApi):
 		self.account.put()
 
 		DBAdmin.addOperation(self.akey, u'Пользователь добавил систему.', {'imei': self.imei})
+		rsystem = system.todict()
+		rsystem['last'] = getGeoLast([skey])[str(skey)]
 		send_message({
 			'msg': 'change_slist',
 			'data':{
 				'type': 'Adding',
-				'system': system.todict()
+				'system': rsystem
 			}
 		}, akeys=[self.akey])
 
-		return {'answer': 'yes', 'result': 'added', 'system': system.todict()}
+		return {'answer': 'yes', 'result': 'added', 'system': rsystem}
 
 class Sys_Del(BaseApi):
 	requred = ('account', 'skey')

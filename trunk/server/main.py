@@ -206,6 +206,7 @@ http://localhost/_ah/login
 #class InitConfig(webapp2.RequestHandler):
 class InitConfig(BaseHandler):
 	def config(self):
+		from datamodel.geo import getGeoLast
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 
 		user = users.get_current_user()
@@ -244,6 +245,11 @@ class InitConfig(BaseHandler):
 				}
 			}
 
+		systems = [sys.todict() for sys in account.systems]
+		lasts = getGeoLast(account.systems_key)
+		for s in systems:
+			s['last'] = lasts[s['key']]
+
 		return {
 			'version': VERSION,
 			'session': {
@@ -262,20 +268,9 @@ class InitConfig(BaseHandler):
 				},
 				'config': account.pconfig,
 				'name': account.name,
-				'systems': [sys.todict() for sys in account.systems]
+				'systems': systems
 			}
 		}
-
-		"""
-					'systems': [{
-					"key": str(sys.key()),
-					"skey": str(sys.key()),
-					"imei": sys.imei,
-					"phone": sys.phone,
-					"desc": sys.desc,
-					"premium": sys.premium >= datetime.utcnow(),
-				} for sys in account.systems],
-		"""
 
 	#@login_required
 	def get(self):

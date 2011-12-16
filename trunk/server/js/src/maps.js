@@ -551,29 +551,33 @@ var CreateMap = function () {
 	});
 }
 
+
+// TBD! От этого словаря постепенно необходимо избавится - избыточность.
 var lastpos = {};
 
-var CreateLastMarker = function(p){
+var CreateLastMarker = function(s){
 	//var p = data.geo[i];
 	//console.log('CreateLastMarker ', p);
 
-	if(p.data == null) return;
+	//if(p.data == null) return;
+	//log('Create last point', s);
+	if(!('last' in s)) return;
 
-	var pos = new google.maps.LatLng(p.data.point.lat, p.data.point.lon);
+	var pos = new google.maps.LatLng(s.last.point.lat, s.last.point.lon);
 	//var tail_path = [];
 	//for(var j in p.data.tail){
 	//	tail_path.push(new google.maps.LatLng(p.data.tail[j][1], p.data.tail[j][2]));
 		//console.log(p.data.tail[j]);
 	//}
 
-	if(lastpos[p.skey]){
+	if(lastpos[s.key]){
 		//log('Move makrer ', lastpos[p.skey].marker, ' to ', pos);
-		lastpos[p.skey].time = dt_to_Date(p.data.point.time).getTime();
-		lastpos[p.skey].position = pos;
-		lastpos[p.skey].marker.setPosition(p.data.point, pos);
+		lastpos[s.key].time = dt_to_Date(s.last.point.time).getTime();
+		lastpos[s.key].position = pos;
+		lastpos[s.key].marker.setPosition(s.last.point, pos);
 
 		if(0){
-		lastpos[p.skey].tail.setPath(tail_path);
+		lastpos[s.key].tail.setPath(tail_path);
 		}
 		//map.panTo(pos);
 	} else {
@@ -592,18 +596,18 @@ var CreateLastMarker = function(p){
 		}
 
 		var last_pos_marker = new LastMarker({
-			point: p.data.point,
+			point: s.last.point,
 			position: pos,
 			map: map,
 			//title: p.desc + '\n' + p.data.point.time,
-			desc: p.desc,
-			skey: p.skey
+			desc: s.desc,
+			skey: s.skey
 			//color: 'lime'
 		});
 
-		lastpos[p.skey] = {
+		lastpos[s.key] = {
 			position: pos,
-			time: dt_to_Date(p.data.point.time).getTime(),
+			time: dt_to_Date(s.last.point.time).getTime(),
 			//tail: tailPath,
 			marker: last_pos_marker
 		};
@@ -639,6 +643,7 @@ setInterval(dateInterval, 60000);
 
 var GetLastPositions = function() {
 	//log('Get last positions...');
+	/*
 	$.getJSON('/api/geo/last', function (data) {
 		//$("#progress").html("Обрабатываем...");
 		if (data.answer && data.answer == 'ok') {
@@ -650,6 +655,14 @@ var GetLastPositions = function() {
 			dateInterval();
 		}
 	});
+	*/
+
+	/*
+	for(var i in config.account.systems) {
+		CreateLastMarker(config.account.systems[i]);
+	}
+	*/
+	//log('lastpos', lastpos, config.account.systems);
 
 	/* TBD! Исключить запрос положения. Обеспечить отправку нового положения в команде оповещения geo_change */
 	config.updater.add('geo_change_last', function(msg) {
@@ -946,6 +959,7 @@ config.updater.tabs[0] = function(){
 					map.panTo(lastpos[skey].position);
 				});*/
 				//log('first child: ', li.firstChild);
+				CreateLastMarker(s);
 				return li;
 			}
 		});

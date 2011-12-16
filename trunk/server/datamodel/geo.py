@@ -373,6 +373,7 @@ class PointWorker(object):
 	Запрашивает последнее известное положение объекта skey
 	TBD! Необходимо переделать функцию. Не очень удачно запрашивается последнее положение при каждом изменении положения объектов.
 """
+'''
 def getGeoLast(skey):
 	from google.appengine.api import memcache
 	imei = skey.name()
@@ -396,6 +397,29 @@ def getGeoLast(skey):
 		return value
 	else:
 		return None
+'''
+
+"""
+	Потенциально процедура может давать исключение при большом количестве систем (если общий результат более 1МБ
+"""
+def getGeoLast(skeys):
+	from google.appengine.api import memcache
+
+	values = memcache.get_multi([str(k) for k in skeys], key_prefix='geoLast:')
+	
+	for skey in skeys:
+		if str(skey) not in values:
+			req = DBGeo.all().ancestor(skey).order('-date').get()
+			if req is not None:
+				point = req.get_last()
+				value = {'point': repr_middle(point)}
+				memcache.add("geoLast:%s" % skey, value)
+				values[str(skey)] = value
+			else:
+				values[str(skey)] = 0
+	return values
+
+
 
 """
 	Обновляет последнее известное положение объекта skey и отправляет обновление клиентам если это потребуется.

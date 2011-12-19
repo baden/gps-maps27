@@ -6,30 +6,58 @@
 
 from google.appengine.ext import db
 from google.appengine.api import memcache
+import pickle
+from namespace import private
 
 #DEFAULT_COLLECT = 'default_collect'
 FAKE_IMEI = '000000000000000'
 
+"""
+	Предлагается ввести разделение для сайтов:
+	- описание (desc).
+	- ярлыки (tags).
+"""
+
 class DBSystem(db.Model):
-	imei = db.StringProperty(multiline=False)				# IMEI
-	phone = db.StringProperty(multiline=False, default=u"Не определен")	# Phone number, for example: +380679332332
+	imei = db.StringProperty(multiline=False)				# IMEI (устаревщее, рекомендуется использовать .key().name())
+	phone = db.StringProperty(multiline=False, default=u"Не определен")	# Телефонный номер, например: +380679332332
 	date = db.DateTimeProperty(auto_now_add=True)				# Дата регистрации системы
-	desc = db.StringProperty(multiline=False, default=u"Нет описания")	# Описание
+	desc = db.StringProperty(multiline=False, default=u"Нет описания")	# Описание (устаревшее, рекомендуется использовать descbydomain)
 	premium = db.DateTimeProperty(auto_now_add=True)			# Дата окончания премиум-подписки (абон-плата).
 										# Без премиум-подписки функционал ограничен.
-
 	# Добавляем...
-	password = db.StringProperty(default=None)	# Если это поле задано, то все "наблюдатели" должны иметь этот-же ключ для доступа к системе
-	#groups = db.ListProperty(db.Key, default=None)	# Перечень ключей к записям групп, в которые входит система
-	#						# Это ссылки на "глобальные" группы. Локальные группы могут быть назначены каждым пользователем.
+	password = db.StringProperty(default=None)	# Если это поле задано, то все "наблюдатели" должны иметь этот-же ключ для доступа к системе.
+	"""
+		Ярлыки объекта (вместо групп)
+		Значения представляют собой pickle записи вида:
+		{"домен": ["тэг1", "тэг2", ..., "тэгN"], "домен2': [...], ...}
+	"""
+	tags = db.BlobProperty(default=pickle.dumps({}))
+	"""
+		Представляет собой словарь pickle значений {"домен1": "описание1", "домен2": "описание2", ...}
+	"""
+	descbydomain = db.BlobProperty(default=pickle.dumps({}))
+
+
 	def todict(self):
 		from datetime import datetime
+		try:
+			desc = pickle.loads(self.descbydomain)[private]
+		except:
+			desc = self.desc
+		try:
+			tags = pickle.loads(self.tags)[private()]
+		except:
+			tags = []
+
 		return {
 			"key": str(self.key()),
 			"skey": str(self.key()),
 			"imei": self.imei,
 			"phone": self.phone,
 			"desc": self.desc,
+			"descbydomain": desc,
+			"tags": tags,
 			"premium": self.premium >= datetime.utcnow()
 		}
 

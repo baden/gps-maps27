@@ -255,6 +255,126 @@ var bdel = function() {
 	$('#config_dialog_delsys').dialog('open');
 }
 
+var element_by_html = function(htmlString) {
+	var tempDiv = document.createElement('div');
+	tempDiv.innerHTML = '<br>' + htmlString;
+	tempDiv.removeChild(tempDiv.firstChild);
+	if (tempDiv.childNodes.length == 1) {
+		return (tempDiv.removeChild(tempDiv.firstChild));
+	} else {
+		var fragment = doc.createDocumentFragment();
+		while (tempDiv.firstChild) {
+			fragment.appendChild(tempDiv.firstChild);
+		}
+		return fragment;
+	}
+}
+
+var btags = function() {
+	//var tag_div = document.createElement(div);
+	var skey = this.parentNode.dataset.skey;
+	var s = config.sysbykey[skey];
+
+	var avail_tags = {};
+	for(var k in config.sysbykey) {
+		for(var t in config.sysbykey[k].tags) {
+			avail_tags[config.sysbykey[k].tags[t]] = 1;
+		}
+	}
+	log('Доступные ярлыки:', avail_tags);
+
+	var span = function(tag, title) {
+		var span_el = document.createElement('span');
+		span_el.className = 'ui-widget ui-state-default ui-corner-all ui-button ui-button-text-only tags';
+		span_el.title = title;
+		span_el.innerText = tag;
+		return span_el;
+		//log('span', span);
+	}
+
+	var tag_dialog = element_by_html(''+
+	'<div title="Назначение ярлыков.">'+
+	'	Система <b>'+config.sysbykey[skey].desc+'</b><br>'+
+	'	<br>Назначенные ярлыки:'+
+	'	<div id="btag_div_set" class="ui-widget ui-widget-content tview">'+
+	'	</div>'+
+	'	<br>Доступные ярлыки:'+
+	'	<div id="btag_div_avail" class="ui-widget ui-widget-content tview">'+
+	'	</div>'+
+	'	<br><button id="btag_button_new">Добавить новый ярлык</button>'+
+	'<details><summary><span class="pln">?</span></summary><span class="pln">Ярлык должен представлять собой короткое информативное слово или фразу.</span></details>' +
+
+'<ul id="tree1" role="tree" tabindex="0" aria-labelledby="label_1">'+
+'  <li role="treeitem" tabindex="-1" aria-expanded="true">Fruits</li>'+
+'  <li role="group">'+
+'    <ul>'+
+'      <li role="treeitem" tabindex="-1">Oranges</li>'+
+'      <li role="treeitem" tabindex="-1">Pineapples</li>'+
+'      ...'+
+'    </ul>'+
+'  </li>'+
+'</ul>'+
+
+	'</div>'+
+	'');
+	var tag_set = tag_dialog.querySelector('#btag_div_set');
+	var tag_avail = tag_dialog.querySelector('#btag_div_avail');
+	for(var k in s.tags){
+		tag_set.appendChild(span(s.tags[k], 'Нажмите чтобы отвязать данный ярлык от системы'));
+	}
+
+	for(var k in avail_tags){
+		if(s.tags.indexOf(k)==-1) tag_avail.appendChild(span(k, 'Нажмите чтобы прикрепить данный ярлык к системе'));
+	}
+	tag_set.addEventListener('click', function(ev) {
+		if(ev.target.nodeName == 'SPAN'){
+			//log('tag_set:click', this, ev);
+			//this.removeChild(ev.target);
+			tag_avail.appendChild(ev.target);
+			var index = s.tags.indexOf(ev.target.innerText);
+			s.tags.splice(index, 1);
+		}
+	});
+	tag_avail.addEventListener('click', function(ev) {
+		//log('tag_avail:click', this, ev);
+		if(ev.target.nodeName == 'SPAN'){
+			tag_set.appendChild(ev.target);
+			s.tags.push(ev.target.innerText);
+		}
+	});
+	//$(tag_dialog).find('button').button();
+	//log('tag_dialog', tag_dialog);
+	$(tag_dialog).dialog({
+		//width: 140,
+		height: 300,
+		modal: true,
+		open: function(ev, ui) {
+			//log('tag_dialog:open', tag_dialog);
+			$('#btag_button_new').button().click(function(){
+				var nvalue = prompt('Введите название ярлыка');
+				tag_set.appendChild(span(nvalue, 'Нажмите чтобы отвязать данный ярлык от системы'));
+				s.tags.push(nvalue);
+				log('sys:', s);
+			});
+		},
+		close: function(ev, ui) {
+			log('tag_dialog:close:', s.tags);
+			config.helper.postJSON('/api/sys/tags', {skey: skey, tags: s.tags}, function(data){
+				log('/api/sys/tags call successful', data);
+			});
+
+			$(this).dialog('destroy');
+			document.body.removeChild(tag_dialog);
+		},
+		buttons: {
+			'Закрыть': function() {
+				$(this).dialog('close');
+			}
+		} 
+	})
+	
+}
+
 config.updater.tabs[4] = function(){
 	log('Tab Config activated.');
 	$("#config_list").accordion("resize");
@@ -265,19 +385,22 @@ config.updater.tabs[4] = function(){
 				li.className = 'ui-widget ui-widget-content ui-widget-header';
 				//li.className = 'ui-widget ui-widget-content';
 				li.innerHTML = '<span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
-				 '<span class="bico hl mm" title="Выбрать пиктограмму">P</span>' +
-				 (config.admin?'<span class="bpurge hl mm" title="Удалить GPS данные!">D</span>':'') +
-				 '<span class="bconf hl mm" title="Настроить систему">C</span>' +
-				 '<span class="spanbrd" title="IMEI">' + s.imei.replace(/-.*/,'') + '</span><span class="spanbrd" title="Телефон">' + (s.phone!='None'?(s.phone):'не определен') + '</span>' + s.desc +
-				 '<button class="key bdesc" title="Изменить описание">...</button>' +
-				 '<button class="key bzone" title="Привязать ГЕО-зону">З</button>' +
-				 (config.admin?'<button class="key calarm" title ="Принудительная отмена тревоги">x!</button>':'') +
-				 '<button class="key bdel" title="Отказаться от слежения за системой">X</button>';
+					'<span class="bico hl mm" title="Выбрать пиктограмму">P</span>' +
+					(config.admin?'<span class="bpurge hl mm" title="Удалить GPS данные!">D</span>':'') +
+					'<span class="bconf hl mm" title="Настроить систему">C</span>' +
+					'<button class="key bzone" title="Привязать ГЕО-зону">З</button>' +
+					(config.admin?'<button class="key calarm" title ="Принудительная отмена тревоги">T</button>':'') +
+					'<button class="key btags" title="Назначить ярлыки">Я</button>' +
+					'<span class="spanbrd" title="IMEI">' + s.imei.replace(/-.*/,'') + '</span><span class="spanbrd" title="Телефон">' + (s.phone!='None'?(s.phone):'не определен') + '</span>' +
+					s.desc +
+					'<button class="key bdesc" title="Изменить описание">...</button>' +
+					'<button class="key bdel" title="Отказаться от слежения за системой">X</button>';
 				var $li = $(li);	// TBD! Отказаться бып оп jQuery
 				//$(li).find('button').button();	// Декорируем
 				$li.find('.bdesc').button().click(ch_desc);
 				$li.find('.calarm').button().click(cancel_alarm);
 				$li.find(".bzone").button().click(bzone);
+				$li.find(".btags").button().click(btags);
 				$li.find('.bconf').button().click(bconf);
 				if(config.admin) $li.find('.bpurge').button().css('color', 'red').click(bpurge);
 				$li.find('.bico').button().click(bico);

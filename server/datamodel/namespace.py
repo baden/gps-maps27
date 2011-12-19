@@ -15,6 +15,7 @@ _USE_COOKIE = 2			# Возможно будет использоваться п�
 
 _NAMESPACE_PICKER = _USE_SERVER_NAME
 
+'''
 def namespace_manager_default_namespace_for_request():
   """Determine which namespace is to be used for a request.
 
@@ -29,6 +30,8 @@ def namespace_manager_default_namespace_for_request():
   If _USE_COOKIE, then the ISV might have a gateway page that sets a
   cookie called 'namespace', and we set the namespace to the cookie's value
   """
+  pass
+'''
 
 def private():
 	name = None

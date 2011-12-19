@@ -561,7 +561,10 @@ var CreateLastMarker = function(s){
 
 	//if(p.data == null) return;
 	//log('Create last point', s);
-	if(!('last' in s)) return;
+	if(!('last' in s)) {
+		log('No last in data', s);
+		return;
+	}
 
 	var pos = new google.maps.LatLng(s.last.point.lat, s.last.point.lon);
 	//var tail_path = [];
@@ -570,14 +573,14 @@ var CreateLastMarker = function(s){
 		//console.log(p.data.tail[j]);
 	//}
 
-	if(lastpos[s.key]){
+	if(lastpos[s.skey]){
 		//log('Move makrer ', lastpos[p.skey].marker, ' to ', pos);
-		lastpos[s.key].time = dt_to_Date(s.last.point.time).getTime();
-		lastpos[s.key].position = pos;
-		lastpos[s.key].marker.setPosition(s.last.point, pos);
+		lastpos[s.skey].time = dt_to_Date(s.last.point.time).getTime();
+		lastpos[s.skey].position = pos;
+		lastpos[s.skey].marker.setPosition(s.last.point, pos);
 
 		if(0){
-		lastpos[s.key].tail.setPath(tail_path);
+		lastpos[s.skey].tail.setPath(tail_path);
 		}
 		//map.panTo(pos);
 	} else {
@@ -605,7 +608,7 @@ var CreateLastMarker = function(s){
 			//color: 'lime'
 		});
 
-		lastpos[s.key] = {
+		lastpos[s.skey] = {
 			position: pos,
 			time: dt_to_Date(s.last.point.time).getTime(),
 			//tail: tailPath,
@@ -666,8 +669,8 @@ var GetLastPositions = function() {
 
 	/* TBD! Исключить запрос положения. Обеспечить отправку нового положения в команде оповещения geo_change */
 	config.updater.add('geo_change_last', function(msg) {
-		log('MAPS: GEO_Update: ', msg);
-		CreateLastMarker(msg);
+		//log('MAPS: GEO_Update: ', msg);
+		CreateLastMarker(msg.data);
 		dateInterval();
 	});
 }
@@ -961,7 +964,8 @@ config.updater.tabs[0] = function(){
 				//log('first child: ', li.firstChild);
 				CreateLastMarker(s);
 				return li;
-			}
+			},
+			taggroupid: 'group_list'
 		});
 	}
 	//log('MAP: tab update');

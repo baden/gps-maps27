@@ -3,7 +3,6 @@
 
 (function(){
 
-$(document).ready(function() {
 
 	//$('#geomap').bind('click', function(){
 	//	log('1111');
@@ -45,7 +44,7 @@ $(document).ready(function() {
 				skey = system.skey;
 				genReport();
 			}
-			GeosSysList.Rebuild();
+			//GeosSysList.Rebuild();
 			
 			if(window.config.account.systems && window.config.account.systems.length>0) {
 				skey = window.config.account.systems[0].skey;
@@ -282,6 +281,5 @@ $(document).ready(function() {
 	});
 	$('#geos_datepicker').datepicker();
 
-});
 
 })();

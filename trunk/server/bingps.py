@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+ Я вот подумал отказаться от разделения bingps на прием и анализ.
+ А то очередь выполняется только раз в секунду, и поэтому при активном трафике "parse" занимает
+ много времени (если я правильно понимаю при поступлении чаще чем раз в секунду очередь будет расти бесконечно).
+"""
+
 import os
 import webapp2
 import logging
@@ -195,7 +201,7 @@ def SaveGPSPointFromBin(pdata, result):
 		'vin': vin,
 		'fsource': fsource 
 	}
-
+'''
 class BinGpsParse(webapp2.RequestHandler):
 	def post(self):
 		from datamodel.geo import PointWorker, updateLasts
@@ -310,18 +316,21 @@ class BinGpsParse(webapp2.RequestHandler):
 			self.response.write('BINGPS/PARSE: NODATA\r\n')
 
 		logging.info(_log)
-
+'''
 #def parce_gps(skey):
 #	logging.info('CALL parcer')
 #	pass
-
+"""
+	TBD! Необходимо обработчик обернуть в try: except: чтобы не возвращать приборам мусор с случае исключений.
+"""
 class BinGps(webapp2.RequestHandler):
 	def post(self):
 		global glogal_counter
 		import os
 		from datamodel.system import DBSystem
-		from google.appengine.api.labs import taskqueue
+		#from google.appengine.api.labs import taskqueue
 		from datetime import datetime
+		from datamodel.geo import PointWorker, updateLasts
 
 		os.environ['CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
 
@@ -401,6 +410,79 @@ class BinGps(webapp2.RequestHandler):
 		else:
 			_log += '\n==\tCRC OK %04X' % crc
 
+		logging.info(_log)
+
+		# ------------------------
+
+		_log = "\n== BINGPSPARSE ["
+
+		key = None
+		point = None	# Тут будет последняя добавленная точка
+
+		plen = len(pdata)
+
+		worker = PointWorker(skey)
+
+		offset = 0
+		points = 0
+		lasttime = None
+		result = None
+
+		while offset < plen:
+			if pdata[offset] != '\xFF':
+				offset += 1
+				continue
+
+			#logging.warning(pdata[offset:offset+32].encode('hex'))
+
+			#try:
+			if True:
+				p_id = ord(pdata[offset+1])	# Идентификатор пакета
+				p_len = ord(pdata[offset+2])	# Длина пакета в байтах
+
+				if p_id == 0xF2:
+					point = SaveGPSPointFromBin(pdata[offset+1:offset+1+32], result)
+					if point:
+						if (lasttime is not None) and (point['time'] < lasttime):
+							_log += '\n Time must always grow or repeat - ignored'
+						else:
+							lasttime = point['time']
+							worker.Add_point(point)
+							points += 1
+				else:
+					_log += '\n Unknown id=%02X' % p_id
+				offset += p_len
+			#except:
+			else:
+				_warn = '\n Error parce at %d offset' % offset
+				_warn += '\n==\tpdata size: %d' % plen
+				_warn += '\n==\tpdata: '
+				for data in pdata:
+					_warn += ' %02X' % ord(data)
+				logging.warning(_warn)
+				offset += 1
+
+		worker.Flush()
+
+		if points > 0:
+			_log += '\n==\tSaved points: %d\n' % points
+			updateLasts(skey, point, points)
+		else:
+			logging.error("Packet has no data or data is corrupted.\n")
+
+		if result is not None:
+			result.delete()
+		elif key is not None:
+			db.delete(key)
+
+		#_log += '\nData deleted.\n'
+		_log += '\nOk\n'
+			
+		logging.info(_log)
+		
+		self.response.write('BINGPS: OK\r\n')
+
+		'''
 		_log += '\nCreating tasque'
 
 		# (!TBD!) Это вполне можно переделать на использование google.appengine.ext.deffered, но пока не получается. То задачи не запускаются, то непонятки с отличиями библиотек
@@ -446,23 +528,4 @@ class BinGps(webapp2.RequestHandler):
 
 		#del payload
 		#del pdata
-
-		logging.info(_log)
-
-		self.response.write('BINGPS: OK\r\n')
-
-"""
-app = WSGIApplication([
-	('/bingps/parse.*', BinGpsParse),
-	('/bingps.*', BinGps),
-], debug=True)
-
-
-def main():
-	#run_wsgi_app(app)
-	app.run()
-	#run_wsgi_app(app)
-
-if __name__ == '__main__':
-	main()
-"""
+		'''

@@ -428,7 +428,11 @@ config.helper = {
 		config.working();
 		var formData = new FormData();
 		for(k in data){
-			formData.append(k, data[k]);
+			if(typeof data[k] == "object") {
+				formData.append(k, JSON.stringify(data[k]));
+			} else {
+				formData.append(k, data[k]);
+			}
 		}
 		var xhr = new XMLHttpRequest();
 		xhr.open('POST', url, true);

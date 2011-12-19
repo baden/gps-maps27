@@ -630,6 +630,9 @@ ul#map_ul_sys li {
 	padding: 2px 2px 2px 2px;
 	/*opacity: 0.8;*/
 	/*font-weight: bold;*/
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 ul#map_ul_sys li:hover {
@@ -1085,5 +1088,9 @@ div.cfg_iframe {
 
 .cursor_pointer {
 	cursor: pointer;
+}
+
+span.tags {
+	border: 1px solid blue;
 }
 /* help.css */

@@ -113,3 +113,7 @@ div.cfg_iframe {
 .cursor_pointer {
 	cursor: pointer;
 }
+
+span.tags {
+	border: 1px solid blue;
+}

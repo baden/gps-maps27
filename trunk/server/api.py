@@ -1468,6 +1468,36 @@ class Sys_Desc(BaseApi):
 
 		return {'result': 'ok', 'skey': str(self.skey), 'imei': system.imei, 'desc': system.desc}
 
+class Sys_Tags(BaseApi):
+	requred = ('account', 'skey')
+	def parcer(self, **argw):
+		from datamodel.channel import inform
+		from datamodel.namespace import private
+		import pickle
+
+		tags = json.loads(self.request.get('tags', '[]'))
+		if tags is None:
+			return {'answer': 'no', 'reason': 'tags not defined'}
+
+		#system = self.account.system_by_imei(self.imei)
+		#if
+		system = DBSystem.get(self.skey)
+		if system is None:
+			return {'answer': 'no', 'reason': 'nosys'}
+
+		oldtags = pickle.loads(system.tags)
+		oldtags[private()] = tags
+		system.tags = pickle.dumps(oldtags)
+		system.put()
+
+		logging.warning('SKEY: %s (%s)', self.skey, repr(self.skey))
+		
+		inform('change_tag', self.skey, {
+			'tags': tags
+		})
+
+		return {'result': 'ok', 'skey': str(self.skey), 'tags': tags}
+
 class Sys_Config(BaseApi):
 	requred = ('skey')
 	def parcer(self, **argw):

@@ -965,7 +965,22 @@ config.updater.tabs[0] = function(){
 				CreateLastMarker(s);
 				return li;
 			},
-			taggroupid: 'group_list'
+			taggroupid: 'group_list',
+			tagchange: function(tag, index) {
+				log('map tag change', this, tag, index);
+				for(var k in config.sysbykey){
+					var s = config.sysbykey[k];
+					if((index==0) || (s.tags.indexOf(tag) != -1)){
+						//document.querySelector('.lastmarker[skey="' + k + '"]').classList.remove('hidden');	// TBD! Не отпимальный вызов
+						document.querySelector('.lastmarker[skey="' + k + '"]').style.display='';	// TBD! Не отпимальный вызов
+						//lastpos[k].marker.setMap(map);
+					} else {
+						//document.querySelector('.lastmarker[skey="' + k + '"]').classList.add('hidden');
+						document.querySelector('.lastmarker[skey="' + k + '"]').style.display='none';
+						//lastpos[k].marker.setMap(null);
+					}
+				}
+			}
 		});
 	}
 	//log('MAP: tab update');

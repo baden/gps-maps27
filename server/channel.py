@@ -60,19 +60,19 @@ class MessagePost(webapp2.RequestHandler):
 				logging.info('\n\n+akey')
 				for akey in mesg.akeys:
 					if akey not in messages_akey:
-						messages_akey[akey] = [value]
+						messages_akey[akey] = [(value, mesg.domain)]
 					else:
-						messages_akey[akey].append(value)
+						messages_akey[akey].append((value, mesg.domain))
 			elif (mesg.skeys is not None) and (len(mesg.skeys) > 0):
 				logging.warning('\n\n+skey')
 				for skey in mesg.skeys:
 					if skey not in messages_skey:
-						messages_skey[skey] = [value]
+						messages_skey[skey] = [(value, mesg.domain)]
 					else:
-						messages_skey[skey].append(value)
+						messages_skey[skey].append((value, mesg.domain))
 			else:
 				logging.warning('\n\n+broadcast')
-				messages_bc.append(value)
+				messages_bc.append((value, mesg.domain))
 			mkeys.append(mesg.key())
 			#mesg.delete()
 
@@ -102,14 +102,16 @@ class MessagePost(webapp2.RequestHandler):
 			account_future = db.get_async(akey)
 
 			# Сообщения "всем"
-			messages = messages_bc[:]
+			#messages = messages_bc[:]
+			messages = [m[0] for m in messages_bc if m[1]==parts[2]]
 			if len(messages) > 0:
 				_log += '\nBroadcast messages: %d\n%s\n' % (len(messages), repr(messages))
 			
-			# Сообщения по "akey" 
+			# Сообщения по "akey"  TBD! Нет проверки домена!!!
 			if akey in messages_akey:
 				for msg in messages_akey[akey]:
-					messages.append(msg)
+					if msg[1] == parts[2]:
+						messages.append(msg[0])
 					_log += '\nMessage by akey:\n%s\n' % repr(msg)
 
 			logging.warning('uuid: %s, akey: %s (%s)' %(uuid, uuid.split('_')[0], str(akey)))
@@ -126,7 +128,11 @@ class MessagePost(webapp2.RequestHandler):
 			for skey in skeys:
 				if skey in messages_skey:
 					for msg in messages_skey[skey]:
-						messages.append(msg)
+						if msg[1] == parts[2]:
+							messages.append(msg[0])
+							logging.warning('  ==  Append %s:%s' % (repr(msg), repr(parts)))
+						else:
+							logging.warning('  ==  Ignore %s:%s' % (repr(msg), repr(parts)))
 						_log += '\nMessage by skey:\n%s\n' % repr(msg)
 
 			if len(messages) > 0:

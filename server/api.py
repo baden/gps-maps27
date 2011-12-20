@@ -1449,6 +1449,8 @@ class Sys_Desc(BaseApi):
 	requred = ('account', 'skey')
 	def parcer(self, **argw):
 		from datamodel.channel import inform
+		from datamodel.namespace import private
+		import pickle
 
 		desc = self.request.get('desc', None)
 		if desc is None:
@@ -1459,14 +1461,17 @@ class Sys_Desc(BaseApi):
 		system = DBSystem.get(self.skey)
 		if system is None:
 			return {'answer': 'no', 'reason': 'nosys'}
-		system.desc = desc
+		#system.desc = desc
+		olddescs = pickle.loads(system.descbydomain)
+		olddescs[private()] = desc
+		system.descbydomain = pickle.dumps(olddescs)
 		system.put()
 		
 		inform('change_desc', self.skey, {
 			'desc': desc
-		})
+		}, domain=private())
 
-		return {'result': 'ok', 'skey': str(self.skey), 'imei': system.imei, 'desc': system.desc}
+		return {'result': 'ok', 'skey': str(self.skey), 'imei': system.imei, 'desc': desc}
 
 class Sys_Tags(BaseApi):
 	requred = ('account', 'skey')
@@ -1494,7 +1499,7 @@ class Sys_Tags(BaseApi):
 		
 		inform('change_tag', self.skey, {
 			'tags': tags
-		})
+		}, domain=private())
 
 		return {'result': 'ok', 'skey': str(self.skey), 'tags': tags}
 

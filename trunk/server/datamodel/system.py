@@ -38,11 +38,10 @@ class DBSystem(db.Model):
 	"""
 	descbydomain = db.BlobProperty(default=pickle.dumps({}))
 
-
 	def todict(self):
 		from datetime import datetime
 		try:
-			desc = pickle.loads(self.descbydomain)[private]
+			desc = pickle.loads(self.descbydomain)[private()]
 		except:
 			desc = self.desc
 		try:
@@ -55,8 +54,8 @@ class DBSystem(db.Model):
 			"skey": str(self.key()),
 			"imei": self.imei,
 			"phone": self.phone,
-			"desc": self.desc,
-			"descbydomain": desc,
+			"desc_global": self.desc,
+			"desc": desc,
 			"tags": tags,
 			"premium": self.premium >= datetime.utcnow()
 		}

@@ -7,6 +7,8 @@ window.log = function(){
   }
 }
 
+window.document.onselectstart = function(){return false;}	// Запретим выделение (внимание решение может быть не кроссбраузерно)
+
 // catch all document.write() calls
 /*(function(doc){
   var write = doc.write;

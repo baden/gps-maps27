@@ -96,17 +96,18 @@ def handle_disconnection(client_id):
 class DBMessages(db.Model):
 	#dest_uuid = db.ListProperty(str, default=None)			# Список адресов - получателей. На данном этапе не используется
 	akeys = db.ListProperty(db.Key)				# Заполняется если указан получатель по пользователю
-	skeys = db.ListProperty(db.Key)				# Заполняется есдт указан получатель по владению системой
+	skeys = db.ListProperty(db.Key)				# Заполняется если указан получатель по владению системой
+	domain = db.StringProperty(default="")			# Заполняется если сообщение должно быть ограничено доменом
 	message = db.TextProperty(default=u"")
 
-def send_message(message, akeys=[], skeys=[], timeout=DEFAULT_TIMEOUT):
+def send_message(message, akeys=[], skeys=[], domain="", timeout=DEFAULT_TIMEOUT):
 	from google.appengine.api.labs import taskqueue
 
 	logging.warning('\n\nExecute: send_message.\n')
 	# Для работы в High Replication необходимо все записи разместить в одной сущности.
 	collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
 	#messagedb = DBMessages(parent = collect_key, message = pickle.dumps(message, protocol=pickle.HIGHEST_PROTOCOL))
-	messagedb = DBMessages(parent = collect_key, akeys=akeys, skeys=skeys, message = repr(message))
+	messagedb = DBMessages(parent = collect_key, akeys=akeys, skeys=skeys, domain=domain, message = repr(message))
 	messagedb.put()
 	#lazzy_run()
 	lazzyrun = memcache.get('DBMessages:lazzy_run')
@@ -114,16 +115,16 @@ def send_message(message, akeys=[], skeys=[], timeout=DEFAULT_TIMEOUT):
 		memcache.set('DBMessages:lazzy_run', 'wait', time=timeout*2)
 		taskqueue.add(url='/channel/message', countdown=timeout)
 
-def inform(msg, skey, data):
+def inform(msg, skey, data, domain=""):
 	send_message({
 		'msg': str(msg),
 		'skey': str(skey),
 		'data': data
-	}, skeys=[skey])
+	}, skeys=[skey], domain=domain)
 
-def inform_account(msg, akey, data):
+def inform_account(msg, akey, data, domain=""):
 	send_message({
 		'msg': str(msg),
 		'akey': str(akey),
 		'data': data
-	}, akeys=[akey])
+	}, akeys=[akey], domain=domain)

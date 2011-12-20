@@ -28,233 +28,6 @@ var saveconfig = function(it, val){
 		}
 	});
 }
-
-var ConfigList;
-
-var cancel_alarm = function(){
-	var skey = this.parentNode.dataset.skey;		// Лучший способ доступа к dataset !
-	$.getJSON('/api/alarm/cancel?skey=' + skey, function (data) {
-		log('Alarm canceled.');
-	});
-}
-
-var ch_desc = function(){
-	//alert(this.attributes['imei'].value);
-	//var i = this.attributes['index'].value;
-	var prnt = this.parentNode;
-	log('prnt', prnt);
-
-	var par = $(this).parent();
-	//window['dbg_aa'] = par;
-	//log('parent=', par, par[0].dataset.skey);
-
-	var imei = this.parentNode.dataset.imei;
-	var skey = this.parentNode.dataset.skey;
-	//var desc = par.find('desc').html();
-	// Я пока не знаю простого способа искать текстовые ноды, поэтому такой вот выебон с подвывертом
-	var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
-	//var dialog = $('#config_dialog_sys_desc');
-	var dialog = document.getElementById('config_dialog_sys_desc');
-
-	/* Почему-то .data(key, value) от jQuery не работает. Воспользуюсь dataset */
-	dialog.dataset.imei = imei;
-	dialog.dataset.skey = skey;
-	dialog.dataset.desc = desc;
-
-	$(dialog).find('label').html(imei);
-	$(dialog).find('textarea').val(desc);
-	$(dialog).dialog('open');
-}
-
-var bzone = function(){
-	var par = $(this).parent();
-	var imei = this.parentNode.dataset.imei;
-	var skey = this.parentNode.dataset.skey;
-
-	$('#config_zone_link_imei').html(imei);
-	//var desc = par.find('desc').html();
-	var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
-
-	$('#config_zone_link_desc').html(desc);
-
-	var dialog = $('#config_zone_link');
-	dialog[0].dataset.skey = skey;
-
-	dialog.dialog('open');
-}
-
-var bconf = function(){
-		var par = $(this).parent();
-		var imei = this.parentNode.dataset.imei;
-		var skey = this.parentNode.dataset.skey;
-		//var desc = par.find('desc').html();
-		var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
-		//log('TBD! config', i);
-
-		if($('#config_params').length === 0){
-			var div = $('body').append(
-				'<div id="config_params"><div id="config_params_body">Загрузка данных с сервера...</div></div>'
-			);
-		} else {
-			$('#config_params_body').html('Загрузка данных с сервера...');
-		}
-		$.getJSON('/api/sys/config?cmd=get&skey='+skey, function (data) {
-			if(data.answer == 'ok'){
-				if(data.config.length === 0){
-					$("#config_params_body").empty().html('Нет параметров. Возможно система еще не сохранила параметры.<br/>Можно послать SMS на номер системы с текстом <strong>saveconfig</strong> для принудительного сохранения параметров.');
-				} else {
-					//log('Config_GET:', data);
-					var rows = '<table class="tview"><thead><tr><th>№</th><th>Имя</th><th>Описание<span id="config_params_show_all" title="Показать все" class="cursor_pointer">...</span></th><th>Значение</th><th>Заводская установка</th><th>Очередь</th></tr></thead><tbody>';
-					var index = 1;
-					for(var i in data.config){
-						var v = data.config[i];
-						rows += '<tr name="'+v[0]+'"'+ (v[1].desc?'':' class="config_hide"') +'>';
-						rows +=	'<td>'+index+'</td>';
-						rows += '<td>'+v[0]+'</td>';
-						if(config.admin){
-							rows += '<td class="cfg_changeble">' + (v[1].desc || '-') + '</td>';
-						} else {
-							rows += '<td>' + (v[1].desc || '-') + '</td>';
-						}
-						rows += '<td class="cfg_changeble'+(v[1].wait?' wait':'')+'">' + v[1].value + '</td>';
-						rows += '<td>' + v[1]['default'] + '</td><td>' + ((v[1].wait)?(v[1].wait):'') + '</td></tr>';
-						index += 1;
-					}
-					rows += '</tbody></table>';
-					$("#config_params_body").empty().append(rows);
-					$('#config_params').dialog('option', 'position', 'center');
-					$('#config_params_show_all').click(function(){
-						//log('boo');
-						$('.config_hide').removeClass('config_hide');
-						$('#config_params').dialog('option', 'position', 'center');
-					});
-
-					var tb = $('#config_params_body table tbody');
-					//log('table = ', tb);
-					//log('table>tr>td:first = ', tb.find('tr').find('td:first'));
-					tb.find('tr').find('td:first').next().next().click(function(){
-						if(config.admin){
-							var name = $(this).parent().attr('name');
-							var pvalue = $(this).html();
-							var nvalue = prompt("Введите описание для '" + name + "'", pvalue);
-							if(nvalue && nvalue != pvalue){
-								//log('Change description', name);
-								$(this).html(nvalue);
-								sendGet('/api/param/desc?name=' + name + '&value=' + nvalue);
-							}
-						}
-					}).next().click(function(){
-						var name = $(this).parent().attr('name');
-						var pvalue = $(this).html();
-						var nvalue = prompt("Введите значение для '" + name + "'", pvalue);
-						if(nvalue && nvalue != pvalue){
-							//log('Change value', name);
-							$(this).next().next().html(nvalue);
-							$(this).addClass('wait');
-							sendGet('/api/sys/config?cmd=set&skey=' + skey + '&name=' + name + '&value=' + nvalue);
-						}
-					});
-				}
-			}
-		});
-		/*$('#config_params_close').button().click(function(){
-			$('#config_params, #config_overlay').remove();
-		});*/
-
-		$('div#config_params_body').css('max-height', $(window).height() - 200);
-
-		$('#config_params').dialog({
-			width: '90%',
-			/*height: '60%',*/
-			//maxHeight: $(window).height() - 100,
-			modal: true,
-			autoOpen: true,
-			title: desc,
-			//position: ['left','top'],
-			buttons: {
-				'Отменить задание на изменение параметров': function() {
-					sendGet('/api/sys/config?cmd=cancel&skey=' + skey);
-					$(this).dialog('close');
-				},
-				'Закрыть': function() {
-					$(this).dialog('close');
-				}
-			}
-		});
-}
-
-var bpurge = function(){
-		var imei = this.parentNode.dataset.imei;
-		var skey = this.parentNode.dataset.skey;
-		//log('Удаление GPS данных для системы', this, imei);
-		if($('#config_purgegps').length === 0){
-			$('body').append(
-				//'<div id="config_overlay" class="ui-widget-overlay"></div>' +
-				'<div id="config_purgegps">' +
-				'Удаление GPS данных для системы<br/><strong><label></label></strong><br/><br/>' +
-				'<span style="color: red">Внимание!</span> Данные старее выбранной даты будут удалены.' +
-				'<input type="text" id="config_purgegps_alternate" disabled=sidabled size="30"/>' +
-				'<div id="config_purgegps"></div>' +
-				//'<button></button><br/>' +
-				'</div>'
-			);
-			var div = $('#config_purgegps');
-			//div.children('label').first().html(imei+':'+$(this).parent().children('desc').html());
-			$('#config_purgegps').datepicker({
-				altField: "#config_purgegps_alternate",
-				altFormat: "dd.mm.yy DD"
-			});
-			//div.children('button').button().click(function(){
-			//});
-		}
-		var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
-
-		//$('#config_purgegps label').first().html(imei+':'+$(this).parent().children('desc').html());
-		$('#config_purgegps label').first().html(imei+':'+desc);
-		//div.children('strong').children('label').first().html(imei+':'+$(this).parent().children('desc').html());
-		$('#config_purgegps').dialog({
-			autoOpen: true,
-			title: 'Удаление GPS данных',
-			modal: true,
-			minHeight: 390,
-			buttons: {
-				'Отмена': function() {
-					//sendGet('/api/sys/config?cmd=cancel&imei=' + imei);
-					$(this).dialog('close');
-				},
-				'Выполнить!': function() {
-					var dateto = $.datepicker.formatDate('ymmdd000000', $('#config_purgegps').datepicker('getDate'));
-					//log('Удаление GPS данных для системы', imei, ' до даты ', dateto);
-					$.getJSON('/api/geo/del?skey='+skey+'&to='+dateto, function (data) {
-						if(data.answer == 'ok'){
-							alert('Удаление данных поставлено в очередь. Это может потребовать некоторого времени.');
-						} else {
-							alert('Ошибка:\r\n'+data.result);
-						}
-					});
-					$(this).dialog('close');
-				}
-			}
-		});
-}
-
-var bico = function() {
-	alert('В разработке');
-}
-
-var bdel = function() {
-	var imei = this.parentNode.dataset.imei;
-	var skey = this.parentNode.dataset.skey;
-	$('#config_dialog_delsys')[0].dataset.skey = skey;
-
-	$('#config_del_imei').html(imei);
-	var desc = [].filter.call(this.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
-	//$('#config_del_desc').html($(this).parent().find('desc').html());
-	$('#config_del_desc').html(desc);
-
-	$('#config_dialog_delsys').dialog('open');
-}
-
 var element_by_html = function(htmlString) {
 	var tempDiv = document.createElement('div');
 	tempDiv.innerHTML = '<br>' + htmlString;
@@ -270,9 +43,301 @@ var element_by_html = function(htmlString) {
 	}
 }
 
+var span = function(tag, title) {
+	var span_el = document.createElement('span');
+	span_el.className = 'ui-widget ui-state-default ui-corner-all ui-button ui-button-text-only tags';
+	span_el.title = title;
+	span_el.innerText = tag;
+	return span_el;
+	//log('span', span);
+}
+
+
+var ConfigList;
+
+var cancel_alarm = function(){
+	var skey = this.parentNode.dataset.skey;		// Лучший способ доступа к dataset !
+	$.getJSON('/api/alarm/cancel?skey=' + skey, function (data) {
+		log('Alarm canceled.');
+	});
+}
+
+var ch_desc = function(){
+	//alert(this.attributes['imei'].value);
+	//var i = this.attributes['index'].value;
+	var li = this.parentNode.parentNode;
+	var imei = li.dataset.imei;
+	var skey = li.dataset.skey;
+	var olddesc = li.querySelector('.description').innerText;
+
+	var dialog_div = element_by_html(''+
+	'<div title="Администрирование">'+
+	'	Введите описание для системы:<b>'+(imei.replace(/-.*/,''))+'</b><br>'+
+       	'	<textarea style="width:98%; resize: none;" rows="1">'+olddesc+'</textarea>'+
+	'</div>'+
+	'');
+
+	$(dialog_div).find('textarea').keypress(function(ev){
+		if(ev.which == 13) {
+			//log('TEXTAREA_13:', $(this).parents('div[role="dialog"]').find('button').first());
+			$(this).parents('div[role="dialog"]').find('button').first().click();
+			return false;
+		}
+		return true;
+	});
+
+
+	$(dialog_div).dialog({
+		width: 500,
+		height: 150,
+		modal: true,
+		autoOpen: true,
+		buttons: {
+			'Применить изменения.': function() {
+				var dialog = $(this);
+				var desc = dialog.find('textarea').val();
+				if(desc != olddesc){
+					/*[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
+						if(el.nodeType === Node.TEXT_NODE) el.data = desc;
+					});*/
+					li.querySelector('.description').innerText = desc;
+					$.getJSON('/api/sys/desc?skey=' + skey + '&desc=' + encodeURIComponent(desc), function (data) {
+						if(data.result){
+							var result = data.result;
+							if(result == "disabled"){
+								//$("#dialog-need-admin").dialog('open');
+								alert('Изменение описание заблокировано.');
+								//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
+								/*[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
+									if(el.nodeType === Node.TEXT_NODE) el.data = olddesc;
+								});*/
+								li.querySelector('.description').innerText = olddesc;
+							} else if(result == "ok") {
+								//UpdateSysList();
+								// Отложенное обновление названия
+								//$("#config_sys_list").find('li[imei="'+imei+'"]>desc').html(desc);
+							} else {
+								alert('Ошибка изменения описания. Отменено.');
+								//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
+								/*[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
+									if(el.nodeType === Node.TEXT_NODE) el.data = olddesc;
+								});*/
+								li.querySelector('.description').innerText = olddesc;
+							}
+						}
+					});
+				}
+				$(this).dialog('close');
+			},
+			'Отменить': function() {
+				$(this).dialog('close');
+			}
+		},
+		close: function(ev, ui) {
+			$(this).dialog('destroy');
+			document.body.removeChild(dialog_div);
+		}
+	});
+
+	//$(dialog).dialog('open');
+}
+
+var bzone = function(){
+	var li = this.parentNode.parentNode;
+	var imei = li.dataset.imei;
+	var skey = li.dataset.skey;
+	var desc = li.querySelector('.description').innerText;
+
+	$('#config_zone_link_imei').html(imei);
+	//var desc = par.find('desc').html();
+	//var desc = [].filter.call(this.parentNode.parentNode.childNodes, function(el){if(el.nodeType==Node.TEXT_NODE) return el;})[0].data;
+
+	$('#config_zone_link_desc').html(desc);
+
+	var dialog = $('#config_zone_link');
+	dialog[0].dataset.skey = skey;
+
+	dialog.dialog('open');
+}
+
+var bconf = function(){
+	var li = this.parentNode.parentNode;
+	var imei = li.dataset.imei;
+	var skey = li.dataset.skey;
+	var desc = li.querySelector('.description').innerText;
+
+
+	if($('#config_params').length === 0){
+		var div = $('body').append(
+			'<div id="config_params"><div id="config_params_body">Загрузка данных с сервера...</div></div>'
+		);
+	} else {
+		$('#config_params_body').html('Загрузка данных с сервера...');
+	}
+	$.getJSON('/api/sys/config?cmd=get&skey='+skey, function (data) {
+		if(data.answer == 'ok'){
+			if(data.config.length === 0){
+				$("#config_params_body").empty().html('Нет параметров. Возможно система еще не сохранила параметры.<br/>Можно послать SMS на номер системы с текстом <strong>saveconfig</strong> для принудительного сохранения параметров.');
+			} else {
+				//log('Config_GET:', data);
+				var rows = '<table class="tview"><thead><tr><th>№</th><th>Имя</th><th>Описание<span id="config_params_show_all" title="Показать все" class="cursor_pointer">...</span></th><th>Значение</th><th>Заводская установка</th><th>Очередь</th></tr></thead><tbody>';
+				var index = 1;
+				for(var i in data.config){
+					var v = data.config[i];
+					rows += '<tr name="'+v[0]+'"'+ (v[1].desc?'':' class="config_hide"') +'>';
+					rows +=	'<td>'+index+'</td>';
+					rows += '<td>'+v[0]+'</td>';
+					if(config.admin){
+						rows += '<td class="cfg_changeble">' + (v[1].desc || '-') + '</td>';
+					} else {
+						rows += '<td>' + (v[1].desc || '-') + '</td>';
+					}
+					rows += '<td class="cfg_changeble'+(v[1].wait?' wait':'')+'">' + v[1].value + '</td>';
+					rows += '<td>' + v[1]['default'] + '</td><td>' + ((v[1].wait)?(v[1].wait):'') + '</td></tr>';
+					index += 1;
+				}
+				rows += '</tbody></table>';
+				$("#config_params_body").empty().append(rows);
+				$('#config_params').dialog('option', 'position', 'center');
+				$('#config_params_show_all').click(function(){
+					//log('boo');
+					$('.config_hide').removeClass('config_hide');
+					$('#config_params').dialog('option', 'position', 'center');
+				});
+
+				var tb = $('#config_params_body table tbody');
+				//log('table = ', tb);
+				//log('table>tr>td:first = ', tb.find('tr').find('td:first'));
+				tb.find('tr').find('td:first').next().next().click(function(){
+					if(config.admin){
+						var name = $(this).parent().attr('name');
+						var pvalue = $(this).html();
+						var nvalue = prompt("Введите описание для '" + name + "'", pvalue);
+						if(nvalue && nvalue != pvalue){
+							//log('Change description', name);
+							$(this).html(nvalue);
+							sendGet('/api/param/desc?name=' + name + '&value=' + nvalue);
+						}
+					}
+				}).next().click(function(){
+					var name = $(this).parent().attr('name');
+					var pvalue = $(this).html();
+					var nvalue = prompt("Введите значение для '" + name + "'", pvalue);
+					if(nvalue && nvalue != pvalue){
+						//log('Change value', name);
+						$(this).next().next().html(nvalue);
+						$(this).addClass('wait');
+						sendGet('/api/sys/config?cmd=set&skey=' + skey + '&name=' + name + '&value=' + nvalue);
+					}
+				});
+			}
+		}
+	});
+	/*$('#config_params_close').button().click(function(){
+		$('#config_params, #config_overlay').remove();
+	});*/
+
+	$('div#config_params_body').css('max-height', $(window).height() - 200);
+
+	$('#config_params').dialog({
+		width: '90%',
+		/*height: '60%',*/
+		//maxHeight: $(window).height() - 100,
+		modal: true,
+		autoOpen: true,
+		title: desc,
+		//position: ['left','top'],
+		buttons: {
+			'Отменить задание на изменение параметров': function() {
+				sendGet('/api/sys/config?cmd=cancel&skey=' + skey);
+				$(this).dialog('close');
+			},
+			'Закрыть': function() {
+				$(this).dialog('close');
+			}
+		}
+	});
+}
+
+var bpurge = function(){
+	var li = this.parentNode.parentNode;
+	var imei = li.dataset.imei;
+	var skey = li.dataset.skey;
+	var desc = li.querySelector('.description').innerText;
+
+	//log('Удаление GPS данных для системы', this, imei);
+	if($('#config_purgegps').length === 0){
+		$('body').append(
+			//'<div id="config_overlay" class="ui-widget-overlay"></div>' +
+			'<div id="config_purgegps">' +
+			'Удаление GPS данных для системы<br/><strong><label></label></strong><br/><br/>' +
+			'<span style="color: red">Внимание!</span> Данные старее выбранной даты будут удалены.' +
+			'<input type="text" id="config_purgegps_alternate" disabled=sidabled size="30"/>' +
+			'<div id="config_purgegps"></div>' +
+			//'<button></button><br/>' +
+			'</div>'
+		);
+		var div = $('#config_purgegps');
+		//div.children('label').first().html(imei+':'+$(this).parent().children('desc').html());
+		$('#config_purgegps').datepicker({
+			altField: "#config_purgegps_alternate",
+			altFormat: "dd.mm.yy DD"
+		});
+		//div.children('button').button().click(function(){
+		//});
+	}
+
+	//$('#config_purgegps label').first().html(imei+':'+$(this).parent().children('desc').html());
+	$('#config_purgegps label').first().html(imei+':'+desc);
+	//div.children('strong').children('label').first().html(imei+':'+$(this).parent().children('desc').html());
+	$('#config_purgegps').dialog({
+		autoOpen: true,
+		title: 'Удаление GPS данных',
+		modal: true,
+		minHeight: 390,
+		buttons: {
+			'Отмена': function() {
+				//sendGet('/api/sys/config?cmd=cancel&imei=' + imei);
+				$(this).dialog('close');
+			},
+			'Выполнить!': function() {
+				var dateto = $.datepicker.formatDate('ymmdd000000', $('#config_purgegps').datepicker('getDate'));
+				//log('Удаление GPS данных для системы', imei, ' до даты ', dateto);
+				$.getJSON('/api/geo/del?skey='+skey+'&to='+dateto, function (data) {
+					if(data.answer == 'ok'){
+						alert('Удаление данных поставлено в очередь. Это может потребовать некоторого времени.');
+					} else {
+						alert('Ошибка:\r\n'+data.result);
+					}
+				});
+				$(this).dialog('close');
+			}
+		}
+	});
+}
+
+var bico = function() {
+	alert('В разработке');
+}
+
+var bdel = function() {
+	var li = this.parentNode.parentNode;
+	var imei = li.dataset.imei;
+	var skey = li.dataset.skey;
+	var desc = li.querySelector('.description').innerText;
+
+	$('#config_dialog_delsys')[0].dataset.skey = skey;
+	$('#config_del_imei').html(imei);
+	//$('#config_del_desc').html($(this).parent().find('desc').html());
+	$('#config_del_desc').html(desc);
+
+	$('#config_dialog_delsys').dialog('open');
+}
+
+
 var btags = function() {
 	//var tag_div = document.createElement(div);
-	var skey = this.parentNode.dataset.skey;
+	var skey = this.parentNode.parentNode.dataset.skey;
 	var s = config.sysbykey[skey];
 
 	var avail_tags = {};
@@ -282,15 +347,6 @@ var btags = function() {
 		}
 	}
 	log('Доступные ярлыки:', avail_tags);
-
-	var span = function(tag, title) {
-		var span_el = document.createElement('span');
-		span_el.className = 'ui-widget ui-state-default ui-corner-all ui-button ui-button-text-only tags';
-		span_el.title = title;
-		span_el.innerText = tag;
-		return span_el;
-		//log('span', span);
-	}
 
 	var tag_dialog = element_by_html(''+
 	'<div title="Назначение ярлыков.">'+
@@ -303,18 +359,6 @@ var btags = function() {
 	'	</div>'+
 	'	<br><button id="btag_button_new">Добавить новый ярлык</button>'+
 	'<details><summary><span class="pln">?</span></summary><span class="pln">Ярлык должен представлять собой короткое информативное слово или фразу.</span></details>' +
-
-'<ul id="tree1" role="tree" tabindex="0" aria-labelledby="label_1">'+
-'  <li role="treeitem" tabindex="-1" aria-expanded="true">Fruits</li>'+
-'  <li role="group">'+
-'    <ul>'+
-'      <li role="treeitem" tabindex="-1">Oranges</li>'+
-'      <li role="treeitem" tabindex="-1">Pineapples</li>'+
-'      ...'+
-'    </ul>'+
-'  </li>'+
-'</ul>'+
-
 	'</div>'+
 	'');
 	var tag_set = tag_dialog.querySelector('#btag_div_set');
@@ -379,51 +423,81 @@ config.updater.tabs[4] = function(){
 	log('Tab Config activated.');
 	$("#config_list").accordion("resize");
 	if(!ConfigList){
+		var ctl_div = document.createElement('span');
+		ctl_div.innerHTML = ''+
+			'<button class="key bdesc mm" title="Изменить описание">...</button>' +
+			'<!--button class="bico hl mm" title="Выбрать пиктограмму">P</button-->' +
+			(config.admin?'<button class="bpurge hl mm" title="Удалить GPS данные!">D</button>':'') +
+			'<button class="bconf hl mm" title="Настроить систему">C</button>' +
+			'<button class="key bzone mm" title="Привязать ГЕО-зону">З</button>' +
+			(config.admin?'<button class="key calarm mm" title ="Принудительная отмена тревоги">T</button>':'') +
+			'<button class="key btags mm" title="Назначить ярлыки">Я</button>' +
+			'<button class="key bdel mm" title="Отказаться от слежения за системой">X</button>'+
+		'';
+		$(ctl_div).find('button').button();
+
+
+		$(ctl_div).find('.bdesc').button().click(ch_desc);
+		$(ctl_div).find('.calarm').button().click(cancel_alarm);
+		$(ctl_div).find(".bzone").button().click(bzone);
+		$(ctl_div).find(".btags").button().click(btags);
+		$(ctl_div).find('.bconf').button().click(bconf);
+		if(config.admin) $(ctl_div).find('.bpurge').button().css('color', 'red').click(bpurge);
+		$(ctl_div).find('.bico').button().click(bico);
+		$(ctl_div).find('.bdel').button().click(bdel);
+
 		ConfigList = new SysList('config_sys_list', {
 			element: function(s){
 				var li = document.createElement('li');
 				li.className = 'ui-widget ui-widget-content ui-widget-header';
+				//li.style.width = '200px';
 				//li.className = 'ui-widget ui-widget-content';
 				li.innerHTML = '<span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
-					'<span class="bico hl mm" title="Выбрать пиктограмму">P</span>' +
-					(config.admin?'<span class="bpurge hl mm" title="Удалить GPS данные!">D</span>':'') +
-					'<span class="bconf hl mm" title="Настроить систему">C</span>' +
-					'<button class="key bzone" title="Привязать ГЕО-зону">З</button>' +
-					(config.admin?'<button class="key calarm" title ="Принудительная отмена тревоги">T</button>':'') +
-					'<button class="key btags" title="Назначить ярлыки">Я</button>' +
 					'<span class="spanbrd" title="IMEI">' + s.imei.replace(/-.*/,'') + '</span><span class="spanbrd" title="Телефон">' + (s.phone!='None'?(s.phone):'не определен') + '</span>' +
-					s.desc +
-					'<button class="key bdesc" title="Изменить описание">...</button>' +
-					'<button class="key bdel" title="Отказаться от слежения за системой">X</button>';
-				var $li = $(li);	// TBD! Отказаться бып оп jQuery
-				//$(li).find('button').button();	// Декорируем
-				$li.find('.bdesc').button().click(ch_desc);
-				$li.find('.calarm').button().click(cancel_alarm);
-				$li.find(".bzone").button().click(bzone);
-				$li.find(".btags").button().click(btags);
-				$li.find('.bconf').button().click(bconf);
-				if(config.admin) $li.find('.bpurge').button().css('color', 'red').click(bpurge);
-				$li.find('.bico').button().click(bico);
-				$li.find('.bdel').button().click(bdel);
+					'<span class="description" style="width:200px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;display: inline-block;">' + s.desc + '</span>' +
+					'';
+				var tag_block = document.createElement('span');
+				tag_block.className = "tag_block";
+				li.appendChild(tag_block);
+				for(var k in s.tags){
+					tag_block.appendChild(span(s.tags[k], ''));
+				}
+
+				li.addEventListener('mouseover', function(){
+					//log('config_list:mouseover', this);
+					this.appendChild(ctl_div);
+					tag_block.style.display = 'none';
+					return false;
+				}, false);
+				li.addEventListener('mouseout', function(ev){
+					//log('config_list:mouseout', this);
+					if((ev.target != ctl_div) && (ev.toElement != ctl_div) && (ev.target.parentNode != ctl_div) && (ev.toElement.parentNode != ctl_div) && (ev.target.parentNode.parentNode != ctl_div) && (ev.toElement.parentNode.parentNode != ctl_div)) {
+						this.removeChild(ctl_div);
+						//log('config_list:mouseout', this, ev);
+					}
+					tag_block.style.display = '';
+					return false;
+				}, false);
 				return li;
 			}
 		});
+		config.updater.add('change_tag', function(msg) {
+			var li = ConfigList.element.querySelector('li[data-skey="'+msg.skey+'"]>span.tag_block');
+			if(li) {
+				li.innerHTML = '';	// Не знаю на сколько красивая такая очистка.
+				for(var t in msg.data.tags) {
+					li.appendChild(span(msg.data.tags[t], ''));
+					//log('tag', t, msg.data.tags[t]);
+				}
+			}
+			//log('ConfigList:change_tag', msg, li);
+		});
+
 
 	if(window.config.account.user.admin) $('.admin').show();
-
-
 		// Закладка "Наблюдаемые системы"
 
 		$("#config_button_sys_add").click(function(){ $("#config_dialog_addsys").dialog('open'); });
-
-		$("textarea").keypress(function(ev){
-			if(ev.which == 13) {
-				//log('TEXTAREA_13:', $(this).parents('div[role="dialog"]').find('button').first());
-				$(this).parents('div[role="dialog"]').find('button').first().click();
-				return false;
-			}
-			return true;
-		});
 
 		$("#config_dialog_addsys").dialog({
 			width: 400,
@@ -465,67 +539,6 @@ config.updater.tabs[4] = function(){
 			}
 		});
 
-		$("#config_dialog_sys_desc").dialog({
-			width: 500,
-			height: 150,
-			modal: true,
-			autoOpen: false,
-			buttons: {
-				'Применить изменения.': function() {
-					var dialog = $(this);
-					//log('Dialog', dialog);
-					//log($(this));
-					//var imei = dialog.find('label').html();
-
-					var imei = dialog[0].dataset.imei;
-					var skey = dialog[0].dataset.skey;
-					var olddesc = dialog[0].dataset.desc;
-
-					var desc = dialog.find('textarea').val();
-
-					//log('Compare:', olddesc, desc);
-
-					if(desc != olddesc){
-						// Мгновенное обновление названия
-						//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(desc);
-						// Если я еще пару раз напишу этот цикл, я точно свихнусь
-						[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
-							if(el.nodeType === Node.TEXT_NODE) el.data = desc;
-						});
-	
-						$.getJSON('/api/sys/desc?skey=' + skey + '&desc=' + encodeURIComponent(desc), function (data) {
-							if(data.result){
-								var result = data.result;
-								if(result == "disabled"){
-									//$("#dialog-need-admin").dialog('open');
-									alert('Изменение описание заблокировано.');
-									//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
-									[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
-										if(el.nodeType === Node.TEXT_NODE) el.data = olddesc;
-									});
-
-								} else if(result == "ok") {
-									//UpdateSysList();
-									// Отложенное обновление названия
-									//$("#config_sys_list").find('li[imei="'+imei+'"]>desc').html(desc);
-								} else {
-									alert('Ошибка изменения описания. Отменено.');
-									//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
-									[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
-										if(el.nodeType === Node.TEXT_NODE) el.data = olddesc;
-									});
-								}
-							}
-						});
-					}
-
-					$(this).dialog('close');
-				},
-				'Отменить': function() {
-					$(this).dialog('close');
-				}
-			}
-		});
 
 		var add_zone_rule = function(){
 			var tbody = $('#config_zone_link table tbody');

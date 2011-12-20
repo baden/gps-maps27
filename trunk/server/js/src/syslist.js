@@ -194,6 +194,7 @@ function SysList(elementid, handlers){
 				evt.initEvent('change', true, true)
 				me.element.dispatchEvent(evt);
 			}
+			if(me.handlers.tagchange) me.handlers.tagchange.call(me, tag, index);
 		});
 		config.updater.add('change_tag', function(msg) {
 			log('SysList: change_tag. Update system tags.', msg);
@@ -273,6 +274,7 @@ SysList.prototype.default_handlers = {
 		// Я не знаю как выбирать текстовые ноды через селектор, поэтому перебор
 		[].forEach.call(node.childNodes, function(el){
 			if(el.nodeType === Node.TEXT_NODE) el.data = desc;
+			else if(el.classList.contains('description')) el.innerText = desc;
 		});
 	},
 	additem: function(s){

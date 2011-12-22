@@ -316,9 +316,6 @@ config.updater.tabs[1] = function(){
 	if(!init){
 		init = true;
 
-
-
-
 	if('google' in window) geocoder = new google.maps.Geocoder();
 	$("#nav_reports").button("option", "disabled", true);
 

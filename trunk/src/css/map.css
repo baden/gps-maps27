@@ -98,10 +98,26 @@ div#dir_panel {
 	z-index: 10;
 	/*border: 1px solid lime;*/
 	background-color: white;
-	display: none;
 }
 
+.map_panel {
+	position: absolute;
+	top: 0px;
+	bottom: 204px;
+	left:0px;
+	right: 0px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	z-index: 10;
+	background-color: white;
+	margin-left: -200px;
+	border: 1px solid #ccc;
+	box-shadow: -1px 2px 6px #ccc;
+}
 
+.hidden {
+	display: none;
+}
 
 ul#map_zones_list li {
 	/*border: 1px solid black;*/

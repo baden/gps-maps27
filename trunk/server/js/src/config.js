@@ -28,20 +28,6 @@ var saveconfig = function(it, val){
 		}
 	});
 }
-var element_by_html = function(htmlString) {
-	var tempDiv = document.createElement('div');
-	tempDiv.innerHTML = '<br>' + htmlString;
-	tempDiv.removeChild(tempDiv.firstChild);
-	if (tempDiv.childNodes.length == 1) {
-		return (tempDiv.removeChild(tempDiv.firstChild));
-	} else {
-		var fragment = doc.createDocumentFragment();
-		while (tempDiv.firstChild) {
-			fragment.appendChild(tempDiv.firstChild);
-		}
-		return fragment;
-	}
-}
 
 var span = function(tag, title) {
 	var span_el = document.createElement('span');
@@ -70,7 +56,7 @@ var ch_desc = function(){
 	var skey = li.dataset.skey;
 	var olddesc = li.querySelector('.description').innerText;
 
-	var dialog_div = element_by_html(''+
+	var dialog_div = config.helper.element_by_html(''+
 	'<div title="Администрирование">'+
 	'	Введите описание для системы:<b>'+(imei.replace(/-.*/,''))+'</b><br>'+
        	'	<textarea style="width:98%; resize: none;" rows="1">'+olddesc+'</textarea>'+
@@ -348,7 +334,7 @@ var btags = function() {
 	}
 	log('Доступные ярлыки:', avail_tags);
 
-	var tag_dialog = element_by_html(''+
+	var tag_dialog = config.helper.element_by_html(''+
 	'<div title="Назначение ярлыков.">'+
 	'	Система <b>'+config.sysbykey[skey].desc+'</b><br>'+
 	'	<br>Назначенные ярлыки:'+

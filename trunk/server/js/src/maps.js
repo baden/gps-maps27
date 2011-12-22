@@ -524,6 +524,15 @@ var CreateMap = function () {
 	ruler1 = new MyMarker(map);
 
 	var input = document.getElementById('input_map_address');
+	/*var bfrom = document.createElement('button');
+	bfrom.title = 'Задать как начальную точку маршрута';
+	bfrom.innerText = '>...';
+	var bto = document.createElement('button');
+	bto.title = 'Задать как конечную точку маршрута';
+	bto.innerText = '...<';
+	input.parentNode.insertBefore(bfrom, input);
+	input.parentNode.insertBefore(bto, input);*/
+
         var autocomplete = new google.maps.places.Autocomplete(input);
 	autocomplete.bindTo('bounds', map);
 	google.maps.event.addListener(autocomplete, 'place_changed', function() {
@@ -1001,6 +1010,11 @@ $('#map_zone_edit').click(zonekit.Edit);
 
 var dirkit = new DirKit();
 $('#map_track_calc').click(dirkit.Route)
+
+/*
+document.getElementById('map_track_calc').addEventListener('click', function(ev) {
+});
+*/
 
 //window.config.alarm.show_alert_icons();
 

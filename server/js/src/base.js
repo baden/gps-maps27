@@ -199,7 +199,7 @@ var geocode_to_addr = function (results) {
 		((comp.locality == '')?(((comp.sublocality != '')?comp.sublocality:comp.administrative_area_level_2) + ' район, '):'') +
 		((comp.locality != '')?(comp.locality+', '):'') +
 		comp.route +
-		((comp.street_number != '')?(', ' + comp.street_number):'');
+		(comp.street_number&&(comp.street_number != '')?(', ' + comp.street_number):'');
 }
 
 if(0){
@@ -465,6 +465,22 @@ config.helper = {
 	}
 
 }
+
+config.helper.element_by_html = function(htmlString) {
+	var tempDiv = document.createElement('div');
+	tempDiv.innerHTML = '<br>' + htmlString;
+	tempDiv.removeChild(tempDiv.firstChild);
+	if (tempDiv.childNodes.length == 1) {
+		return (tempDiv.removeChild(tempDiv.firstChild));
+	} else {
+		var fragment = doc.createDocumentFragment();
+		while (tempDiv.firstChild) {
+			fragment.appendChild(tempDiv.firstChild);
+		}
+		return fragment;
+	}
+}
+
 
 
 })(window, jQuery);

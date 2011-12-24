@@ -244,9 +244,18 @@ class InitConfig(BaseHandler):
 					'admin': users.is_current_user_admin(),
 				}
 			}
-
-		systems = [sys.todict() for sys in account.systems]
+		"""
+			Так как эта процедура может занимать много времени, то сделаем это асинхронно
+			Хотя все равно уже на 80 системах это занимает около секунды. Не хотется думать что будет при тысяче систем.
+		"""
+		systems_rpc = account.systems_async
 		lasts = getGeoLast(account.systems_key)
+
+		login_url = users.create_login_url('/')
+		logout_url = users.create_logout_url('/')
+
+		systems = [sys.todict() for sys in systems_rpc.get_result()]
+
 		for s in systems:
 			s['last'] = lasts[s['key']]
 
@@ -262,8 +271,8 @@ class InitConfig(BaseHandler):
 					'email': account.user.email(),
 					'nickname': account.user.nickname(),
 					'id': account.user.user_id(),
-					'login_url': users.create_login_url('/'),
-					'logout_url': users.create_logout_url('/'),
+					'login_url': login_url,
+					'logout_url': logout_url,
 					'admin': users.is_current_user_admin(),
 				},
 				'config': account.pconfig,
@@ -274,7 +283,7 @@ class InitConfig(BaseHandler):
 
 	#@login_required
 	def get(self):
-		self.response.write('config = ' + json.dumps(self.config(), indent=2) + '\r')
+		self.response.write('console.log("initconfig.js"); config = $.extend(config, ' + json.dumps(self.config(), indent=2) + ');\r')
 
 
 class AddLog(webapp2.RequestHandler):
@@ -757,93 +766,77 @@ class Firmware(BaseHandler):
 	def get(self):
 		from datamodel.firmware import DBFirmware
 		from utils import CRC16
-		#user = users.get_current_user()
-		#username = ''
-		#if user:
-		#	username = user.nickname()
-		#
-		cmd = self.request.get('cmd')
-		fid = self.request.get('id')
-		swid = self.request.get('swid')
-		hwid = self.request.get('hwid')
-		boot = self.request.get('boot')
+		cmd = self.request.get('cmd', None)
+		key = self.request.get('key', None)
+		swid = self.request.get('swid', None)
+		if swid is not None:
+			swid = int(swid, 16)
+		hwid = self.request.get('hwid', None)
+		if hwid is not None:
+			hwid = int(hwid, 16)
+		boot = (self.request.get('boot', 'no') == 'yes')
 		subid = int(self.request.get('subid', '0'), 16)
-		if boot:
-			if boot == 'yes':
-				boot = True
-			else:
-				boot = False
-		else:
-			boot = False
 
 		if cmd:
 			if cmd == 'del':
-				if fid:
-					DBFirmware().get_by_key_name(fid).delete()
-				self.redirect("/firmware")
+				try:
+					DBFirmware.get(db.Key(self.request.get('key', None))).delete()
+				finally:
+					self.redirect("/firmware")
 
 			elif cmd == 'check':	# Запросить версию самой свежей прошивки
 				self.response.headers['Content-Type'] = 'application/octet-stream'	# Это единственный (пока) способ побороть Transfer-Encoding: chunked
 					
-				fw = DBFirmware.all().filter('boot =', boot).filter('hwid =', int(hwid, 16)).filter('subid =', subid).order('-swid').fetch(1)
+				fw = DBFirmware.get_all(boot=boot, hwid=hwid, subid=subid).order('-swid').get()
 				if fw:
-					self.response.out.write("SWID: %04X\r\n" % fw[0].swid)
+					self.response.write("SWID: %04X\r\n" % fw.swid)
 				else:
-					self.response.out.write("NOT FOUND\r\n")
+					self.response.write("NOT FOUND\r\n")
 
 			elif cmd == 'getbin':
 				self.response.headers['Content-Type'] = 'application/octet-stream'
-				if fid:
-					fw = DBFirmware.get_by_key_name(fid)
-					fw = [fw]
-				elif swid:
-					fw = DBFirmware.all().filter('boot =', boot).filter('hwid =', int(hwid, 16)).filter('swid =', int(swid, 16)).fetch(1)
+				if key is not None:
+					fw = DBFirmware.get(db.Key(key))
 				else:
-					fw = DBFirmware.all().filter('boot =', boot).filter('hwid =', int(hwid, 16)).order('-swid').fetch(1)
+					fw = DBFirmware.get_all(boot=boot, hwid=hwid, swid=swid).get()
 				if fw:
-					self.response.out.write(fw[0].data)
+					self.response.write(fw.data)
 				else:
-					self.response.out.write('NOT FOUND\r\n')
+					self.response.write('NOT FOUND\r\n')
 
 			elif cmd == 'get':
-				if fid:
-					fw = DBFirmware.get_by_key_name(fid)
-					fw = [fw]
-				elif swid:
-					fw = DBFirmware.all().filter('boot =', boot).filter('hwid =', int(hwid, 16)).filter('subid =', subid).filter('swid =', int(swid, 16)).fetch(1)
+				if key is not None:
+					fw = DBFirmware.get(db.Key(key))
 				else:
-					fw = DBFirmware.all().filter('boot =', boot).filter('hwid =', int(hwid, 16)).filter('subid =', subid).order('-swid').fetch(1)
+					fw = DBFirmware.get_all(boot=boot, hwid=hwid, subid=subid, swid=swid).get()
 
 				self.response.headers['Content-Type'] = 'application/octet-stream'	# Это единственный (пока) способ побороть Transfer-Encoding: chunked
 				if fw:
 					by = 0
 					line = 0
 					crc2 = 0
-					self.response.out.write("SWID:%04X" % fw[0].swid)
-					self.response.out.write("\r\nLENGTH:%04X" % len(fw[0].data))
+					self.response.write("SWID:%04X" % fw.swid)
+					self.response.write("\r\nLENGTH:%04X" % len(fw.data))
 
-					for byte in fw[0].data:
+					for byte in fw.data:
 						if by == 0:
 							self.response.out.write("\r\nLINE%04X:" % line)
 							line = line + 1
 							by = 32
-						self.response.out.write("%02X" % ord(byte))
+						self.response.write("%02X" % ord(byte))
 						crc2 = CRC16(crc2, ord(byte))
 						by = by - 1
-					self.response.out.write("\r\n")
-					self.response.out.write("CRC:%04X\r\n" % crc2)
-					self.response.out.write("ENDDATA\r\n")
+					self.response.write("\r\n")
+					self.response.write("CRC:%04X\r\n" % crc2)
+					self.response.write("ENDDATA\r\n")
 				else:
-					self.response.out.write('NOT FOUND\r\n')
+					self.response.write('NOT FOUND\r\n')
 
 			elif cmd == 'getpack':
-				if fid:
-					fw = DBFirmware.get_by_key_name(fid)
-					fw = [fw]
-				elif swid:
-					fw = DBFirmware.all().filter('boot =', boot).filter('hwid =', int(hwid, 16)).filter('subid =', subid).filter('swid =', int(swid, 16)).fetch(1)
+				if key:
+					fw = DBFirmware.get(db.Key(key))
 				else:
-					fw = DBFirmware.all().filter('boot =', boot).filter('hwid =', int(hwid, 16)).filter('subid =', subid).order('-swid').fetch(1)
+					fw = DBFirmware.get_all(boot=boot, hwid=hwid, subid=subid, swid=swid).get()
 
 				#self.response.headers['Content-Type'] = 'application/octet-stream'	# Это единственный (пока) способ побороть Transfer-Encoding: chunked
 				self.response.headers['Content-Type'] = 'text/html'
@@ -851,21 +844,21 @@ class Firmware(BaseHandler):
 					by = 0
 					line = 0
 					crc2 = 0
-					self.response.out.write("SWID:%04X" % fw[0].swid)
-					self.response.out.write("\r\nLENGTH:%04X" % len(fw[0].data))
+					self.response.write("SWID:%04X" % fw.swid)
+					self.response.write("\r\nLENGTH:%04X" % len(fw.data))
 
-					for byte in fw[0].data:
+					for byte in fw.data:
 						if by == 0:
-							self.response.out.write("\r\nL%03X:" % line)
+							self.response.write("\r\nL%03X:" % line)
 							line = line + 1
 							by = 64
 						#self.response.out.write("%02X" % ord(byte))
 						#if ord(byte)>=16:
 						
 						if ord(byte) in (0x0D, 0x0A, 0x00, 0x01):
-							self.response.out.write('\x01' + chr(ord(byte)+32))
+							self.response.write('\x01' + chr(ord(byte)+32))
 						else:
-							self.response.out.write(byte)
+							self.response.write(byte)
 						
 						"""
 						if ord(byte) >= 33:
@@ -878,69 +871,35 @@ class Firmware(BaseHandler):
 						crc2 = CRC16(crc2, ord(byte))
 						by = by - 1
 					for i in range(by):
-						self.response.out.write('-');	# заполним последнюю строку чтобы не была короткой
+						self.response.write('-');	# заполним последнюю строку чтобы не была короткой
 						
-					self.response.out.write("\r\nIGNOREME-IGNOREME-IGNOREME-IGNOREME-IGNOREME-IGNOREME-IGNOREME\r\n")
-					self.response.out.write("CRC:%04X\r\n" % crc2)
-					self.response.out.write("ENDDATA\r\n")
+					self.response.write("\r\nIGNOREME-IGNOREME-IGNOREME-IGNOREME-IGNOREME-IGNOREME-IGNOREME\r\n")
+					self.response.write("CRC:%04X\r\n" % crc2)
+					self.response.write("ENDDATA\r\n")
 				else:
-					self.response.out.write('NOT FOUND\r\n')
-
-			elif cmd == 'patch':
-				fws = DBFirmware.all().fetch(500)
-				for fw in fws:
-					if fw.boot:
-						pass
-					else:
-						fw.boot = False
-						fw.put()
-				self.redirect("/firmware")
+					self.response.write('NOT FOUND\r\n')
 			else:
 				self.redirect("/firmware")
 		else:
 			template_values = {}
-
-			if hwid:
-				firmwares = DBFirmware.all().filter('boot =', boot).filter('hwid =', int(hwid, 16)).fetch(500)
-			else:
-				firmwares = DBFirmware.all().filter('boot =', boot).fetch(100)
-			nfw = []
-			for fw in firmwares:
-				nfw.append({
-					'key': fw.key().name(),
-					'hwid': "%04X" % fw.hwid,
-					'swid': "%04X" % fw.swid,
-					'subid': "%d" % fw.subid,
-					'cdate': fw.cdate,
-					'size': fw.size,
-					'desc': fw.desc,
-				})
-			template_values['firmwares'] = nfw
+			firmwares = DBFirmware.get_all(hwid=hwid).fetch(100)
+			template_values['firmwares'] = [f.todict() for f in firmwares]
 			self.render_template(self.__class__.__name__ + '.html', **template_values)
 
 	def post(self):
-		from datamodel import DBFirmware
+		from datamodel.firmware import DBFirmware
 		self.response.headers['Content-Type'] = 'text/plain'
 
-		boot = self.request.get('boot')
+		data = {
+			'boot': self.request.get('boot'),
+			'pdata': self.request.body,
+			'hwid': int(self.request.get('hwid'), 16),
+			'swid': int(self.request.get('swid'), 16),
+			'subid': int(self.request.get('subid', 0), 10)
+		}
+		DBFirmware.add(data);
 
-		pdata = self.request.body
-		hwid = int(self.request.get('hwid'), 16)
-		swid = int(self.request.get('swid'), 16)
-		subid = int(self.request.get('subid', 0), 10)
-
-		if boot:
-			newfw = DBFirmware(key_name = "FWBOOT%04X" % hwid, desc = u"Загрузчик", boot = True)
-		else:
-			newfw = DBFirmware(key_name = "FWGPS%04X%04X%04X" % (hwid, swid, subid), desc = u"Образ ядра")
-		newfw.hwid = hwid
-		newfw.swid = swid
-		newfw.subid = subid
-		newfw.data = pdata
-		newfw.size = len(pdata)
-		newfw.put()
-
-		self.response.out.write("ROM ADDED: %d\r\n" % len(pdata))
+		self.response.write("ROM ADDED: %d\r\n" % len(data['pdata']))
 
 class Inform(webapp2.RequestHandler):
 	def get(self):

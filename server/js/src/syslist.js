@@ -5,103 +5,9 @@
 	2. Автоматическая перегенерация списка при изменении в системых (по внешнему событию).
 */
 
-/*
-	TBD! Устаревший механизм. Необходимо переделать на новый.
-*/
-if(0){
-var config = window.config;
-if(0){
-config.syslist = function(options){
-	var list = $('#'+options.id);
-
-	var Make_SysList = function(){
-		list.empty();
-		for(var i in config.systems){
-			var s = config.systems[i];
-			//list.append('<option imei="'+s.imei+'" value="'+s.skey+'"'+(config.skey==s.skey?' selected':'')+'>'+s.desc+'</option>');
-			list.append('<option imei="'+s.imei+'" value="'+s.skey+'">'+s.desc+'</option>');
-		}
-	}
-
-	Make_SysList();
-
-	$(list).bind({
-		/*click: function(ev){
-			Make_SysList();
-			log('click');
-			},*/
-		change: options.change
-	});
-
-	config.updater.add('changeslist', function(msg) {
-		log('config.syslist: Update system list');
-		Make_SysList();
-	});
-
-	config.updater.add('changedesc', function(msg) {
-		$(list).children('option[value="'+msg.data.skey+'"]').html(msg.data.desc);
-	});
-
-}
-}
-
-// TBD! Мне не нравится это повторное считывание списка. Лучше сделать локальное обновление (только изменившиеся данные)
-
-var UpdateAccountSystemList = function() {
-	$.getJSON('/api/info', function (data) {
-		if(data){
-			log('UpdateAccountSystemList data:', data);
-			//var config = config || {};
-			config.systems = [];
-			config.sysbykey = {};
-			for(var i in data.info.account.systems){
-				var s = data.info.account.systems[i];
-				config.systems.push({
-					'imei': s.imei,
-					'skey': s.key,
-					'desc': s.desc
-				});
-				config.sysbykey[s.key] = {imei: s.imei, desc: s.desc};
-			}
-
-			config.updater.process({msg: 'changeslist'});
-		}
-	});
-}
-
-
-
-//UpdateAccountSystemList();
-
-config.updater.add('change_slist', function(msg) {
-	log('BASE: Update system list');
-	UpdateAccountSystemList();
-});
-}
-
-
 (function( window, $, undefined ) {
 var document = window.document;
 var lists_count = 0;
-
-function clone(o) {
-	if(!o || 'object' !== typeof o) {
-		return o;
-	}
-	if('function' === typeof o.pop) return o.splice(0);
-	var c = {};
-	for(var p in o) {
-		if(o.hasOwnProperty(p)) {
-			var v = o[p];
-			if(v && 'object' === typeof v) {
-				c[p] = clone(v);
-			} else {
-				c[p] = v;
-			}
-		}
-	}
-	return c;
-}
 
 config.updater.add('change_desc', function(msg) {
 	config.sysbykey[msg.skey].desc = msg.data.desc;
@@ -112,7 +18,7 @@ config.updater.add('change_slist', function(msg) {
 	switch(msg.data.type){
 		case 'Adding':
 			if(!(msg.data.system.key in config.sysbykey)){
-				var system = clone(msg.data.system);
+				var system = config.helper.clone(msg.data.system);
 				config.account.systems.push(system);
 				config.sysbykey[system.key] = system;
 			}
@@ -123,10 +29,14 @@ config.updater.add('change_slist', function(msg) {
 });
 
 var tags = {};
+config.inits.push(function(){
+
 for(var k in config.account.systems) {
 	for(var t in config.account.systems[k].tags)
 		tags[config.account.systems[k].tags[t]] = 1;
 }
+
+});
 
 function SysList(elementid, handlers){
 	var me = this;
@@ -140,7 +50,7 @@ function SysList(elementid, handlers){
 	me.listnum = lists_count;
 	me.elementid = elementid;
 
-	//log('SysList: init', elementid);
+	log('SysList: init', elementid);
 	
 	//$(document).ready(function() {
 	me.element = document.getElementById(me.elementid);
@@ -289,7 +199,7 @@ SysList.prototype.default_handlers = {
 }
 
 SysList.prototype.Rebuild = function(){
-	//log('SysList.prototype.Rebuild');
+	log('SysList.prototype.Rebuild');
 	this.handlers.start.call(this);
 	for(var i in window.config.account.systems){
 		var s = window.config.account.systems[i];

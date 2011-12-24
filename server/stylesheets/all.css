@@ -363,6 +363,112 @@ h3 {
 .ui-timepicker-div dl dd{ margin: -25px 0 10px 65px; }
 .ui-timepicker-div td { font-size: 90%; }
 */
+
+	div#logout {
+		position: absolute;
+		top: 6px;
+		right: 10px;
+	}
+
+	.admin {
+		display: none;
+	}
+
+	div#working {
+		/*display: inline;*/
+		display: none;
+		margin-right: 30px;
+	}
+
+
+	#config_sys_list li span.spanbrd {
+		border: 1px solid #ccc;
+		padding: 0px 6px 0px 6px;
+		margin-right: 4px;
+		cursor: pointer;
+		font-weight: normal;
+		display: inline-block;
+		min-width: 100px;
+		text-align: center;
+	}
+
+
+   .syslist {
+	width: 256px;
+	height: 128px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	/*border: 1px solid blue;*/
+	z-index: 1000;
+   }
+   .syslist li:hover {
+	background-color: blue;
+	cursor: pointer;
+   }
+
+   #geos_viewtype .ui-button-text { /*-only .ui-button-text {*/
+	/*padding-top: 10px;
+	padding-bottom: 10px;*/
+	min-height: 22px;
+   }
+
+   #geos_body table td {
+	text-align: right;
+   }
+
+   div#geos_previev {
+	position: absolute;
+	top: 30px;
+	right: 20px;
+	width: 700px;
+	height: 400px;
+	border: 1px solid #000;
+	overflow: hidden;
+   }
+
+   span.showchart {
+	display: inline-block;
+	cursor: pointer;
+	vertical-align: middle;
+   }
+   span.showchart:hover {
+	box-shadow: 1px 1px 6px #999;
+	-moz-box-shadow: 1px 1px 6px #999;
+	-webkit-box-shadow: 1px 1px 6px #999;
+   }
+
+   div.geos_vis {
+	width: 700px; height: 400px;
+   }
+   .ui-progressbar-value { background-image: url(images/pbar-ani.gif); }
+
+   #progressbar {
+	position: absolute;
+	top: 0;
+	right: 10px;
+	height: 24px;
+	/*margin: 0;*/
+	width: 64px;
+	padding: 2px 2px 2px 2px;
+   }
+	div#geos_previev_hide{
+		position:absolute; top:2px; right:2px; width:16px; height:16px; z-index:100;
+		cursor: pointer;
+	}
+	div#geos_previev_hide:hover {
+		box-shadow: 1px 1px 6px #999;
+		-moz-box-shadow: 1px 1px 6px #999;
+		-webkit-box-shadow: 1px 1px 6px #999;
+	}
+
+	table.tview th {
+		padding-left: 2px !important; 
+		padding-right: 2px !important; 
+	}
+
+	#report_btn_do_by_day, #report_btn_do_by_int {
+		padding: 8px 32px 8px 32px;
+	}
 /* map.css */
 div#map {
 	/*width: 100%;
@@ -975,14 +1081,14 @@ div#container {
 div#geos_head {
 	position: absolute;
 	top: 0px;
-	height: 30px;
+	height: 56px;
 	overflow: hidden;
 	width: 100%;
 }
 
 div#geos_body {
 	position: absolute;
-	top: 30px;
+	top: 56px;
 	bottom: 0px;
 	left: 0px;
 	right: 0px;

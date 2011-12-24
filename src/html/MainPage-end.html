@@ -1,32 +1,40 @@
 	</div>
 	<div id="logout">
 		<!--a style="margin-right: 5px;" href="https://siteheart.com/webconsultation/34969?" target="siteheart_sitewindow_34969" onclick="o=window.open;o('https://siteheart.com/webconsultation/34969?', 'siteheart_sitewindow_34969', 'width=550,height=400,top=30,left=30,resizable=yes'); return false;"><img src="http://webindicator.siteheart.com/webindicator/livehelp10?ent=34969&company=34969" border="0" alt="SiteHeart" /></a-->
-		<audio id="sound_alarm" loop="loop"><source src="sound/alarm.ogg" /><source src="sound/alarm.mp3" /></audio>
+		<!--audio id="sound_alarm" loop="loop"><source src="sound/alarm.ogg" /><source src="sound/alarm.mp3" /></audio--> <!-- TBD! Переделать на загрузку по требованию -->
 		<div id="working">Работаем...</div>
 		<a id="a_login" href="/">nickname</a>
 	</div>
 
-  <script src="/js/src/base.js?v=1"></script>
-  <script src="/js/src/updater.js?v=1"></script>
-  <script src="/js/src/alert.js?v=1"></script>
-  <script src="/js/src/syslist.js?v=1"></script>
-  <script src="/js/src/mymarker.js?v=1"></script>
-  <script src="/js/src/lastmarker.js?v=1"></script>
-  <script src="/js/src/gmap.js?v=1"></script>
-  <script src="/js/src/alarm.js?v=1"></script>
-  <script src="/js/src/config.js?v=1"></script>
-  <script src="/js/src/geos.js?v=1"></script>
-  <script src="/js/src/zones.js?v=1"></script>
-  <script src="/js/src/directions.js?v=1"></script>
-  <script src="/js/src/maps.js?v=1"></script>
-  <script src="/js/src/reports.js?v=1"></script>
-  <script src="/js/src/logs.js?v=1"></script>
-  <script src="/js/src/post.js?v=1"></script>
+  <script defer src="/js/init_start.js"></script>
+  <!--
+	TBD!
+	Загрузка initconfig.js может занимать много времени. Уже на 80 системах это длится около секунды.
+        Хотелось бы чем-то занять процессор во время загрузки.
+	"defer" немного помогает, но не достаточно. Желательно сделать все инициализационные процедуры, не зависящие от конфигурации проводить
+        параллельно с загрузкой initconfig.js. Например декорирование jQuery UI (хотябы tabs).
+  -->
+  <!--script defer src="/js/src/base.js?v=1"></script>
+  <script defer src="/js/src/updater.js?v=1"></script>
+  <script defer src="/js/src/alert.js?v=1"></script>
+  <script defer src="/js/src/syslist.js?v=1"></script>
+  <script defer src="/js/src/mymarker.js?v=1"></script>
+  <script defer src="/js/src/lastmarker.js?v=1"></script>
+  <script defer src="/js/src/gmap.js?v=1"></script>
+  <script defer src="/js/src/alarm.js?v=1"></script>
+  <script defer src="/js/src/config.js?v=1"></script>
+  <script defer src="/js/src/geos.js?v=1"></script>
+  <script defer src="/js/src/zones.js?v=1"></script>
+  <script defer src="/js/src/directions.js?v=1"></script>
+  <script defer src="/js/src/maps.js?v=1"></script>
+  <script defer src="/js/src/reports.js?v=1"></script>
+  <script defer src="/js/src/logs.js?v=1"></script>
+  <script defer src="/js/src/post.js?v=1"></script-->
+  <script defer src="/js/all-min.js?v=1"></script>
 
-  <!--script src="/js/all-min.js?v=1"></script-->
+  <script defer type="text/javascript" src="/initconfig.js"></script>
 
-  <script>
-  </script>
+  <script defer src="/js/init_finish.js"></script>
 
 </body>
 </html>

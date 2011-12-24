@@ -16,6 +16,66 @@ indexes:
   - name: date
     direction: desc
 
+- kind: DBFirmware
+  properties:
+  - name: boot
+  - name: hwid
+  - name: subid
+  - name: swid
+    direction: desc
+
+- kind: DBFirmware
+  properties:
+  - name: boot
+  - name: hwid
+  - name: swid
+    direction: desc
+
+- kind: DBFirmware
+  ancestor: yes
+  properties:
+  - name: boot
+  - name: hwid
+  - name: subid
+  - name: swid
+    direction: desc
+
+- kind: DBFirmware
+  ancestor: yes
+  properties:
+  - name: boot
+  - name: hwid
+  - name: swid
+    direction: desc
+
+- kind: DBFirmware
+  ancestor: yes
+  properties:
+  - name: boot
+  - name: subid
+  - name: swid
+    direction: desc
+
+- kind: DBFirmware
+  ancestor: yes
+  properties:
+  - name: boot
+  - name: swid
+    direction: desc
+
+- kind: DBFirmware
+  ancestor: yes
+  properties:
+  - name: hwid
+  - name: swid
+    direction: desc
+
+- kind: DBFirmware
+  ancestor: yes
+  properties:
+  - name: swid
+    direction: desc
+
 - kind: DBGeo
   ancestor: yes
   properties:

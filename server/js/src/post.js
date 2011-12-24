@@ -1,9 +1,30 @@
-// Выполняется после всех скриптов
+// Р’С‹РїРѕР»РЅСЏРµС‚СЃСЏ РїРѕСЃР»Рµ РІСЃРµС… СЃРєСЂРёРїС‚РѕРІ
 
 (function(window) {
-	//config.inits.map(function(single){single();});
-		
-	$("button").button();		// Декорируем кнопки.
+	
+	$("button").button();		// Р”РµРєРѕСЂРёСЂСѓРµРј РєРЅРѕРїРєРё.
+
+	var show = function(index){
+		log('TAB: show: ', index, $(this));
+		log('config:', config.updater);
+		config.tab = index;
+		if(('tabs' in config.updater) && (config.updater.tabs[index])) {
+			if(config.inits){
+				log('TAB: show in inits: ', index, $(this));
+				config.inits.push(function(){
+					log('TAB: show in inits: ', index, $(this));
+					config.updater.tabs[index]();
+				});
+			} else {
+				log('TAB: show direct: ', index, $(this));
+				config.updater.tabs[index]();
+			}
+		} else {
+			log('TAB: no tabs', config.updater, config.updater.tabs[index]);
+		}
+	}
+
+	log('tabs init');
 
 	var $tabs = $("#tabs").tabs({
 		cookie: { expires: 30, name: 'maintab' },
@@ -11,11 +32,7 @@
 		cache: true,
 		spinner: 'Retrieving data...',
 		show: function(){
-			var index = $(this).tabs( "option", "selected" );
-			//log('TAB: show: ', index, $(this));
-			//log('config:', config);
-			config.tab = index;
-			if(('tabs' in config.updater) && (config.updater.tabs[index])) config.updater.tabs[index]();
+			show($(this).tabs( "option", "selected" ));
 		}/*,
 		load: function(){
 			log('TAB: tab loaded: ', $(this).tabs( "option", "selected" ));

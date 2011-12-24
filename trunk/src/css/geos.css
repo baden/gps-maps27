@@ -1,14 +1,14 @@
 div#geos_head {
 	position: absolute;
 	top: 0px;
-	height: 30px;
+	height: 56px;
 	overflow: hidden;
 	width: 100%;
 }
 
 div#geos_body {
 	position: absolute;
-	top: 30px;
+	top: 56px;
 	bottom: 0px;
 	left: 0px;
 	right: 0px;

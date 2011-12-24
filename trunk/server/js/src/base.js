@@ -6,55 +6,84 @@ window.log = function(){
     console.log( Array.prototype.slice.call(arguments) );
   }
 }
-
 window.document.onselectstart = function(){return false;}	// Запретим выделение (внимание решение может быть не кроссбраузерно)
 
-// catch all document.write() calls
-/*(function(doc){
-  var write = doc.write;
-  doc.write = function(q){ 
-    log('document.write(): ',arguments); 
-    if (/docwriteregexwhitelist/.test(q)) write.apply(doc,arguments);  
-  }
-})(document);*/
-/*
-window._id = function(id, where) {
-	return (where || (window.document)).getElementById(id);
+//log('start base. google:', google, 'jQuery:', jQuery);
+
+	//config.ui = {'theme': 'cupertino'};
+
+if(('google' in window) && ('maps' in google)){
+} else {
+	var fileref=document.createElement('script');
+	fileref.setAttribute('type', 'text/javascript');
+	fileref.setAttribute('src', '/js/googlemaps/js.js');
+	document.getElementsByTagName('head')[0].appendChild(fileref);
 }
 
-window._tag = function(tag, where) {
-	return (where || (window.document)).getElementsByTagName(tag);
-}*/
-
+if(('google' in window) && ('load' in google)) {
+	google.load('visualization', '1', {packages: ['corechart']});
+} else {
+	alert('Сервер Google недоступен. \n1. Проверьте интернет-соединение. \n2. Обновите страницу (F5).');
+}
 
 /* Загрузка темы оформления */
 var theme_css = document.createElement('link');
 theme_css.id = 'themecss';
 theme_css.setAttribute("rel", "stylesheet");
 theme_css.setAttribute("type", "text/css");
-//theme_css.className = 'alertmsg';
 config.setTheme = function(themename) {
-	//log('load-theme', themename, theme_css);
-	/*
-	if(theme_css.styleSheet) {
-		theme_css.styleSheet.cssText = '/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/'+themename+'/jquery-ui.css';
-	} else {
-		theme_css.appendChild(document.createTextNode('/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/'+themename+'/jquery-ui.css'));
-	}
-	*/
 	theme_css.setAttribute('href', '/plugins/jquery-ui-themes-1.8.16/jquery-ui-themes-1.8.16/themes/'+themename+'/jquery-ui.css');
+	localStorage.setItem('account.theme', themename);
 } 
-//$(document).ready(function(){
+
+var def_theme = localStorage.getItem('account.theme') || 'cupertino';
+config.setTheme(def_theme);
+if(!document.getElementById('themecss')) {
+	var h0 = document.getElementsByTagName('head')[0];
+	h0.insertBefore(theme_css, h0.firstChild);
+}
+
+
+
+config.inits.push(function(){
+	log('base.js init', config);
+	if(config.account.systems.length == 0) config.skey = null; else config.skey = config.account.systems[0].skey;
+
+	config.sysbykey = {};
+	for(var i in config.account.systems){
+		var sys = config.account.systems[i];
+		config.sysbykey[sys.skey] = sys;// {'imei': '{{ sys.imei }}', 'desc': '{{ sys.desc }}'};
+	}
+
+	/* Deprecated declares */
+	config.user = config.account.user;
+	config.username = config.account.user.nickname;
+	config.admin = config.account.user.admin;
+	config.systems = config.account.systems;
+	config.ui = config.account.config;
+	config.akey = config.account.key;
+
+	console.log('Init config:', config);
+
+	//InitUpdater();	// TBD! Это не самое элегантное решение вызова инициализации обновления.
+	
+	//$("#draggable").draggable();
+	if(!window.config){
+		alert('Ошибка инициализации. Проверьте интернет соединение.');
+	} else {
+		if(window.config.answer == 'no'){
+			//alert('Heобходима авторизация');
+			window.location.href = window.config.user.login_url;
+		}
+	}
+
 	config.setTheme(config.account.config.theme);
 	//if(!document.getElementById('themecss')) document.getElementsByTagName('head')[0].appendChild(theme_css);
-	if(!document.getElementById('themecss')) {
-		var h0 = document.getElementsByTagName('head')[0];
-		h0.insertBefore(theme_css, h0.firstChild);
-	}
-//});
 
-//  <link href="" rel="stylesheet">
+	$('#a_login').attr('href', window.config.account.user.logout_url);
+	$('#a_login').html(window.config.account.user.nickname);
 
+});
 
 var f2d = function(n) {
   if (n < 10) {
@@ -342,8 +371,6 @@ $(document).ready(function(){
 		//alert('Масштабирование страницы не рекомендуется. Используйте масштаб 100%. Закройте окно с этим сообщением и нажмите Ctrl+0 (нажмите клавишу Ctrl и не отпуская нажмите клавишу "ноль").');
 	}
 
-	$('#a_login').attr('href', window.config.account.user.logout_url);
-	$('#a_login').html(window.config.account.user.nickname);
 
 /*
 	try { 
@@ -482,6 +509,27 @@ config.helper.element_by_html = function(htmlString) {
 }
 
 
+var clone = function(o) {
+	if(!o || 'object' !== typeof o) {
+		return o;
+	}
+	//var c = {};
+	//if('function' === typeof o.pop) return o.splice(0);
+	var c = ('function' === typeof o.pop) ? [] : {};
+	for(var p in o) {
+		if(o.hasOwnProperty(p)) {
+			var v = o[p];
+			if(v && 'object' === typeof v) {
+				c[p] = clone(v);
+			} else {
+				c[p] = v;
+			}
+		}
+	}
+	return c;
+}
+
+config.helper.clone = clone;
 
 })(window, jQuery);
 

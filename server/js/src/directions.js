@@ -203,7 +203,7 @@ var add_way_point = function(title) {
 	points.push(point_data);
 
 	var input = point_div.querySelector('input');
-	log('input', input, config.map);
+	//log('input', input, config.map);
         var autocomplete = new google.maps.places.Autocomplete(input);
 	autocomplete.bindTo('bounds', config.map);
 	
@@ -298,10 +298,13 @@ DirKit.prototype.Route = function(){
 
 	if(!show_dir_panel){
 		show_dir_panel = true;
+		//log('dir show', this);
+		this.firstChild.style.backgroundColor = 'lime';
 		document.getElementById('panel').appendChild(dir_panel);
 
 	} else {
 		show_dir_panel = false;
+		this.firstChild.style.backgroundColor = '';
 		document.getElementById('panel').removeChild(dir_panel);
 		//dir_panel = null;
 	}

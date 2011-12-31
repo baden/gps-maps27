@@ -128,6 +128,35 @@ var ch_desc = function(){
 	//$(dialog).dialog('open');
 }
 
+var ch_car = function(){
+	var li = this.parentNode.parentNode;
+	var imei = li.dataset.imei;
+	var skey = li.dataset.skey;
+	var desc = li.querySelector('.description').innerText;
+
+	log('ch_car');
+
+	config.helper.dialog('/html/dialogs/car.html', {imei: imei, desc: desc}, {
+		'Применить изменения.': function() {
+			var form = this.querySelector('form');
+			log('Применить изменения.', this, form);
+			console.dir(form);
+			window['f']=form;
+
+			data = {};
+			for(var k=0, l=form.elements.length; k<l; k++){
+				data[form.elements[k].name] = form.elements[k].value;
+			}
+
+			config.helper.postJSON('/api/sys/car', data, function(data){
+				log('/api/sys/car', data);
+			});
+
+			$(this).dialog('close');
+		}
+	});
+}
+
 var bzone = function(){
 	var li = this.parentNode.parentNode;
 	var imei = li.dataset.imei;
@@ -412,6 +441,7 @@ config.updater.tabs[4] = function(){
 		var ctl_div = document.createElement('span');
 		ctl_div.innerHTML = ''+
 			'<button class="key bdesc mm" title="Изменить описание">...</button>' +
+			'<button class="key bcar mm" title="Информация об объекте">И</button>' +
 			'<!--button class="bico hl mm" title="Выбрать пиктограмму">P</button-->' +
 			(config.admin?'<button class="bpurge hl mm" title="Удалить GPS данные!">D</button>':'') +
 			'<button class="bconf hl mm" title="Настроить систему">C</button>' +
@@ -424,6 +454,7 @@ config.updater.tabs[4] = function(){
 
 
 		$(ctl_div).find('.bdesc').button().click(ch_desc);
+		$(ctl_div).find('.bcar').button().click(ch_car);
 		$(ctl_div).find('.calarm').button().click(cancel_alarm);
 		$(ctl_div).find(".bzone").button().click(bzone);
 		$(ctl_div).find(".btags").button().click(btags);

@@ -1,0 +1,4 @@
+http://maps.gstatic.com/cat_js/intl/ru_ALL/mapfiles/api-3/7/4/%7Bmain,drawing,places%7D.js
+http://maps.gstatic.com/intl/ru_ALL/mapfiles/api-3/7/4/%7Bcommon%7D.js
+
+http://maps.gstatic.com/intl/ru_ALL/mapfiles/api-3/7/4/common.js

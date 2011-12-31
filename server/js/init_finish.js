@@ -3,3 +3,7 @@ config.inits.push(function(){
 });
 config.inits.forEach(function(single){single();});
 delete config.inits;
+
+setTimeout(function(){document.body.removeChild(document.getElementById('loading_div'));}, 500);
+
+//log('finish');

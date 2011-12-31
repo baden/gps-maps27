@@ -2,8 +2,8 @@
 path=c:\python27\;%path%
 
 rem WHITESPACE_ONLY SIMPLE_OPTIMIZATIONS ADVANCED_OPTIMIZATIONS
-rem SET compilation_level=WHITESPACE_ONLY
-SET compilation_level=SIMPLE_OPTIMIZATIONS
+SET compilation_level=WHITESPACE_ONLY
+rem SET compilation_level=SIMPLE_OPTIMIZATIONS
 
 rem ==================
 rem js

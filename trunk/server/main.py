@@ -173,6 +173,8 @@ CACHE:
 /js/jquery-1.7.1.min.js
 /js/jquery.cookie.js
 /js/chainvas.min.js
+/js/init_start.js
+/js/init_finish.js
 /stylesheets/all.css?v=1
 /svg/arrow.svg
 /sound/alarm.ogg

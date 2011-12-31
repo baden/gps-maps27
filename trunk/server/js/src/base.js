@@ -47,6 +47,17 @@ if(!document.getElementById('themecss')) {
 
 config.inits.push(function(){
 	log('base.js init', config);
+
+	//$("#draggable").draggable();
+	if(!window.config){
+		alert('Ошибка инициализации. Проверьте интернет соединение.');
+	} else {
+		if(window.config.answer == 'no'){
+			//alert('Heобходима авторизация');
+			window.location.href = window.config.user.login_url;
+		}
+	}
+
 	if(config.account.systems.length == 0) config.skey = null; else config.skey = config.account.systems[0].skey;
 
 	config.sysbykey = {};
@@ -67,15 +78,6 @@ config.inits.push(function(){
 
 	//InitUpdater();	// TBD! Это не самое элегантное решение вызова инициализации обновления.
 	
-	//$("#draggable").draggable();
-	if(!window.config){
-		alert('Ошибка инициализации. Проверьте интернет соединение.');
-	} else {
-		if(window.config.answer == 'no'){
-			//alert('Heобходима авторизация');
-			window.location.href = window.config.user.login_url;
-		}
-	}
 
 	config.setTheme(config.account.config.theme);
 	//if(!document.getElementById('themecss')) document.getElementsByTagName('head')[0].appendChild(theme_css);
@@ -489,22 +491,60 @@ config.helper = {
 			}
 		}
 		xhr.send(null);
-	}
+	},
 
-}
-
-config.helper.element_by_html = function(htmlString) {
-	var tempDiv = document.createElement('div');
-	tempDiv.innerHTML = '<br>' + htmlString;
-	tempDiv.removeChild(tempDiv.firstChild);
-	if (tempDiv.childNodes.length == 1) {
-		return (tempDiv.removeChild(tempDiv.firstChild));
-	} else {
-		var fragment = doc.createDocumentFragment();
-		while (tempDiv.firstChild) {
-			fragment.appendChild(tempDiv.firstChild);
+	dialogs: {},
+	dialog: function(url, data, buttons){
+		log('dialog');
+		config.working();
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', url, true);
+		xhr.onreadystatechange = function() {
+			if(xhr.readyState === 4) {
+				if(xhr.status === 200 || xhr.status === 304) {
+					//callback(xhr.responseText);
+					config.helper.dialogs[url] = xhr.responseText;
+					var dialogsrc = config.helper.dialogs[url]
+					//log();
+					for(var k in data){
+						dialogsrc = dialogsrc.replace('{'+k+'}', data[k]);
+						//log('replace', k, data[k]);
+					}
+					var dialog = config.helper.element_by_html(dialogsrc);
+					//log('dialog', dialog, dialogsrc);
+					//window['a'] = dialogsrc;
+					$(dialog).dialog({
+						width: 500,
+						/*height: 150,*/
+						modal: true,
+						autoOpen: true,
+						close: function(ev, ui) {
+							$(this).dialog('destroy');
+							document.body.removeChild(dialog);
+						},
+						buttons: buttons
+					});
+				}
+				config.workingdone();
+			}
 		}
-		return fragment;
+		xhr.send(null);
+
+	}, 
+
+	element_by_html: function(htmlString) {
+		var tempDiv = document.createElement('div');
+		tempDiv.innerHTML = '<br>' + htmlString;
+		tempDiv.removeChild(tempDiv.firstChild);
+		if (tempDiv.childNodes.length == 1) {
+			return (tempDiv.removeChild(tempDiv.firstChild));
+		} else {
+			var fragment = document.createDocumentFragment();
+			while (tempDiv.firstChild) {
+				fragment.appendChild(tempDiv.firstChild);
+			}
+			return fragment;
+		}
 	}
 }
 

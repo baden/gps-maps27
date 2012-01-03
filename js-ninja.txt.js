@@ -66,3 +66,7 @@ var removeChildrens = function(node) {
     node.removeChild(child);
   }
 };
+
+// Ќайден другой способ добавлени€ нодов как текст:
+node.insertAdjacentHTML('beforeEnd', ['<div>B</div>','',''].join(''));
+

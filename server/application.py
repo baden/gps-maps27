@@ -38,6 +38,7 @@ app = webapp2.WSGIApplication([
 	('/api/sys/sort*', 'api.Sys_Sort'),
 	('/api/sys/config*', 'api.Sys_Config'),
 	('/api/sys/tags*', 'api.Sys_Tags'),
+	('/api/sys/car*', 'api.Sys_Car'),
 	('/api/sys/secure_list*', 'api.Sys_SecureList'),
 
 	('/api/param/desc*', 'api.Param_Desc'),

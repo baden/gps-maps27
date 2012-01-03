@@ -304,7 +304,9 @@ class DBGeo(db.Model):
 	def DeleteTo(cls, skey, dtto):
 		db.delete(DBGeo.all(keys_only=True).filter('date <', dtto).order('date').ancestor(skey).fetch(200))	# Максимум 200 записей (дней) за раз
 
-
+"""
+	TBD! Необходимо реализовать асинхронное чтение из базы и совместить с предварительным разбором пакета.
+"""
 class PointWorker(object):
 	def __init__(self, skey):
 		logging.info('PointWorker: __init__(%s)' % str(skey))

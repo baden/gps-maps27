@@ -288,12 +288,12 @@
 			<button id="config_button_zonerules_add">Создать набор правил.</button>
 		</div>
 
-		<h3><a href="#">Группы пользователей (Компании)</a></h3>
+		<!--h3><a href="#">Водители</a></h3>
 		<div>
 			<ul id="config_ugroup_list"></ul>
 			<button id="config_button_ugroup_add">Создать группу пользователей. (Стать администратором группы).</button>
 			<button id="config_button_ugroup_select">Присоединиться к группе пользователей.</button>
-		</div>
+		</div-->
 		<h3><a href="#">Настройки интерфейса</a></h3>
 		<div>
 			<div style="position: absolute; top:0px; bottom: 30px; left:0px; right:0px; overflow-y:auto; ">
@@ -376,8 +376,9 @@
 
 	<div id="config_dialog_addsys" title="Добавление системы">
 	<form>
-		<label>Укажите IMEI добавляемой системы</label><br />
-       		<div><textarea id="config_addsys_imei" name="imei" rows="1" style="width:98%;"></textarea></div>
+		<label>Укажите IMEI добавляемой системы</label><br>
+       		<input id="config_addsys_imei" name="imei" rows="1" style="width:98%;"><br><br>
+		Или выберите список из файла:<br> <input type="file" name="file">
 	</form>
 	</div>
 
@@ -410,7 +411,7 @@
 		</table>
 		<button id="config_zone_link_add_rule">Добавить правило</button>
 	</div>
-	
+
 	<style>
 		#popup-sys ul {
 			list-style: none;

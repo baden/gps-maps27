@@ -322,6 +322,7 @@ class BinGpsParse(webapp2.RequestHandler):
 #	pass
 """
 	TBD! Необходимо обработчик обернуть в try: except: чтобы не возвращать приборам мусор с случае исключений.
+	TBD! Необходимо реализовать асинхронное чтение из базы и совместить с предварительным разбором пакета.
 """
 class BinGps(webapp2.RequestHandler):
 	def post(self):

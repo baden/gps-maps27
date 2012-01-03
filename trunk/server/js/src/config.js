@@ -136,25 +136,32 @@ var ch_car = function(){
 
 	log('ch_car');
 
-	config.helper.dialog('/html/dialogs/car.html', {imei: imei, desc: desc}, {
-		'Применить изменения.': function() {
-			var form = this.querySelector('form');
-			log('Применить изменения.', this, form);
-			console.dir(form);
-			window['f']=form;
+	config.helper.getJSON('/api/sys/car?cmd=get&skey='+skey, function(data){
+		log('/api/sys/car?get', data);
+		var car = data.car;
+		car.imei = imei;
+		car.desc = desc;
+		config.helper.dialog('/html/dialogs/car.html', car, {
+			'Применить изменения.': function() {
+				var form = this.querySelector('form');
+				log('Применить изменения.', this, form);
+				console.dir(form);
+				window['f']=form;
 
-			data = {};
-			for(var k=0, l=form.elements.length; k<l; k++){
-				data[form.elements[k].name] = form.elements[k].value;
+				data = {skey:skey};
+				for(var k=0, l=form.elements.length; k<l; k++){
+					data[form.elements[k].name] = form.elements[k].value;
+				}
+
+				config.helper.postJSON('/api/sys/car?cmd=set', data, function(data){
+					log('/api/sys/car', data);
+				});
+
+				$(this).dialog('close');
 			}
-
-			config.helper.postJSON('/api/sys/car', data, function(data){
-				log('/api/sys/car', data);
-			});
-
-			$(this).dialog('close');
-		}
+		});
 	});
+
 }
 
 var bzone = function(){
@@ -441,21 +448,20 @@ config.updater.tabs[4] = function(){
 		var ctl_div = document.createElement('span');
 		ctl_div.innerHTML = ''+
 			'<button class="key bdesc mm" title="Изменить описание">...</button>' +
-			'<button class="key bcar mm" title="Информация об объекте">И</button>' +
-			'<!--button class="bico hl mm" title="Выбрать пиктограмму">P</button-->' +
-			(config.admin?'<button class="bpurge hl mm" title="Удалить GPS данные!">D</button>':'') +
-			'<button class="bconf hl mm" title="Настроить систему">C</button>' +
-			'<button class="key bzone mm" title="Привязать ГЕО-зону">З</button>' +
-			(config.admin?'<button class="key calarm mm" title ="Принудительная отмена тревоги">T</button>':'') +
-			'<button class="key btags mm" title="Назначить ярлыки">Я</button>' +
-			'<button class="key bdel mm" title="Отказаться от слежения за системой">X</button>'+
+			'<button class="key btags mm" title="Назначить ярлыки">Ярлыки</button>' +
+			'<button class="key bcar mm" title="Информация об объекте">Инф.</button>' +
+			'<!--button class="bico hl mm" title="Выбрать пиктограмму">Икон.</button-->' +
+			'<button class="bconf hl mm" title="Настроить систему">Конф.</button>' +
+			'<button class="key bzone mm" title="Привязать ГЕО-зону">Зоны</button>' +
+			(config.admin?'<button class="key calarm mm" title ="Принудительная отмена тревоги">ОтмТрев</button>':'') +
+			(config.admin?'<button class="bpurge hl mm" title="Удалить GPS данные!">Удал.GPS</button>':'') +
+			'<button class="key bdel mm" title="Отказаться от слежения за системой">Удалить</button>'+
 		'';
-		$(ctl_div).find('button').button();
-
+		//$(ctl_div).find('button').button();
 
 		$(ctl_div).find('.bdesc').button().click(ch_desc);
 		$(ctl_div).find('.bcar').button().click(ch_car);
-		$(ctl_div).find('.calarm').button().click(cancel_alarm);
+		if(config.admin) $(ctl_div).find('.calarm').button().click(cancel_alarm);
 		$(ctl_div).find(".bzone").button().click(bzone);
 		$(ctl_div).find(".btags").button().click(btags);
 		$(ctl_div).find('.bconf').button().click(bconf);
@@ -514,40 +520,68 @@ config.updater.tabs[4] = function(){
 	if(window.config.account.user.admin) $('.admin').show();
 		// Закладка "Наблюдаемые системы"
 
-		$("#config_button_sys_add").click(function(){ $("#config_dialog_addsys").dialog('open'); });
+	$("#config_button_sys_add").click(function(){ $("#config_dialog_addsys").dialog('open'); });
 
 		$("#config_dialog_addsys").dialog({
 			width: 400,
 			height: 200,
 			modal: true,
 			autoOpen: false,
+			open: function(){
+				var form = document.getElementById('config_dialog_addsys').querySelector('form');
+				log('form', form, form.imei, form.file);
+				form.file.value='';
+			},
 			buttons: {
 				'Добавить систему.': function() {
-					var imei = $('#config_dialog_addsys #config_addsys_imei').val();
-					$.getJSON('/api/sys/add?imei=' + imei, function (data) {
-						//window.location = "/config";
-						//$(this).dialog('close');
-						if(data.result){
-							var result = data.result;
-							if(result == "not found"){
-								$("#dialog_addsys_not_found").dialog('open');
-							} else if(result == "already"){
-								$("#dialog_addsys_already").dialog('open');
-							} else if(result == "added") {
-								log('manual add', data.system);
-								ConfigList.handlers.additem.call(ConfigList, data.system);
+					var form = document.getElementById('config_dialog_addsys').querySelector('form');
+					var file = form.file.files[0];
 
-								//var system = clone(msg.data.system);
-								//config.account.systems.push(system);
-								//config.sysbykey[system.key] = system;
+					if(form.file.files.length > 0) {
+						/* Добавление через список файлов */
+						var reader = new FileReader();
+						reader.onload = function(e) {
+							log('read', e, e.target.result);
+							//window['a'] = e.target.result;
+							//document.getElementById('config_dialog_addsys').textContent = e.target.result;
+						};
+						reader.readAsBinaryString(file);
+						// Read in the image file as a data URL.
+						//reader.readAsDataURL(file);
 
-								//UpdateSysList();
-								//$(this).dialog('close');
-								// TBD! Это неправильная реализация!
-								//ConfigList.Rebuild();
+					} else {
+						/* Добавление через IMEI */
+						var imei = form.imei.value;
+						log('imei', imei);
+						//var imei = $('#config_dialog_addsys #config_addsys_imei').val();
+						//var file = 
+						$.getJSON('/api/sys/add?imei=' + imei, function (data) {
+							//window.location = "/config";
+							//$(this).dialog('close');
+							if(data.result){
+								var result = data.result;
+								if(result == "not found"){
+									$("#dialog_addsys_not_found").dialog('open');
+								} else if(result == "already"){
+									$("#dialog_addsys_already").dialog('open');
+								} else if(result == "added") {
+									log('manual add', data.system);
+									ConfigList.handlers.additem.call(ConfigList, data.system);
+
+									//var system = clone(msg.data.system);
+									//config.account.systems.push(system);
+									//config.sysbykey[system.key] = system;
+
+									//UpdateSysList();
+									//$(this).dialog('close');
+									// TBD! Это неправильная реализация!
+									//ConfigList.Rebuild();
+								}
 							}
-						}
-					});
+						});
+
+					}
+
 					$(this).dialog('close');
 				},
 				'Отменить': function() {
@@ -674,7 +708,15 @@ config.updater.tabs[4] = function(){
 			}
 		});
 
-		$("#config_list").accordion({fillSpace: true, collapsible: true});
+		$("#config_list").accordion({
+			fillSpace: true,
+			collapsible: true,
+			change: function(event, ui) {
+				//var active = ui.options.active;	// Аналогичное действие, но может в будуещем стать неработоспособным
+				var active = $(this).accordion('option', 'active');
+				log('accordion change', event, ui, this, active);
+			}
+		});
 		$("#config_sys_list").sortable({
 			//delay: 500,
 			//axis: 'y',

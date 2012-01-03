@@ -33,12 +33,13 @@ class BaseApi(webapp2.RequestHandler):
 		return {'answer': 'no', 'reason': 'base api'}
 
 	def _parcer(self):
-		self.user = users.get_current_user()
-		if self.user is None:
-			return {"answer": "no", "reason": "Required login."}
-		self.akey = DBAccounts.key_from_user_id(self.user.user_id())
-		if self.akey is None:
-			return {"answer": "no", "reason": "Required register user first (login)."}
+		if 'nologin' not in self.requred:
+			self.user = users.get_current_user()
+			if self.user is None:
+				return {"answer": "no", "reason": "Required login."}
+			self.akey = DBAccounts.key_from_user_id(self.user.user_id())
+			if self.akey is None:
+				return {"answer": "no", "reason": "Required register user first (login)."}
 
 		if 'admin' in self.requred:
 			if not users.is_current_user_admin():
@@ -82,15 +83,27 @@ class BaseApi(webapp2.RequestHandler):
 
 	def get(self):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
+		#self.response.headers['Access-Control-Allow-Origin'] = '*'
 		self.response.write(json.dumps(self._parcer(), indent=2) + "\r")
 
 	def post(self):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
-		self.response.out.write(json.dumps(self._parcer(), indent=2) + "\r")
+		self.response.write(json.dumps(self._parcer(), indent=2) + "\r")
 
+concurent = 0
 class Version(BaseApi):
+	requred = ('nologin')
 	def parcer(self):
-		return {'answer': 'ok', 'version': API_VERSION}
+		#from time import sleep
+		global concurent
+		conc = concurent
+		concurent += 1
+		#sleep(3.0)
+		self.response.headers['Access-Control-Allow-Origin'] = '*'
+		self.response.headers['Access-Control-Allow-Methods'] = "GET, POST, OPTIONS"
+		self.response.headers['Access-Control-Max-Age'] = "1728000"
+		concurent -= 1
+		return {'answer': 'ok', 'version': API_VERSION, 'concurent': conc}
 
 class ApiPage(webapp2.RequestHandler):
 	def get(self):
@@ -1502,6 +1515,56 @@ class Sys_Tags(BaseApi):
 		}, domain=private())
 
 		return {'result': 'ok', 'skey': str(self.skey), 'tags': tags}
+
+class Sys_Car(BaseApi):
+	requred = ('account', 'skey')
+	def parcer(self, **argw):
+		from datamodel.channel import inform
+		from datamodel.namespace import private
+		from datamodel.car import DBCar
+		import pickle
+
+		if self.request.get('cmd', '') == 'get':
+			q = DBCar.get(self.skey)
+			if q is not None:
+				car = {
+					'number': q.number,
+					'model': q.model,
+					'year': q.year,
+					'drive': q.drive,
+					'vin': q.vin,
+					'teh': q.teh,
+					'casco': q.casco,
+					'comments': q.comments
+				}
+			else:
+				car = {
+					'number': '',
+					'model': '',
+					'year': '',
+					'drive': '',
+					'vin': '',
+					'teh': '',
+					'casco': '',
+					'comments': ''
+				}
+		elif self.request.get('cmd', '') == 'set':
+			car = {'set': 'set', 'params': self.request.POST.items()}
+			DBCar.set( self.skey,
+				number = self.request.POST['number'],
+				model = self.request.POST['model'],
+				year = self.request.POST['year'],
+				drive = self.request.POST['drive'],
+				vin = self.request.POST['vin'],
+				teh = self.request.POST['teh'],
+				casco = self.request.POST['casco'],
+				comments = self.request.POST['comments']
+			)
+		else:
+			return {'result': 'error', 'reason': 'unknown operation'}
+
+		return {'result': 'ok', 'skey': str(self.skey), 'car': car}
+
 
 class Sys_Config(BaseApi):
 	requred = ('skey')

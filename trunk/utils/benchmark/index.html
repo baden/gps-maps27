@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Нагрузочное тестирование.</title>
+  <meta name="description" content="GPS monitoring">
+  <meta name="author" content="Batrak Denis (denis@batrak.net">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">	<!--  Mobile viewport optimized: j.mp/bplateviewport -->
+  <link rel="shortcut icon"  type="image/png" href="about:blank" />
+  <link type="text/css" href="style.css" rel="stylesheet">
+  <link type="text/css" href="button.css" rel="stylesheet">
+  <style>
+	body {
+		background-color: #cdc;
+		/*font-size: 1.6em;*/
+		/*text-shadow: 1px 1px 1px #fff;*/
+		/*font-family: "Comfortaa Regular", "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";*/
+		font-family: "Helvetica", "Arial",  "Verdana", "sans-serif";
+	}
+
+	div#tests {
+		position: absolute;
+		top: 32px;
+		bottom: 1px;
+		left: 1px;
+		right: 1px;
+		/*border: 1px solid black;*/
+		overflow: auto;
+	}
+
+	div.task {
+		display: inline-block;
+		width: 128px;
+		/*height: 128px;*/
+		/*border: 1px solid black;*/
+		box-shadow: 1px 1px 4px #444;
+		margin: 2px 2px 2px 2px;
+		position: relative;
+	}
+		span.delete {
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			width: 16px;
+			padding-left: 8px;
+			cursor: pointer;
+			opacity: 0.2;
+			-webkit-transition: all 0.2s ease-out;
+			border-radius: 8px;
+		}
+			div.task:hover span.delete {
+				opacity: 1.0;
+			}
+			div.task span.delete:hover {
+				/*box-shadow: 1px 1px 4px #f00;*/
+				background-color: #f00;
+			}
+
+	.green {
+		color: green;
+	}
+
+  </style>
+  <!--script src="jquery-1.7.1.min.js"></script-->
+</head>
+
+<body>
+  <button id="add_test">Создать тестировщик</button><span id="info"></span>
+  <div id="tests"></div>
+
+  <script type="text/javascript" src="benchmark.js"></script>
+</body>
+</html>
+

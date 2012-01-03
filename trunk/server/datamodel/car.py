@@ -29,23 +29,31 @@ DEFAULT_COLLECT = 'DefaultCollect'
 	Предком записи является система, к кторой относится описание.
 	При установке описания оно добавляется не удаляя предыдущее. Не знаю пока какая от этого польза, но как минимум будет возможность восстановить описание
 	если оно будет случайно или умышленно удалено или испорчено.
+	(!) Ничего не получилось. Похоже нельзя чтобы предок и модель были в разных namespace, поэтому ключем модель является IMEI (skey.name()).
 
 """
 
 class DBCar(db.Model):
-	user = db.UserProperty()			# Пользователь, создавший описание
-	date = db.DateTimeProperty(auto_now_add=True)	# Время создание описания
-	number = db.StringProperty(multiline=False)	# Номер
-	model = db.StringProperty(multiline=False)	# модель-марка
-	year = db.IntegerProperty(default=0) 		# год выпуска
-	drive = db.StringProperty(multiline=False)	# № двигателя
-	vin = db.StringProperty(multiline=False)	# № кузова
-	teh = db.StringProperty(multiline=True)		# данные о ремонте/техосмотре
-	casco = db.StringProperty(multiline=False)	# № страхового полиса
-	comments = db.TextProperty()			# комментарий и т.д.
+	skey = db.StringProperty(multiline=False)		# Ключ в локальном хранилище
+	user = db.UserProperty(auto_current_user_add=True)	# Пользователь, создавший описание
+	date = db.DateTimeProperty(auto_now_add=True)		# Время создание описания
+	number = db.StringProperty(multiline=False)		# Номер
+	model = db.StringProperty(multiline=False)		# модель-марка
+	year = db.StringProperty(multiline=False) 		# год выпуска
+	drive = db.StringProperty(multiline=False)		# № двигателя
+	vin = db.StringProperty(multiline=False)		# № кузова
+	teh = db.TextProperty()					# данные о ремонте/техосмотре
+	casco = db.StringProperty(multiline=False)		# № страхового полиса
+	comments = db.TextProperty()				# комментарий и т.д.
 
 	@classmethod
 	@at_local
-	def set(cls, akey, **kwargs):
+	def set(cls, skey, **kwargs):
 		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
-		cls(parent=akey, **kwargs).put()
+		cls(parent=collect_key, key_name=skey.name(), **kwargs).put()
+
+	@classmethod
+	@at_local
+	def get(cls, skey, **kwargs):
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
+		return cls.get_by_key_name(skey.name(), parent=collect_key)

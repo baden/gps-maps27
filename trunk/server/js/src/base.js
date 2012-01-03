@@ -43,8 +43,6 @@ if(!document.getElementById('themecss')) {
 	h0.insertBefore(theme_css, h0.firstChild);
 }
 
-
-
 config.inits.push(function(){
 	log('base.js init', config);
 
@@ -55,6 +53,7 @@ config.inits.push(function(){
 		if(window.config.answer == 'no'){
 			//alert('Heобходима авторизация');
 			window.location.href = window.config.user.login_url;
+			return;
 		}
 	}
 

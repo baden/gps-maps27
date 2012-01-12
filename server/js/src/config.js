@@ -83,31 +83,16 @@ var ch_desc = function(){
 				var dialog = $(this);
 				var desc = dialog.find('textarea').val();
 				if(desc != olddesc){
-					/*[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
-						if(el.nodeType === Node.TEXT_NODE) el.data = desc;
-					});*/
 					li.querySelector('.description').innerText = desc;
 					$.getJSON('/api/sys/desc?skey=' + skey + '&desc=' + encodeURIComponent(desc), function (data) {
 						if(data.result){
 							var result = data.result;
 							if(result == "disabled"){
-								//$("#dialog-need-admin").dialog('open');
 								alert('Изменение описание заблокировано.');
-								//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
-								/*[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
-									if(el.nodeType === Node.TEXT_NODE) el.data = olddesc;
-								});*/
 								li.querySelector('.description').innerText = olddesc;
 							} else if(result == "ok") {
-								//UpdateSysList();
-								// Отложенное обновление названия
-								//$("#config_sys_list").find('li[imei="'+imei+'"]>desc').html(desc);
 							} else {
 								alert('Ошибка изменения описания. Отменено.');
-								//$("#config_sys_list").find('li[data-skey="'+skey+'"]>desc').html(olddesc);
-								/*[].forEach.call(document.getElementById('config_sys_list').querySelector('*[data-skey="'+skey+'"]').childNodes, function(el){
-									if(el.nodeType === Node.TEXT_NODE) el.data = olddesc;
-								});*/
 								li.querySelector('.description').innerText = olddesc;
 							}
 						}
@@ -136,31 +121,49 @@ var ch_car = function(){
 
 	log('ch_car');
 
+	config.helper.exdialog('/html/dialogs/car.html', '/api/sys/car?skey='+skey, {imei:imei, desc:desc}, {
+		create: function(event, ui) {
+			$(this.querySelector('div.tabs')).tabs();
+			var drivers = this.querySelector('ul.drivers');
+			log('on dialog open', this, drivers);
+			for(var i=0; i<20; i++){
+				drivers.insertAdjacentHTML('beforeend', '<li>Водитель '+(i+1)+'<span class="ui-icon ui-icon-close" title="Отвязать водителя от данного транспортного средства."></span></li>');
+			}
+			$(this.querySelector('button.drvedit')).button().click(function(){
+				config.helper.exdialog('/html/dialogs/drivers.html', '/api/misc/drivers?skey='+skey, {imei:imei, desc:desc}, {});
+			});
+		},
+		open: function(){
+		},
+		buttons: {
+			'Водители': function(){
+				//alert('В разработке.');
+				config.helper.exdialog('/html/dialogs/drivers.html', '/api/misc/drivers?skey='+skey, {imei:imei, desc:desc}, {});
+			}
+		}
+	});
+
+	/*
 	config.helper.getJSON('/api/sys/car?cmd=get&skey='+skey, function(data){
 		log('/api/sys/car?get', data);
-		var car = data.car;
-		car.imei = imei;
-		car.desc = desc;
-		config.helper.dialog('/html/dialogs/car.html', car, {
+		var info = data.info;
+		info.imei = imei;
+		info.desc = desc;
+		config.helper.dialog('/html/dialogs/car.html', info, {
 			'Применить изменения.': function() {
 				var form = this.querySelector('form');
-				log('Применить изменения.', this, form);
-				console.dir(form);
-				window['f']=form;
 
 				data = {skey:skey};
-				for(var k=0, l=form.elements.length; k<l; k++){
-					data[form.elements[k].name] = form.elements[k].value;
-				}
+				config.helper.parseform(form, data);
 
-				config.helper.postJSON('/api/sys/car?cmd=set', data, function(data){
+				config.helper.postJSON('/api/sys/car?cmd=set&skey='+skey, data, function(data){
 					log('/api/sys/car', data);
 				});
 
 				$(this).dialog('close');
 			}
 		});
-	});
+	});*/
 
 }
 
@@ -477,7 +480,7 @@ config.updater.tabs[4] = function(){
 				//li.className = 'ui-widget ui-widget-content';
 				li.innerHTML = '<span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
 					'<span class="spanbrd" title="IMEI">' + s.imei.replace(/-.*/,'') + '</span><span class="spanbrd" title="Телефон">' + (s.phone!='None'?(s.phone):'не определен') + '</span>' +
-					'<span class="description" style="width:200px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;display: inline-block;">' + s.desc + '</span>' +
+					'<span class="description" contenteditable>' + s.desc + '</span>' +
 					'';
 				var tag_block = document.createElement('span');
 				tag_block.className = "tag_block";
@@ -501,6 +504,59 @@ config.updater.tabs[4] = function(){
 					tag_block.style.display = '';
 					return false;
 				}, false);
+				li.querySelector('span.description').addEventListener('keypress', function(ev){
+					//log(ev.charCode);
+					if(ev.charCode == 13) {
+						this.blur();
+						return ev.preventDefault();
+					}
+				}, false);
+				li.querySelector('span.description').addEventListener('focus', function(ev){
+					var olddesc = this.innerText;
+					var skey = this.parentNode.dataset.skey;
+					//log('focus', ev, this);
+					//if(ev.charCode == 13) return ev.preventDefault();
+					//this.style.textOverflow = '';
+					//this.style.width = '';
+					var keyup = function(ev){
+						//log(ev.charCode);
+						if(ev.keyCode == 27){
+							this.innerHTML = olddesc;
+							//this.removeEventListener('keyup', keyup, false);
+							//this.removeEventListener('blur', blur, false);
+							/*var evt = document.createEvent("Event");
+							evt.initEvent('blur', true, true);
+							document.dispatchEvent(evt);*/
+							this.blur();
+						}
+					};
+					var blur = function(ev){
+						var desc = this.innerText;
+						var me = this;
+						//this.style.textOverflow = 'ellipsis';
+						//this.style.width = '200px';
+						if(desc != olddesc) {
+							log('change desc', skey, desc);
+							$.getJSON('/api/sys/desc?skey=' + skey + '&desc=' + encodeURIComponent(desc), function (data) {
+								if(data.result){
+									var result = data.result;
+									if(result == "disabled"){
+										alert('Изменение описание заблокировано.');
+										me.innerText = olddesc;
+									} else if(result == "ok") {
+									} else {
+										alert('Ошибка изменения описания. Отменено.');
+										me.innerText = olddesc;
+									}
+								}
+							});
+						}
+						this.removeEventListener('keyup', keyup, false);
+						this.removeEventListener('blur', blur, false);
+					};
+					this.addEventListener('blur', blur, false);
+					this.addEventListener('keyup', keyup, false);
+				}, false);
 				return li;
 			}
 		});
@@ -521,6 +577,27 @@ config.updater.tabs[4] = function(){
 		// Закладка "Наблюдаемые системы"
 
 	$("#config_button_sys_add").click(function(){ $("#config_dialog_addsys").dialog('open'); });
+		var do_add_sys = function(imei, cb) {
+			log('imei', imei);
+			//var imei = $('#config_dialog_addsys #config_addsys_imei').val();
+			//var file = 
+			$.getJSON('/api/sys/add?imei=' + imei, function (data) {
+				//window.location = "/config";
+				//$(this).dialog('close');
+				if(data.result){
+					var result = data.result;
+					if(result == "not found"){
+						if(cb && cb.notfound) cb.notfound(imei);
+					} else if(result == "already"){
+						if(cb && cb.already) cb.already(imei);
+					} else if(result == "added") {
+						log('manual add', data.system);
+						ConfigList.handlers.additem.call(ConfigList, data.system);
+						if(cb && cb.add) cb.add(imei);
+					}
+				}
+			});
+		}
 
 		$("#config_dialog_addsys").dialog({
 			width: 400,
@@ -541,7 +618,67 @@ config.updater.tabs[4] = function(){
 						/* Добавление через список файлов */
 						var reader = new FileReader();
 						reader.onload = function(e) {
-							log('read', e, e.target.result);
+							var list = e.target.result.replace(/[\r\t\n]/g, ' ').replace(/  /g, ' ').split(' ').filter(function(el){return (el!='') && (el!=' ')});
+
+							//log('read', e, e.target.result, list);
+							var dialog = ['<div title="Список добавляемых систем"><ul>'];
+							list.forEach(function(el){dialog.push('<li data-imei="'+el+'">'+el+'<span class="ui-icon ui-icon-close" title="Удалить" style="cursor: pointer;"></span></li>');});
+							dialog.push('</ul></div>');
+							dialog = config.helper.element_by_html(dialog.join(''));
+							$(dialog).dialog({
+								modal: true,
+								width: 500,
+								height: 300,
+								create: function(){
+									$(this).find('span').click(function(ev){
+										log('this', this.parentNode.innerText);
+										var index = list.indexOf(this.parentNode.innerText);
+										if(index >= 0) {
+											list.splice(index, 1);
+											this.parentNode.parentNode.removeChild(this.parentNode);
+										}
+									});
+								},
+								buttons: {
+									'Да, все верно, добавить.': function(ev, ui){
+										log('confirm', list);
+										var btn = ev.currentTarget;
+										$(btn).button( 'option', {
+											icons: {primary:'ui-icon-gear'},
+											label: 'Обработка...',
+											disabled: true
+										});
+										[].forEach.call(list, function(imei){
+											var li = dialog.querySelector('li[data-imei="'+imei+'"]');
+											li.removeChild(li.lastChild);
+											var res = document.createElement('span');
+											res.style.color = 'black';
+											res.innerText = ' обработка...';
+											li.appendChild(res);
+											do_add_sys(imei, {
+												add: function(imei){
+													log('added', imei);
+													//li.lastChild.insertAdjacentHTML('beforebegin', 'added');
+													res.style.color = 'green';
+													res.innerText = ' выполнено';
+												},
+												notfound: function(imei){
+													log('not found', imei);
+													//li.lastChild.insertAdjacentHTML('beforebegin', 'not found');
+													res.innerText = ' система не найдена';
+													res.style.color = 'red';
+												},
+												already: function(imei){
+													log('already', imei);
+													//li.lastChild.insertAdjacentHTML('beforebegin', 'already');
+													res.innerText = ' вы уже наблюдаете за этой системой';
+													res.style.color = 'blue';
+												}
+											});
+										});
+									}
+								}
+							});
 							//window['a'] = e.target.result;
 							//document.getElementById('config_dialog_addsys').textContent = e.target.result;
 						};
@@ -552,34 +689,19 @@ config.updater.tabs[4] = function(){
 					} else {
 						/* Добавление через IMEI */
 						var imei = form.imei.value;
-						log('imei', imei);
-						//var imei = $('#config_dialog_addsys #config_addsys_imei').val();
-						//var file = 
-						$.getJSON('/api/sys/add?imei=' + imei, function (data) {
-							//window.location = "/config";
-							//$(this).dialog('close');
-							if(data.result){
-								var result = data.result;
-								if(result == "not found"){
-									$("#dialog_addsys_not_found").dialog('open');
-								} else if(result == "already"){
-									$("#dialog_addsys_already").dialog('open');
-								} else if(result == "added") {
-									log('manual add', data.system);
-									ConfigList.handlers.additem.call(ConfigList, data.system);
-
-									//var system = clone(msg.data.system);
-									//config.account.systems.push(system);
-									//config.sysbykey[system.key] = system;
-
-									//UpdateSysList();
-									//$(this).dialog('close');
-									// TBD! Это неправильная реализация!
-									//ConfigList.Rebuild();
-								}
+						do_add_sys(imei, {
+							add: function(imei){
+								log('added', imei);
+							},
+							notfound: function(imei){
+								log('not found', imei);
+								$("#dialog_addsys_not_found").dialog('open');
+							},
+							already: function(imei){
+								log('already', imei);
+								$("#dialog_addsys_already").dialog('open');
 							}
 						});
-
 					}
 
 					$(this).dialog('close');

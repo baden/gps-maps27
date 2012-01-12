@@ -322,3 +322,7 @@ h3 {
 	#report_btn_do_by_day, #report_btn_do_by_int {
 		padding: 8px 32px 8px 32px;
 	}
+
+.ui-icon {
+	display: inline-block !important;
+}

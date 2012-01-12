@@ -209,6 +209,7 @@ http://localhost/_ah/login
 class InitConfig(BaseHandler):
 	def config(self):
 		from datamodel.geo import getGeoLast
+		from datamodel.accounts import DBDomain
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 
 		user = users.get_current_user()
@@ -261,12 +262,16 @@ class InitConfig(BaseHandler):
 		for s in systems:
 			s['last'] = lasts[s['key']]
 
+		domain = DBDomain.get()
+		if domain is None:
+			domain = DBDomain.set()
 		return {
 			'version': VERSION,
 			'session': {
 				'test_value': test_value,
 			},
 			'server_name': os.environ['SERVER_NAME'],
+			'domain': domain.todict(),
 			'account': {
 				'key': str(account.key()),
 				'user': {
@@ -350,7 +355,7 @@ class AddLog(webapp2.RequestHandler):
 			gpslog = GPSLogs(parent = skey, text = text, label = label, mtype = mtype, pos = db.GeoPt(lat, lon))
 			gpslog.put()
 
-			inform('addlog', skey, {
+			inform(skey, 'addlog', {
 				'skey': str(skey),
 				#'time': gpslog.date.strftime("%d/%m/%Y %H:%M:%S"),
 				'time': datetime.utcnow().strftime("%y%m%d%H%M%S"),
@@ -394,7 +399,7 @@ class Config(webapp2.RequestHandler):
 	def post(self):
 		from datamodel import DBConfig
 		from urllib import unquote_plus
-		from datamodel.channel import send_message
+		from datamodel.channel import inform_account
 		#from zlib import compress
 
 		self.response.headers['Content-Type'] = 'application/octet-stream'
@@ -434,7 +439,8 @@ class Config(webapp2.RequestHandler):
 			#})	# Информировать всех пользователей, у которых открыта страница настроек
 
 			#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
-			send_message({'msg': 'cfgupd', 'data':{'skey': str(system.key())}}, akeys=[self.account.key()])
+			#send_message({'msg': 'cfgupd', 'data':{'skey': str(system.key())}}, akeys=[self.account.key()])
+			inform_account(self.account.key(), 'cfgupd', {'skey': str(system.key())})
 
 			self.response.out.write("CONFIG: OK\r\n")
 			return
@@ -907,7 +913,7 @@ class Inform(webapp2.RequestHandler):
 	def get(self):
 		from datetime import datetime
 		from inform import Informer
-		from datamodel.channel import send_message
+		from datamodel.channel import inform
 		# Это единственный (пока) способ побороть Transfer-Encoding: chunked
 		imei = self.request.get('imei', 'unknown')
 		msg = self.request.get('msg', 'unknown')
@@ -927,11 +933,18 @@ class Inform(webapp2.RequestHandler):
 		#	'msg': msg,
 		#})
 		#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
+		"""
 		send_message({'msg': 'inform', 'data':{
 			'skey': str(skey),
 			'time': datetime.utcnow().strftime("%y%m%d%H%M%S"),
 			'msg': msg,
 		}}, skeys=[skey])
+		"""
+		inform(skey, 'inform', {
+			'skey': str(skey),
+			'time': datetime.utcnow().strftime("%y%m%d%H%M%S"),
+			'msg': msg
+		})
 
 
 class Ping(webapp2.RequestHandler):

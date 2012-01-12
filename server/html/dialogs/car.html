@@ -1,14 +1,70 @@
+<style id="Car_Style">
+	div#Car_Main {
+		line-height: 2.0em;
+		padding: 2px;
+		overflow: hidden;
+	}
+	div#Car_Drivers {
+		padding: 2px;
+		overflow: hidden;
+	}
+		div#Car_Drivers ul {
+			max-height:234px;
+			overflow-y:auto;
+			margin-bottom: 10px;
+		}
+			div#Car_Drivers ul li {
+				position: relative;
+				cursor: pointer;
+			}
+			div#Car_Drivers ul li:hover {
+				background-color: lime;
+			}
+				div#Car_Drivers ul li span {
+					display: inline-block;
+					position: absolute;
+					right: 2px;
+					padding: 2px;
+				}
+				div#Car_Drivers ul li span:hover {
+					background-color: red;
+				}
+
+	div#Car_Comments {
+		padding: 2px;
+		overflow: hidden;
+	}
+		div#Car_Comments textarea {
+			width: 99%;
+			height: 100px;
+		}
+</style>
 <div title="Информация об объекте." style="line-height: 1.8em;">
 	<p>Система <span>{imei}</span> : <span>{desc}</span></p>
 
-	<form>
-	Номер:				<input name="number" type="text" size="30" value="{number}"><br>
-	Модель-марка:			<input name="model" type="text" size="30" value="{model}"><br>
-	Год выпуска:			<input name="year" type="number" size="30" value="{year}"><br>
-	№ двигателя:			<input name="drive" type="text" size="30" value="{drive}"><br>
-	№ кузова:			<input name="vin" type="text" size="30" value="{vin}"><br>
-	№ страхового полиса:		<input name="casco" type="text" size="30" value="{casco}"><br>
-	Данные о ремонте/техосмотре:<br><textarea name="teh" style="width:470px; height:60px;">{teh}</textarea><br>
-	Комментарии:<br>		<textarea name="comments" style="width:470px; height:60px;">{comments}</textarea><br>
+	<form action="javascript: void(0)">
+	<div class="tabs" style="height:300px;">
+		<ul>
+	    		<li><a href="#Car_Main"><span>Основные</span></a></li>
+			<li><a href="#Car_Drivers"><span>Водители</span></a></li>
+			<li><a href="#Car_Comments"><span>Примечания</span></a></li>
+	        </ul>
+		<div id="Car_Main">
+			Номер:				<input name="number" type="text" size="10" value="{number}"><br>
+			Модель-марка:			<input name="model" type="text" size="30" value="{model}"><br>
+			Год выпуска:			<input name="year" type="number" size="30" value="{year}"><br>
+			№ двигателя:			<input name="drive" type="text" size="30" value="{drive}"><br>
+			№ кузова:			<input name="vin" type="text" size="30" value="{vin}"><br>
+			№ страхового полиса:		<input name="casco" type="text" size="30" value="{casco}"><br>
+		</div>
+		<div id="Car_Drivers">
+			<ul class="drivers"></ul>
+			<button class="drvedit">Добавить</button>
+		</div>
+		<div id="Car_Comments">
+			Данные о ремонте/техосмотре:<br><textarea name="teh">{teh}</textarea><br>
+			Комментарии:<br>		<textarea name="comments">{comments}</textarea><br>
+		</div>
+	</div>
 	</form>
 </div>

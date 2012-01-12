@@ -119,3 +119,42 @@ div.cfg_iframe {
 span.tags {
 	border: 1px solid blue;
 }
+
+span.description {
+	display: inline-block;
+	width:200px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	cursor: pointer;
+}
+
+span.description:hover {
+	color: blue;
+}
+
+span.description:focus {
+	color: blue;
+	width: auto;
+}
+
+/*
+span[contenteditable] {
+	cursor: pointer;
+	padding: 0 8px 5px 8px;
+	text-decoration: none;
+	border: 2px dashed transparent;
+	color: #666666;
+	font-size: 125%;
+	border-bottom: 2px dotted #ccc;
+}
+
+span[contenteditable]:hover,
+span[contenteditable]:focus {
+	outline: none;
+	border: 2px dashed #ccc;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	color: black;
+}
+*/

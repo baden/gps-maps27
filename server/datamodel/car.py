@@ -45,6 +45,29 @@ class DBCar(db.Model):
 	teh = db.TextProperty()					# данные о ремонте/техосмотре
 	casco = db.StringProperty(multiline=False)		# № страхового полиса
 	comments = db.TextProperty()				# комментарий и т.д.
+	drivers = db.ListProperty(db.Key, default=None)		# Водители (ссылки на записи DBDriver)
+
+	@classmethod
+	@at_local
+	def set(cls, skey, **kwargs):
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
+		cls(parent=collect_key, key_name=skey.name(), **kwargs).put()
+
+	@classmethod
+	@at_local
+	def get(cls, skey, **kwargs):
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
+		return cls.get_by_key_name(skey.name(), parent=collect_key)
+
+class DBDriver(db.Model):
+	fio = db.StringProperty(multiline=False)		# ФИО водителя
+	year = db.DateProperty() 				# дата рождения
+	systems_key = db.ListProperty(db.Key, default=None)	# Перечень привязанных систем (их keys)
+	pasport = db.StringProperty(multiline=True) 		# номер и серия паспорта (при желании и место регистрации)
+	work = db.DateProperty()				# Дата приема на работу (стаж)
+	home = db.StringProperty(multiline=False)		# Место проживания
+	phone = db.StringProperty(multiline=False)		# Мобильный телефон
+	comments = db.TextProperty()				# комментарий и т.д.
 
 	@classmethod
 	@at_local

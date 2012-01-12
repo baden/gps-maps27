@@ -19,6 +19,10 @@ INT_TO_ZTYPE = {
 
 DEFAULT_COLLECT = 'DefaultCollect'
 
+"""
+	TBD! Для уменьшения нагрузки нужно создать отдельный "упрощенный список зон", в идеале в в иде одной записи
+"""
+
 # Гео-зоны
 # parent (ancestor) является администратором зоны (DBAccounts)
 class DBZone(db.Model):
@@ -28,8 +32,12 @@ class DBZone(db.Model):
 	points = db.ListProperty(db.GeoPt, default=None)		# Перечень узлов
 	radius = db.FloatProperty(default=0.0)				# Радиус в метрах для зоны CIRCLE
 	options = db.StringListProperty(default=None)			# свойства зоны (цвет, и т.п.)
-	name = db.StringProperty(default=u'Задайте имя зоны');
-	address = db.StringProperty(default=u'Укажите адрес для зоны');
+	name = db.StringProperty(default=u'Задайте имя зоны')
+	address = db.StringProperty(default=u'Укажите адрес для зоны')
+	desc = db.TextProperty(default=u'Описание')
+	comments = db.TextProperty(default=u'Примечания')
+	active = db.BooleanProperty(default=True)
+
 	boundssw = db.GeoPtProperty()					# Оптимизация поиска вхождения точки
 	boundsne = db.GeoPtProperty()
 

@@ -6,6 +6,7 @@ from google.appengine.api import memcache
 from google.appengine.api import channel
 
 from accounts import DBAccounts
+from namespace import private
 
 # В 1.6.0 наблюдаются проблемы с channel api.
 #DISABLE_CHANNEL = True
@@ -115,16 +116,16 @@ def send_message(message, akeys=[], skeys=[], domain="", timeout=DEFAULT_TIMEOUT
 		memcache.set('DBMessages:lazzy_run', 'wait', time=timeout*2)
 		taskqueue.add(url='/channel/message', countdown=timeout)
 
-def inform(msg, skey, data, domain=""):
+def inform(skey, msg, data, domain=""):
 	send_message({
 		'msg': str(msg),
 		'skey': str(skey),
 		'data': data
 	}, skeys=[skey], domain=domain)
 
-def inform_account(msg, akey, data, domain=""):
+def inform_account(akey, msg, data):
 	send_message({
 		'msg': str(msg),
 		'akey': str(akey),
 		'data': data
-	}, akeys=[akey], domain=domain)
+	}, akeys=[akey], domain=private())

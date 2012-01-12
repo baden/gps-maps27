@@ -1372,8 +1372,9 @@ class Report_Get(BaseApi):
 class Sys_Add(BaseApi):
 	requred = ('account', 'imei')
 	def parcer(self, **argw):
-		from datamodel.channel import send_message
+		from datamodel.channel import inform_account
 		from datamodel.geo import getGeoLast
+		#from datamodel.namespace import private
 
 		#res = self.account.AddSystem(self.imei)
 
@@ -1396,33 +1397,41 @@ class Sys_Add(BaseApi):
 		DBAdmin.addOperation(self.akey, u'Пользователь добавил систему.', {'imei': self.imei})
 		rsystem = system.todict()
 		rsystem['last'] = getGeoLast([skey])[str(skey)]
+		"""
 		send_message({
 			'msg': 'change_slist',
 			'data':{
 				'type': 'Adding',
 				'system': rsystem
 			}
-		}, akeys=[self.akey])
+		}, akeys=[self.akey], domain=private())
+		"""
+		inform_account(self.akey, 'change_slist', {'type': 'Adding', 'system': rsystem})
 
 		return {'answer': 'yes', 'result': 'added', 'system': rsystem}
 
 class Sys_Del(BaseApi):
 	requred = ('account', 'skey')
 	def parcer(self, **argw):
-		from datamodel.channel import send_message
+		from datamodel.channel import inform_account
+		#from datamodel.namespace import private
+
 		res = self.account.DelSystem(self.skey)
 		if res == 0:
 			return {'answer': 'no', 'result': 'not found'}		# Этот ответ больше не поддерживается
 		elif res == 2:
 			return {'answer': 'no', 'result': 'already'}
 		#inform_account('change_slist', self.account, {'type': 'Deleting'})
-		send_message({'msg': 'change_slist', 'data':{'type': 'Deleting'}}, akeys=[self.akey])
+		#send_message({'msg': 'change_slist', 'data':{'type': 'Deleting'}}, akeys=[self.akey], domain=private())
+		inform_account(self.akey, 'change_slist', {'type': 'Deleting', 'skey': str(self.skey)})
 		return {'answer': 'yes', 'result': 'deleted'}
 
 class Sys_Sort(BaseApi):
 	requred = ('account', 'skey')
 	def parcer(self, **argw):
-		from datamodel.channel import send_message
+		from datamodel.channel import inform_account
+		#from datamodel.namespace import private
+
 		index = self.request.get('index', None)
 		if index is None:
 			return {'result': 'no', 'reason': 'index not defined'}
@@ -1453,7 +1462,8 @@ class Sys_Sort(BaseApi):
 
 			self.account.put()
 
-		send_message({'msg': 'change_slist', 'data':{'type': 'Sorting'}}, akeys=[self.akey])
+		#send_message({'msg': 'change_slist', 'data':{'type': 'Sorting'}}, akeys=[self.akey])
+		inform_account(self.akey, 'change_slist', {'type': 'Sorting'})
 
 		return {'result': 'sorted', 'desc': {'skey': str(self.skey), 'oldindex': oldindex, 'newindex': index}}
 
@@ -1480,7 +1490,7 @@ class Sys_Desc(BaseApi):
 		system.descbydomain = pickle.dumps(olddescs)
 		system.put()
 		
-		inform('change_desc', self.skey, {
+		inform(self.skey, 'change_desc', {
 			'desc': desc
 		}, domain=private())
 
@@ -1510,7 +1520,7 @@ class Sys_Tags(BaseApi):
 
 		logging.warning('SKEY: %s (%s)', self.skey, repr(self.skey))
 		
-		inform('change_tag', self.skey, {
+		inform(self.skey, 'change_tag', {
 			'tags': tags
 		}, domain=private())
 
@@ -1534,6 +1544,7 @@ class Sys_Car(BaseApi):
 					'drive': q.drive,
 					'vin': q.vin,
 					'teh': q.teh,
+					'drivers': [],
 					'casco': q.casco,
 					'comments': q.comments
 				}
@@ -1545,6 +1556,7 @@ class Sys_Car(BaseApi):
 					'drive': '',
 					'vin': '',
 					'teh': '',
+					'drivers': [],
 					'casco': '',
 					'comments': ''
 				}
@@ -1563,7 +1575,7 @@ class Sys_Car(BaseApi):
 		else:
 			return {'result': 'error', 'reason': 'unknown operation'}
 
-		return {'result': 'ok', 'skey': str(self.skey), 'car': car}
+		return {'result': 'ok', 'skey': str(self.skey), 'info': car}
 
 
 class Sys_Config(BaseApi):
@@ -1868,6 +1880,51 @@ class Zone_Del(BaseApi):
 
 		return {'answer': 'ok'}
 
+class Zone_Info(BaseApi):
+	#requred = ('account')
+	def parcer(self, **argw):
+		from datamodel.zone import DBZone
+
+		zkey = db.Key(self.request.get("zkey", None))
+
+		from datamodel.channel import inform
+		from datamodel.namespace import private
+		import pickle
+		
+		if self.request.get('cmd', '') == 'get':
+			q = DBZone.get(zkey)
+			if q is not None:
+				info = {
+					'id': q.key().namespace() + ':' + str(q.key().id_or_name()),
+					'name': q.name,
+					'address': q.address,
+					'active': q.active and 'checked' or '',
+					'desc': q.desc,
+					'comments': q.comments,
+				}
+			else:
+				info = {
+				}
+		elif self.request.get('cmd', '') == 'set':
+			info = {'set': 'set', 'params': self.request.POST.items()}
+			"""
+			DBZone.set( self.skey,
+				number = self.request.POST['number'],
+				model = self.request.POST['model'],
+				year = self.request.POST['year'],
+				drive = self.request.POST['drive'],
+				vin = self.request.POST['vin'],
+				teh = self.request.POST['teh'],
+				casco = self.request.POST['casco'],
+				comments = self.request.POST['comments']
+			)
+			"""
+		else:
+			return {'result': 'error', 'reason': 'unknown operation'}
+		
+		return {'result': 'ok', 'zkey': str(zkey), 'info': info}
+
+
 class Zone_Rule_Create(BaseApi):
 	def parcer(self):
 		return {'answer': 'ok'}
@@ -2026,3 +2083,8 @@ class Admin_Operations(BaseApi):
 			})
 
 		return {'answer': 'ok', 'operations': ans, 'cursor': q.cursor()}
+
+class Sys_Misc_Drivers(BaseApi):
+	def parcer(self):
+		info = {}
+		return {'answer': 'ok', 'info': info}

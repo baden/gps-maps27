@@ -128,7 +128,7 @@ ul#map_zones_list li.highlight, ul#map_zones_list li:hover {
 	background-color: lime;
 }
 
-ul#map_zones_list li span {
+ul#map_zones_list li span:last-child {
 	display: inline-block;
 	float: right;
 }

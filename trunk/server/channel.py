@@ -102,14 +102,14 @@ class MessagePost(webapp2.RequestHandler):
 
 			# Сообщения "всем"
 			#messages = messages_bc[:]
-			messages = [m[0] for m in messages_bc if m[1]==parts[2]]
+			messages = [m[0] for m in messages_bc if (m[1]=='') or (m[1]==parts[2])]
 			if len(messages) > 0:
 				_log += '\nBroadcast messages: %d\n%s\n' % (len(messages), repr(messages))
 			
 			# Сообщения по "akey"  TBD! Нет проверки домена!!!
 			if akey in messages_akey:
 				for msg in messages_akey[akey]:
-					if msg[1] == parts[2]:
+					if (msg[1] == '') or (msg[1] == parts[2]):
 						messages.append(msg[0])
 					_log += '\nMessage by akey:\n%s\n' % repr(msg)
 
@@ -127,7 +127,7 @@ class MessagePost(webapp2.RequestHandler):
 			for skey in skeys:
 				if skey in messages_skey:
 					for msg in messages_skey[skey]:
-						if msg[1] == parts[2]:
+						if (msg[1] == '') or (msg[1] == parts[2]):
 							messages.append(msg[0])
 							logging.warning('  ==  Append %s:%s' % (repr(msg), repr(parts)))
 						else:

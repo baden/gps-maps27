@@ -6,7 +6,10 @@
 		<a id="a_login" href="/">nickname</a>
 	</div>
 
-	<div id="loading_div" style="position: absolute; left:0px; top:0px; right:0px; bottom:0px; background-color: grey; /*opacity:0.9*/; font-family: Verdana; font-size: 100px; color: #CCC; display: table-cell; vertical-align: middle; z-index: 1001; text-align: center;">Загрузка...</div>
+	<div id="loading_div" style="position: absolute; left:0px; top:0px; right:0px; bottom:0px; background-color: grey; /*opacity:0.9*/; font-family: Verdana; font-size: 100px; color: #CCC; display: table-cell; vertical-align: middle; z-index: 1001; text-align: center;">
+		Загрузка...
+		<p style="font-size: 36px;">Если длительное время ничего не происходит, попробуйете перезагрузить страницу (F5).</p>
+	</div>
 
   <script defer src="/js/init_start.js"></script>
   <!--
@@ -34,7 +37,8 @@
   <script defer src="/js/src/post.js?v=1"></script>
   <!--script defer src="/js/all-min.js?v=1"></script-->
 
-  <script defer type="text/javascript" src="/initconfig.js"></script>
+  <!--script defer type="text/javascript" src="/initconfig.js"></script-->
+  <script>document.write('<script defer type="text/javascript" src="/initconfig.js?hash='+(new Date()).getTime().toString(36)+Math.floor(Math.random() * 2147483648).toString(36)+'"><\/script>')</script>
 
   <script defer src="/js/init_finish.js"></script>
 

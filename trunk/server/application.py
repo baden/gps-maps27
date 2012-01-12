@@ -51,6 +51,7 @@ app = webapp2.WSGIApplication([
 	('/api/zone/add*', 'api.Zone_Add'),
 	('/api/zone/get*', 'api.Zone_Get'),
 	('/api/zone/del*', 'api.Zone_Del'),
+	('/api/zone/info*', 'api.Zone_Info'),
 	('/api/zone/rule/create*', 'api.Zone_Rule_Create'),
 	('/api/zone/rule/get*', 'api.Zone_Rule_Get'),
 	('/api/zone/rule/del*', 'api.Zone_Rule_Del'),
@@ -60,6 +61,9 @@ app = webapp2.WSGIApplication([
 	('/api/alarm/get*', 'api.AlarmGet'),
 
 	('/api/gmap/ceng*', 'api.GMapCeng'),
+
+
+	('/api/misc/drivers*', 'api.Sys_Misc_Drivers'),
 
 
 	('/api/admin/operations*', 'api.Admin_Operations'),

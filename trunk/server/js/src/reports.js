@@ -315,6 +315,29 @@ config.updater.tabs[1] = function(){
 	log('Tab Reports activated.');
 	if(!init){
 		init = true;
+	} else return;
+
+	//var task_report_line()
+
+	document.getElementById('reports_table_log_task_show').addEventListener('click', function(){
+		var div = document.getElementById('reports_table_log_task');
+		var tbody = div.querySelector('table tbody');
+		div.style.display = '';
+		tbody.appendChild(config.helper.tableline(
+			['<td>Образец 1</td><td>Ежедневно</td><td>Индивидуальный, суточный</td><td>xls</td><td>my.mail@gmail.com</td><td><span class="ui-icon ui-icon-wrench"></span><span class="ui-icon ui-icon-trash"></span></td>'
+		].join('')));
+			
+/*			<tr><td>Образец 2</td><td>Ежедневно</td><td>Индивидуальный, суточный</td><td>xls</td><td>my.mail@gmail.com</td><td></td></tr>
+			<tr><td>Образец 3</td><td>Еженедельно</td><td>Групповой, за интервал</td><td>xls</td><td>my.mail@gmail.com</td><td></td></tr>
+*/
+
+	}, false);
+
+	document.getElementById('report_btn_task').addEventListener('click', function(){
+		log('add');
+		config.helper.dialog('/html/dialogs/task_report.html', {}, {
+		});
+	}, false);
 
 	if('google' in window) geocoder = new google.maps.Geocoder();
 	$("#nav_reports").button("option", "disabled", true);
@@ -555,17 +578,7 @@ config.updater.tabs[1] = function(){
 		//'ext-gen233'
 	});
 	}
-
-
-
-
-
-
-	}
 }
 
-
-$(document).ready(function() {
-});
 
 })(window, jQuery);

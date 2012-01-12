@@ -166,3 +166,45 @@ class DBAccounts(db.Model):
 		#for e in 
 		#return cls.all().ancestor(collect_key).run()	#fetch(1000)
 		return cls.all(namespace=private()).ancestor(collect_key)	#fetch(1000)
+
+
+
+
+"""
+ Запись о домене
+	ключ - имя домена private()
+"""
+class DBDomain(db.Model):
+	register = db.DateTimeProperty(auto_now_add=True)		# Дата регистрации домена (первый вход)
+	owner = db.UserProperty(auto_current_user_add=True)		# Пользователь, создавший доменную зону (первый выполнивший вход)
+	premium = db.DateTimeProperty(auto_now_add=True)		# Дата окончания премиум-подписки (абон-плата).
+	desc = db.StringProperty(multiline=False, default=u'Описание')	# Описание зоны - отображаемое в заголовке имя
+	comments = db.TextProperty(default=u'Примечания')		# Примечания
+	active = db.BooleanProperty(default=True)			# Если значение False, то данный домен заблокирован для использования
+	lock = db.BooleanProperty(default=False)			# Если значение True, то данный домен заблокирован для добавления новых пользователей
+
+	@classmethod
+	def set(cls, **kwargs):
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
+		r = cls(parent=collect_key, key_name=private(), **kwargs)
+		r.put()
+		return r
+
+	@classmethod
+	def get(cls):
+		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
+		return cls.get_by_key_name(private(), parent=collect_key)
+
+	def todict(self):
+		from datetime import datetime
+		return {
+			'key': str(self.key()),
+			'dkey': str(self.key()),
+			'register': self.register.strftime('%y%m%d%H%M%S'),
+			'owner': self.owner.nickname(),
+			'desc': self.desc,
+			'comments': self.comments,
+			'premium': self.premium >= datetime.utcnow(),
+			'active': self.active,
+			'lock': self.lock
+		}

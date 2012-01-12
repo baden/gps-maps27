@@ -3,10 +3,22 @@
 
 window.log = function(){
   if(window.console){
-    console.log( Array.prototype.slice.call(arguments) );
+	try{
+    		console.log( Array.prototype.slice.call(arguments) );
+	} catch(ex) {
+		log('Error in console', ex);
+	}
+
   }
 }
-window.document.onselectstart = function(){return false;}	// Запретим выделение (внимание решение может быть не кроссбраузерно)
+window.document.onselectstart = function(ev){
+	//log('this', ev.target.getAttribute, ev.target.getAttribute('contenteditable'), ev.target.parentNode, ev.target.parentNode.getAttribute('contenteditable'));
+	if((ev.target.getAttribute && ev.target.getAttribute('contenteditable')) || (ev.target.parentNode && ev.target.parentNode.getAttribute('contenteditable')!=null)) {
+		//log('true');
+		return true;
+	}
+	return false;
+}	// Запретим выделение (внимание решение может быть не кроссбраузерно)
 
 //log('start base. google:', google, 'jQuery:', jQuery);
 
@@ -493,7 +505,7 @@ config.helper = {
 	},
 
 	dialogs: {},
-	dialog: function(url, data, buttons){
+	dialog: function(url, data, /*buttons,*/ ext){
 		log('dialog');
 		config.working();
 		var xhr = new XMLHttpRequest();
@@ -510,9 +522,9 @@ config.helper = {
 						//log('replace', k, data[k]);
 					}
 					var dialog = config.helper.element_by_html(dialogsrc);
-					//log('dialog', dialog, dialogsrc);
+					//log('dialog', dialog, dialogsrc, ext);
 					//window['a'] = dialogsrc;
-					$(dialog).dialog({
+					$(dialog).dialog($.extend(ext, {
 						width: 500,
 						/*height: 150,*/
 						modal: true,
@@ -520,9 +532,9 @@ config.helper = {
 						close: function(ev, ui) {
 							$(this).dialog('destroy');
 							document.body.removeChild(dialog);
-						},
-						buttons: buttons
-					});
+						}/*,
+						buttons: buttons*/
+					}));
 				}
 				config.workingdone();
 			}
@@ -531,8 +543,83 @@ config.helper = {
 
 	}, 
 
+/*	parseform: function(form, data) {
+		for(var k=0, l=form.elements.length; k<l; k++){
+			switch(form.elements[k].type) {
+			case 'checkbox':
+				data[form.elements[k].name] = form.elements[k].checked?'checked':'';
+				break;
+			default:
+				data[form.elements[k].name] = form.elements[k].value;
+			}
+		}
+	},
+*/
+	exdialog: function(dialog_url, api_url, ext_data, ext) {
+		config.helper.getJSON(api_url+'&cmd=get', function(data){
+			//log('/api/sys/car?get', data);
+			var info = data.info;
+			/*info.imei = imei;
+			info.desc = desc;*/
+			if(ext_data){
+				for(var k in ext_data){
+					info[k] = ext_data[k];
+				}
+			}
+			log('ext=', config.helper.clone(ext));
+			var b = {
+				'Применить изменения.': function() {
+					var form = this.querySelector('form');
+					data = {};
+					//config.helper.parseform(form, data);
+					for(var k=0, l=form.elements.length; k<l; k++){
+						switch(form.elements[k].type) {
+						case 'checkbox':
+							data[form.elements[k].name] = form.elements[k].checked?'checked':'';
+							break;
+						default:
+							data[form.elements[k].name] = form.elements[k].value;
+						}
+					}
+
+					config.helper.postJSON(api_url+'&cmd=set', data, function(data){
+						//log('/api/sys/car', data);
+					});
+					$(this).dialog('close');
+				}
+			};
+			if(ext.buttons) ext.buttons = $.extend(ext.buttons, b);
+			else ext = $.extend(ext, {buttons: b});
+
+			//log('ext=', config.helper.clone(ext));
+			config.helper.dialog(dialog_url, info, ext);
+		});
+	},
+
 	element_by_html: function(htmlString) {
 		var tempDiv = document.createElement('div');
+		tempDiv.insertAdjacentHTML('beforeend', htmlString);
+		//log('tempDiv', htmlString, tempDiv, tempDiv.firstChild);
+		//console.dir(tempDiv);
+		//console.dir(tempDiv.firstChild);
+		//console.dir(tempDiv.firstElementChild);
+		//return (tempDiv.removeChild(tempDiv.firstChild));
+		var el = tempDiv.firstElementChild;
+		if(el.tagName == 'STYLE'){
+			var style = tempDiv.removeChild(tempDiv.firstElementChild);
+			style.setAttribute("type", "text/css");
+			if(!document.getElementById(style.id)) {
+				//log('style', style);
+				//console.dir(style);
+				document.getElementsByTagName('head')[0].appendChild(style);
+			} else {
+				document.getElementsByTagName('head')[0].replaceChild(style, document.getElementById(style.id));
+			}
+		}
+		//log('->', htmlString, tempDiv);
+		//console.dir(tempDiv);
+		return (tempDiv.removeChild(tempDiv.firstElementChild));
+		/*
 		tempDiv.innerHTML = '<br>' + htmlString;
 		tempDiv.removeChild(tempDiv.firstChild);
 		if (tempDiv.childNodes.length == 1) {
@@ -543,7 +630,12 @@ config.helper = {
 				fragment.appendChild(tempDiv.firstChild);
 			}
 			return fragment;
-		}
+		}*/
+	},
+	tableline: function(htmlString) {
+		var tr = document.createElement('tr');
+		tr.innerHTML = htmlString;
+		return tr;
 	}
 }
 
@@ -569,6 +661,12 @@ var clone = function(o) {
 }
 
 config.helper.clone = clone;
+/*
+	Так вот можно выдать предупреждение при попытке закрыть страницу, перейти по другому адресу или обновить страницу (F5)
+*/
+/*window.onbeforeunload=function(){
+	return 'Ну неужели вам не понравилось?';
+}*/
 
 })(window, jQuery);
 

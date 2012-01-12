@@ -22,7 +22,15 @@ config.updater.add('change_slist', function(msg) {
 				config.account.systems.push(system);
 				config.sysbykey[system.key] = system;
 			}
-
+			break;
+		case 'Deleting':
+			delete config.sysbykey[msg.data.skey];
+			//var i = config.account.systems.indexOf();
+			var i=-1;
+			for(var k in config.account.systems){
+				if(config.account.systems[k].key == msg.data.skey) i = k;
+			}
+			if(i>=0) config.account.systems.splice(i, 1);
 		break;
 	}
 	//var s = msg.data.system;

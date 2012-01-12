@@ -124,7 +124,7 @@ var update_zone_list = function(){
 	$('#map_zones_list').empty();
 	for(var i in zones){
 		var zone = zones[i];
-		$('#map_zones_list').append('<li zkey="' + i + '"> '+(zone_type_names[zone.type]||'<Неподдерживаемый тип>')+'<span title="Удалить зону." class="ui-icon ui-icon-close" foo="del"></li>');
+		$('#map_zones_list').append('<li zkey="' + i + '"><span data-foo="edit" title="Информация о зоне.">E</span> '+(zone_type_names[zone.type]||'<Неподдерживаемый тип>')+'<span title="Удалить зону." class="ui-icon ui-icon-close" data-foo="del"></li>');
 	}
 	$('#map_zones_list li').click(function(ev){
 		var zkey = $(this).attr('zkey');
@@ -147,7 +147,34 @@ var update_zone_list = function(){
 			zone.overlay.setOptions({strokeWeight: 1});
 		}
 	});
-	$('#map_zones_list li span[foo=del]').click(function(ev){
+	$('#map_zones_list li span[data-foo=edit]').click(function(ev){
+		var zkey = $(this).parent().attr('zkey');
+		log('Edit Geo-zone information', zkey);
+
+		config.helper.exdialog('/html/dialogs/zoneinfo.html', '/api/zone/info?zkey='+zkey, null, {});
+
+		/*config.helper.getJSON('/api/zone/info?cmd=get&zkey='+zkey, function(data){
+			log('/api/zone/info?get', data);
+			var info = data.info;
+			config.helper.dialog('/html/dialogs/zoneinfo.html', info, {
+				'Применить изменения.': function() {
+					var form = this.querySelector('form');
+	
+					data = {zkey:zkey};
+					config.helper.parseform(form, data);
+	
+					config.helper.postJSON('/api/zone/info?cmd=set&zkey='+zkey, data, function(data){
+						log('/api/zone/info?set', data);
+					});
+	
+					$(this).dialog('close');
+				}
+			});
+		});*/
+
+
+	});
+	$('#map_zones_list li span[data-foo=del]').click(function(ev){
 		var zkey = $(this).parent().attr('zkey');
 		log('Delete Geo-zone ', zkey);
 		deleteZone(zkey);

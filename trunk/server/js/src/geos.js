@@ -46,8 +46,8 @@
 			}
 			//GeosSysList.Rebuild();
 			
-			if(window.config.account.systems && window.config.account.systems.length>0) {
-				skey = window.config.account.systems[0].skey;
+			if(window.config.account.systems && window.config.account.sys_keys.length>0) {
+				skey = window.config.account.systems[window.config.account.sys_keys[0]].skey;
 				genReport();
 			}
 

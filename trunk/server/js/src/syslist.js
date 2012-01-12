@@ -10,27 +10,28 @@ var document = window.document;
 var lists_count = 0;
 
 config.updater.add('change_desc', function(msg) {
-	config.sysbykey[msg.skey].desc = msg.data.desc;
+	config.account.systems[msg.skey].desc = msg.data.desc;
 });
 
 config.updater.add('change_slist', function(msg) {
 	log('global SysList: change_slist.', msg);
 	switch(msg.data.type){
 		case 'Adding':
-			if(!(msg.data.system.key in config.sysbykey)){
+			if(!(msg.data.system.key in config.account.systems)){
 				var system = config.helper.clone(msg.data.system);
 				config.account.systems.push(system);
-				config.sysbykey[system.key] = system;
+				//config.sysbykey[system.key] = system;
 			}
 			break;
 		case 'Deleting':
-			delete config.sysbykey[msg.data.skey];
-			//var i = config.account.systems.indexOf();
-			var i=-1;
+			delete config.account.systems[msg.data.skey];
+			var i = config.account.sys_keys.indexOf(msg.data.skey);
+			if(i>=0) config.account.sys_keys.splice(i, 1);
+			/*var i=-1;
 			for(var k in config.account.systems){
 				if(config.account.systems[k].key == msg.data.skey) i = k;
 			}
-			if(i>=0) config.account.systems.splice(i, 1);
+			if(i>=0) config.account.systems.splice(i, 1);*/
 		break;
 	}
 	//var s = msg.data.system;
@@ -100,7 +101,7 @@ function SysList(elementid, handlers){
 			for(var i=0, l=me.element.childNodes.length; i<l; i++){
 				var node = me.element.childNodes[i];
 				//log('node', node);
-				if((index==0) || ((config.sysbykey[node.dataset.skey].tags.indexOf(tag))!=-1)) {
+				if((index==0) || ((config.account.systems[node.dataset.skey].tags.indexOf(tag))!=-1)) {
 					node.style.display = '';
 				} else {
 					node.style.display = 'none';
@@ -116,7 +117,7 @@ function SysList(elementid, handlers){
 		});
 		config.updater.add('change_tag', function(msg) {
 			log('SysList: change_tag. Update system tags.', msg);
-			config.sysbykey[msg.skey].tags = msg.data.tags.slice();
+			config.account.systems[msg.skey].tags = msg.data.tags.slice();
 			for(var t in msg.data.tags) {
 				log('tag', t, msg.data.tags[t]);
 				if(!(msg.data.tags[t] in tags)) {
@@ -209,22 +210,24 @@ SysList.prototype.default_handlers = {
 SysList.prototype.Rebuild = function(){
 	log('SysList.prototype.Rebuild');
 	this.handlers.start.call(this);
-	for(var i in window.config.account.systems){
-		var s = window.config.account.systems[i];
+	//for(var i in window.config.account.systems){
+	for(var i in window.config.account.sys_keys){
+		var s = window.config.account.systems[window.config.account.sys_keys[i]];
 		this.handlers.additem.call(this, s);
 	}
 	this.handlers.finish.call(this);
 }
 
 config.updater.add('changedesc', function(msg) {
-	//log('Обработчик события для обновления списка config.systems', msg);
-	for(var i in config.systems){
-		if(config.systems[i].skey == msg.data.skey){
-			config.systems[i].desc = msg.data.desc;
+	//log('Обработчик события для обновления списка config.account.systems', msg);
+	for(var i in config.account.systems){
+		//if(config.account.systems[i].skey == msg.data.skey){
+		if(i == msg.data.skey){
+			config.account.systems[i].desc = msg.data.desc;
 		}
 	}
-	if(msg.data.skey in config.sysbykey){
-		config.sysbykey[msg.data.skey].desc = msg.data.desc;
+	if(msg.data.skey in config.account.systems){
+		config.account.systems[msg.data.skey].desc = msg.data.desc;
 	}
 	//log('CONFIG==', config);
 });

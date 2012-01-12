@@ -17,6 +17,7 @@ from datamodel import DBAccounts, DBSystem, DBGeo, PointWorker
 from datamodel.admin import DBAdmin
 
 from datetime import datetime, timedelta
+from webapp2_extras import sessions
 
 API_VERSION = 1.0
 SERVER_NAME = os.environ['SERVER_NAME']
@@ -29,8 +30,27 @@ API_VERSION = 1.27
 
 class BaseApi(webapp2.RequestHandler):
 	requred = ()
+	js_pre = ''
+	js_post = ''
 	def parcer(self):
 		return {'answer': 'no', 'reason': 'base api'}
+
+	def dispatch(self):
+		# Get a session store for this request.
+		self.session_store = sessions.get_store(request=self.request)
+
+		try:
+			# Dispatch the request.
+			webapp2.RequestHandler.dispatch(self)
+		finally:
+			# Save all sessions.
+			self.session_store.save_sessions(self.response)
+
+	@webapp2.cached_property
+	def session(self):
+		# Returns a session using the default cookie key.
+		return self.session_store.get_session()
+
 
 	def _parcer(self):
 		if 'nologin' not in self.requred:
@@ -84,11 +104,11 @@ class BaseApi(webapp2.RequestHandler):
 	def get(self):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 		#self.response.headers['Access-Control-Allow-Origin'] = '*'
-		self.response.write(json.dumps(self._parcer(), indent=2) + "\r")
+		self.response.write(self.js_pre + json.dumps(self._parcer(), indent=2) + self.js_post + "\r")
 
 	def post(self):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
-		self.response.write(json.dumps(self._parcer(), indent=2) + "\r")
+		self.response.write(self.js_pre + json.dumps(self._parcer(), indent=2) + self.js_post + "\r")
 
 concurent = 0
 class Version(BaseApi):
@@ -111,9 +131,112 @@ class ApiPage(webapp2.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 		self.response.write(json.dumps(a, indent=2) + "\r")
 
+info_counter = 0
+
 class Info(BaseApi):
 	requred = ('account')
+	js_pre = 'console.log("initconfig.js");\rconfig = $.extend(config, '
+	js_post = ');\r'
 	def parcer(self, **argw):
+		from datamodel.geo import getGeoLast
+		from datamodel.accounts import DBDomain
+
+		global info_counter
+		info_counter += 1
+
+		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
+
+		user = users.get_current_user()
+		#test_value = self.session.get('test-value')
+		#if test_value:
+		#	pass
+		#else:
+		#	self.session['test-value'] = 1
+
+		if user is None:
+			return {
+				'answer': 'no',
+				'reason': 'Required login.',
+				'user': {
+					#'email': user.email(),
+					#'nickname': user.nickname(),
+					#'id': user.user_id(),
+					'login_url': users.create_login_url('/'),
+					'logout_url': users.create_logout_url('/'),
+					#'admin': users.is_current_user_admin(),
+				}
+			}
+		account = DBAccounts.get_by_user(user)
+		
+		if account is None:
+			return {
+				'answer': 'no',
+				'reason': 'Required login.',
+				'user': {
+					'email': user.email(),
+					'nickname': user.nickname(),
+					'id': user.user_id(),
+					'login_url': users.create_login_url('/'),
+					'logout_url': users.create_logout_url('/'),
+					'admin': users.is_current_user_admin(),
+				}
+			}
+		"""
+			Так как эта процедура может занимать много времени, то сделаем это асинхронно
+			Хотя все равно уже на 80 системах это занимает около секунды. Не хотется думать что будет при тысяче систем.
+		"""
+		systems_rpc = account.systems_async
+		lasts = getGeoLast(account.systems_key)
+
+		login_url = users.create_login_url('/')
+		logout_url = users.create_logout_url('/')
+
+		#systems = [sys.todict() for sys in systems_rpc.get_result()]
+
+		syss = systems_rpc.get_result()
+		#systems = [sys.todict() for sys in syss]
+		systems = dict([(str(sys.key()), sys.todict()) for sys in syss])
+		sys_keys = [str(s.key()) for s in syss]
+
+		#for s in systems:
+		#	s['last'] = lasts[s['key']]
+		for k,v in systems.items():
+			v['last'] = lasts[str(k)]
+
+		domain = DBDomain.get()
+		if domain is None:
+			domain = DBDomain.set()
+
+		self.session['run_counter'] = int(self.session.get('run_counter', '0')) + 1
+
+		return {
+			'version': API_VERSION,
+			'session': {
+				#'test_value': test_value,
+				'info_counter': info_counter,
+				'run_counter': self.session['run_counter'],
+				'pid': os.getpid(),
+			},
+			'server_name': os.environ['SERVER_NAME'],
+			'domain': domain.todict(),
+			'account': {
+				'key': str(account.key()),
+				'user': {
+					'email': account.user.email(),
+					'nickname': account.user.nickname(),
+					'id': account.user.user_id(),
+					'login_url': login_url,
+					'logout_url': logout_url,
+					'admin': users.is_current_user_admin(),
+				},
+				'config': account.pconfig,
+				'name': account.name,
+				'systems': systems,
+				'sys_keys': sys_keys
+			}
+		}
+
+		"""
 		lsys = [{
 				"key": str(sys.key()),
 				"skey": str(sys.key()),
@@ -146,6 +269,7 @@ class Info(BaseApi):
 				#'systems': sysinfos,
 			}
 		}
+		"""
 
 class Sys_SecureList(BaseApi):
 	requred = ('admin')

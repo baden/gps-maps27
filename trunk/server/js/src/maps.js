@@ -840,10 +840,10 @@ var UpdateGroupList = function (){
 }
 
 var Map_SysList = function (list){
-	//log('Map_SysList systems:', config.systems);
+	//log('Map_SysList systems:', config.account.systems);
 	list.empty();
-	for(var i in config.systems){
-		var s = config.systems[i];
+	for(var i in config.account.systems){
+		var s = config.account.systems[i];
 			list.append(
 				'<li class="ui-widget ui-state-default" imei="'+s.imei+'" skey="'+s.skey+'">'+
 				'  <span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>'+
@@ -977,8 +977,8 @@ config.updater.tabs[0] = function(){
 			taggroupid: 'group_list',
 			tagchange: function(tag, index) {
 				log('map tag change', this, tag, index);
-				for(var k in config.sysbykey){
-					var s = config.sysbykey[k];
+				for(var k in config.account.systems){
+					var s = config.account.systems[k];
 					if((index==0) || (s.tags.indexOf(tag) != -1)){
 						//document.querySelector('.lastmarker[skey="' + k + '"]').classList.remove('hidden');	// TBD! Не отпимальный вызов
 						document.querySelector('.lastmarker[skey="' + k + '"]').style.display='';	// TBD! Не отпимальный вызов

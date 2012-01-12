@@ -65,7 +65,7 @@ var show_alarm_window = function(skey, update){
 		var messageBox = document.createElement('div');
 		messageBox.id = 'alarmdlg_' + skey;
 		messageBox.className = 'alertmsg';
-		messageBox.innerHTML = 'Система: <b>' + window.config.sysbykey[skey].desc + '</b>'+
+		messageBox.innerHTML = 'Система: <b>' + window.config.account.systems[skey].desc + '</b>'+
 			'<br/>Идентификатор: <b>' + data.fid + '</b>';
 
 		if (document.body.firstChild) document.body.insertBefore(messageBox, document.body.firstChild);
@@ -121,7 +121,7 @@ var show_alarm_window = function(skey, update){
 						label: 'Отправка подтверждения...',
 						disabled: true
 					});
-					$.getJSON('/api/alarm/confirm?imei=' + config.sysbykey[skey].imei, function (data) {
+					$.getJSON('/api/alarm/confirm?imei=' + config.account.systems[skey].imei, function (data) {
 						if (data.answer && data.answer === 'ok'){
 							$(btn).button( 'option', {
 								icons: {primary:'ui-icon-zoomin'},
@@ -158,7 +158,7 @@ var show_alarm_window = function(skey, update){
 						label: 'Отправка отмены...',
 						disabled: true
 					});
-					$.getJSON('/api/alarm/cancel?imei=' + window.config.sysbykey[skey].imei, function (data) {
+					$.getJSON('/api/alarm/cancel?imei=' + window.config.account.systems[skey].imei, function (data) {
 						if (data.answer && data.answer === 'ok'){
 							$(btn).button( 'option', {
 								icons: {primary:'ui-icon-zoomin'},
@@ -325,7 +325,7 @@ var add_alert_icon = function(skey){
 	}).mouseenter(function(ev){
 		//log('enter to ', skey, ev);
 //		$(map).append('<div id="alarm_popup" style="position: absolute; left: '+ev.clientX+'px; top: '+(ev.clientY-140)+'px; width: 100px; height: 100px; border: 2px solid black; z-index:1002;">Бла бла бла: </div>');
-		var msg = 'Система:<b>'+window.config.sysbykey[skey].desc+'</b><br/>' +
+		var msg = 'Система:<b>'+window.config.account.systems[skey].desc+'</b><br/>' +
 			'Время:<b>'+dt_to_datetime(window.config.alarm[skey].dt)+'</b><br/>';
 
 		if(window.config.alarm[skey].confirmed){
@@ -350,7 +350,7 @@ var show_alert_icons = function(){
 			log('alarms:', data);
 			for(var i in data.alarms){
 				var d = data.alarms[i];
-				if(d.skey in window.config.sysbykey){
+				if(d.skey in window.config.account.systems){
 					window.config.alarm[d.skey] = window.config.alarm[d.skey] || {};
 					$.extend(window.config.alarm[d.skey], d);
 					/*

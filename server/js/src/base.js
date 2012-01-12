@@ -69,26 +69,27 @@ config.inits.push(function(){
 		}
 	}
 
-	if(config.account.systems.length == 0) config.skey = null; else config.skey = config.account.systems[0].skey;
+	//if(config.account.systems.length == 0) config.skey = null; else config.skey = config.account.systems[0].skey;
+	if(config.account.sys_keys.length == 0) config.skey = null; else config.skey = config.account.systems[config.account.sys_keys[0]].skey;
 
-	config.sysbykey = {};
+
+	/*config.sysbykey = {};
 	for(var i in config.account.systems){
 		var sys = config.account.systems[i];
 		config.sysbykey[sys.skey] = sys;// {'imei': '{{ sys.imei }}', 'desc': '{{ sys.desc }}'};
-	}
+	}*/
 
 	/* Deprecated declares */
-	config.user = config.account.user;
-	config.username = config.account.user.nickname;
+	//config.user = config.account.user;
+	//config.username = config.account.user.nickname;
 	config.admin = config.account.user.admin;
-	config.systems = config.account.systems;
+	//config.systems = config.account.systems;
 	config.ui = config.account.config;
-	config.akey = config.account.key;
+	//config.akey = config.account.key;
 
 	console.log('Init config:', config);
 
 	//InitUpdater();	// TBD! Это не самое элегантное решение вызова инициализации обновления.
-	
 
 	config.setTheme(config.account.config.theme);
 	//if(!document.getElementById('themecss')) document.getElementsByTagName('head')[0].appendChild(theme_css);

@@ -84,8 +84,8 @@ config.updater.tabs[2] = function(){
 		});
 		//console.dir(LogSysList);
 		//LogSysList.Rebuild();
-		if(window.config.account.systems && window.config.account.systems.length>0) {
-			skey = window.config.account.systems[0].skey;
+		if(window.config.account.systems && window.config.account.sys_keys.length>0) {
+			skey = window.config.account.systems[window.config.account.sys_keys[0]].skey;
 			UpdateLog();
 		}
 		config.updater.add('addlog', function(msg) {

@@ -44,7 +44,7 @@ var genReport = function(skey, start, stop, title) {
 	//$(".control").hide();
 	for(var i in adrlist) { clearInterval(adrlist[i].cb); adrlist[i].stop = true; }
 
-	$('#report_header').html('Отчет для системы ' + config.sysbykey[skey].desc + ' за ' + title + '');
+	$('#report_header').html('Отчет для системы ' + config.account.systems[skey].desc + ' за ' + title + '');
 
 	$( "#report tbody" ).empty();
 
@@ -409,8 +409,8 @@ config.updater.tabs[1] = function(){
 			//log('Dialog open:', this, ui, event);
 			var list = $('#report_dlg_byday_syslist');
 			list.empty();
-			for(var i in config.systems){
-				var s = config.systems[i];
+			for(var i in config.account.systems){
+				var s = config.account.systems[i];
 				list.append('<option imei="'+s.imei+'" value="'+s.skey+'"'+(s.skey==config.skey?' selected':'')+'>'+s.desc+'</option>');
 			}
 		}
@@ -512,8 +512,8 @@ config.updater.tabs[1] = function(){
 			//log('Dialog open:', this, ui, event);
 			var list = $('#report_dlg_byint_syslist');
 			list.empty();
-			for(var i in config.systems){
-				var s = config.systems[i];
+			for(var i in config.account.systems){
+				var s = config.account.systems[i];
 				list.append('<option imei="'+s.imei+'" value="'+s.skey+'"'+(s.skey==config.skey?' selected':'')+'>'+s.desc+'</option>');
 			}
 		}

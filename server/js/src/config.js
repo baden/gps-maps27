@@ -363,19 +363,19 @@ var bdel = function() {
 var btags = function() {
 	//var tag_div = document.createElement(div);
 	var skey = this.parentNode.parentNode.dataset.skey;
-	var s = config.sysbykey[skey];
+	var s = config.account.systems[skey];
 
 	var avail_tags = {};
-	for(var k in config.sysbykey) {
-		for(var t in config.sysbykey[k].tags) {
-			avail_tags[config.sysbykey[k].tags[t]] = 1;
+	for(var k in config.account.systems) {
+		for(var t in config.account.systems[k].tags) {
+			avail_tags[config.account.systems[k].tags[t]] = 1;
 		}
 	}
 	log('Доступные ярлыки:', avail_tags);
 
 	var tag_dialog = config.helper.element_by_html(''+
 	'<div title="Назначение ярлыков.">'+
-	'	Система <b>'+config.sysbykey[skey].desc+'</b><br>'+
+	'	Система <b>'+config.account.systems[skey].desc+'</b><br>'+
 	'	<br>Назначенные ярлыки:'+
 	'	<div id="btag_div_set" class="ui-widget ui-widget-content tview">'+
 	'	</div>'+

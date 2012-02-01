@@ -56,23 +56,75 @@ class BaseApi(webapp2.RequestHandler):
 		if 'nologin' not in self.requred:
 			self.user = users.get_current_user()
 			if self.user is None:
-				return {"answer": "no", "reason": "Required login."}
-			self.akey = DBAccounts.key_from_user_id(self.user.user_id())
+				return {
+					"answer": "no",
+					"reason": "Required login.",
+					'user': {
+						'login_url': users.create_login_url('/'),
+						'logout_url': users.create_logout_url('/')
+					}
+				}
+			if 'register' in self.requred:
+				self.account = DBAccounts.get_by_user(self.user)
+				self.akey = self.account.key()
+			else:
+				self.akey = DBAccounts.key_from_user_id(self.user.user_id())
 			if self.akey is None:
-				return {"answer": "no", "reason": "Required register user first (login)."}
+				return {
+					"answer": "no",
+					"reason": "Required register user first (login).",
+					'user': {
+						'login_url': users.create_login_url('/'),
+						'logout_url': users.create_logout_url('/')
+					}
+				}
 
 		if 'admin' in self.requred:
 			if not users.is_current_user_admin():
-				return {'answer': 'no', 'result': 'Admin rights required.'}
+				return {
+					'answer': 'no',
+					'result': 'Admin rights required.',
+					'user': {
+						#'email': user.email(),
+						#'nickname': user.nickname(),
+						#'id': user.user_id(),
+						'login_url': users.create_login_url('/'),
+						'logout_url': users.create_logout_url('/'),
+						#'admin': users.is_current_user_admin(),
+					}
+				}
 
-		if ('account' in self.requred) or ('skey' in self.requred):
+		if (('account' in self.requred) or ('skey' in self.requred)) and ('register' not in self.requred):
 			try:
 				self.account = DBAccounts.get(self.akey)
 			except db.datastore_errors.BadKeyError, e:
-				return {'answer': 'no', 'reason': 'account key error', 'comments': '%s' % e}
+				return {
+					'answer': 'no',
+					'reason': 'account key error',
+					'comments': '%s' % e,
+					'user': {
+						#'email': user.email(),
+						#'nickname': user.nickname(),
+						#'id': user.user_id(),
+						'login_url': users.create_login_url('/'),
+						'logout_url': users.create_logout_url('/'),
+						#'admin': users.is_current_user_admin(),
+					}
+				}
 
 			if self.account is None:
-				return {'answer': 'no', 'reason': 'account not found'}
+				return {
+					'answer': 'no',
+					'reason': 'account not found',
+					'user': {
+						#'email': user.email(),
+						#'nickname': user.nickname(),
+						#'id': user.user_id(),
+						'login_url': users.create_login_url('/'),
+						'logout_url': users.create_logout_url('/'),
+						#'admin': users.is_current_user_admin(),
+					}
+				}
 
 		if 'skey' in self.requred:
 			skey = self.request.get("skey", None)
@@ -134,7 +186,7 @@ class ApiPage(webapp2.RequestHandler):
 info_counter = 0
 
 class Info(BaseApi):
-	requred = ('account')
+	requred = ('account', 'register')
 	js_pre = 'console.log("initconfig.js");\rconfig = $.extend(config, '
 	js_post = ');\r'
 	def parcer(self, **argw):
@@ -146,13 +198,13 @@ class Info(BaseApi):
 
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 
-		user = users.get_current_user()
+		#user = users.get_current_user()
 		#test_value = self.session.get('test-value')
 		#if test_value:
 		#	pass
 		#else:
 		#	self.session['test-value'] = 1
-
+		"""
 		if user is None:
 			return {
 				'answer': 'no',
@@ -182,11 +234,12 @@ class Info(BaseApi):
 				}
 			}
 		"""
+		"""
 			Так как эта процедура может занимать много времени, то сделаем это асинхронно
 			Хотя все равно уже на 80 системах это занимает около секунды. Не хотется думать что будет при тысяче систем.
 		"""
-		systems_rpc = account.systems_async
-		lasts = getGeoLast(account.systems_key)
+		systems_rpc = self.account.systems_async
+		lasts = getGeoLast(self.account.systems_key)
 
 		login_url = users.create_login_url('/')
 		logout_url = users.create_logout_url('/')
@@ -220,17 +273,17 @@ class Info(BaseApi):
 			'server_name': os.environ['SERVER_NAME'],
 			'domain': domain.todict(),
 			'account': {
-				'key': str(account.key()),
+				'key': str(self.account.key()),
 				'user': {
-					'email': account.user.email(),
-					'nickname': account.user.nickname(),
-					'id': account.user.user_id(),
+					'email': self.user.email(),
+					'nickname': self.user.nickname(),
+					'id': self.user.user_id(),
 					'login_url': login_url,
 					'logout_url': logout_url,
 					'admin': users.is_current_user_admin(),
 				},
-				'config': account.pconfig,
-				'name': account.name,
+				'config': self.account.pconfig,
+				'name': self.account.name,
 				'systems': systems,
 				'sys_keys': sys_keys
 			}

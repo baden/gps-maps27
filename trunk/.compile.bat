@@ -1,8 +1,8 @@
 @echo off
 path=c:\python27\;%path%
 
-SET min=yes
-rem SET min=no
+rem SET min=yes
+SET min=no
 
 rem WHITESPACE_ONLY SIMPLE_OPTIMIZATIONS ADVANCED_OPTIMIZATIONS
 SET compilation_level=WHITESPACE_ONLY

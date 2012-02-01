@@ -941,12 +941,32 @@ var MapSysList;
 
 config.updater.tabs[0] = function(){
 	if(!MapSysList){
+
+		//log();
+
+		var map_syslist;
+
+		if(!Modernizr.touch){
+			map_syslist = document.createElement('ul');
+		} else {
+			map_syslist = document.createElement('select');
+		}
+		map_syslist.id = 'map_ul_sys';
+		document.getElementById('carselect').appendChild(map_syslist);
+
 		MapSysList = new SysList('map_ul_sys', {
 			element: function(s){
-				var li = document.createElement('li');
+				var li;
+				if(!Modernizr.touch){
+					li = document.createElement('li');
+				} else {
+					li = document.createElement('option');
+				}
 				li.className = "ui-widget ui-state-default";
 				//li.dataset.skey = s.skey;
+				if(!Modernizr.touch){
 				li.addEventListener('click', function(e){
+					log('MapSysList:event');
 					var skey = this.dataset.skey;
 					[].forEach.call(this.parentNode.querySelectorAll('li'), function(el){el.classList.remove('ui-state-highlight');});
 					this.classList.add('ui-state-highlight');
@@ -954,7 +974,6 @@ config.updater.tabs[0] = function(){
 					config.skey = skey;
 					UpdateDayList();
 					if(lastpos[config.skey]) map.panTo(lastpos[config.skey].position);
-
 				});
 				li.addEventListener('mouseover', function(e){
 					[].forEach.call(document.querySelectorAll('.lastmarker'), function(el){el.classList.remove('lastup');});
@@ -965,6 +984,9 @@ config.updater.tabs[0] = function(){
 				});
 
 				li.innerHTML = '<span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>' + s.desc;
+				} else {
+					li.innerText = s.desc;
+				}
 				/*li.firstChild.addEventListener('click', function(e){
 					var skey = e.target.parentNode.dataset.skey;
 					//log('click on span', this, e);
@@ -973,6 +995,12 @@ config.updater.tabs[0] = function(){
 				//log('first child: ', li.firstChild);
 				CreateLastMarker(s);
 				return li;
+			},
+			select: function(system){
+				//log('MapSysList:select', system);
+				config.skey = system.key;
+				UpdateDayList();
+				if(lastpos[config.skey]) map.panTo(lastpos[config.skey].position);
 			},
 			taggroupid: 'group_list',
 			tagchange: function(tag, index) {

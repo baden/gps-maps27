@@ -137,9 +137,9 @@ function SysList(elementid, handlers){
 	if(me.nodename == 'select'){
 		//var me = this;
 		me.element.addEventListener('change', function(e){
-			//console.log('SysList: change event', e, e.target.selectedIndex);
+			console.log('SysList: change event', e, window.config.account.sys_keys[e.target.selectedIndex]);
 			//me.selectSys(window.config.account.systems[e.target.selectedIndex]);
-			me.handlers.select(window.config.account.systems[e.target.selectedIndex]);
+			me.handlers.select(window.config.account.systems[window.config.account.sys_keys[e.target.selectedIndex]]);
 		});
 	}
 
@@ -198,8 +198,17 @@ SysList.prototype.default_handlers = {
 	},
 	additem: function(s){
 		var el = this.handlers.element.call(this, s);
-		el.dataset.skey = s.key;
-		el.dataset.imei = s.imei;
+		//log('SysList:additem', el, this);
+		/*if(el.dataset){		// TDB! Как-то ведь можно применить polyfills? (http://addyosmani.com/blog/writing-polyfills/)
+			el.dataset.skey = s.key;
+			el.dataset.imei = s.imei;
+		} else {
+			el.setDataAttribute('skey', s.key);
+			el.setDataAttribute('imei', s.imei);
+		}*/
+		el.setDataAttribute('skey', s.key);
+		el.setDataAttribute('imei', s.imei);
+
 		this.element.appendChild(el);
 	},
 	remove: function(skey){

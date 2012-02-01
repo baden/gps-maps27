@@ -180,7 +180,8 @@ var bzone = function(){
 	$('#config_zone_link_desc').html(desc);
 
 	var dialog = $('#config_zone_link');
-	dialog[0].dataset.skey = skey;
+	//dialog[0].dataset.skey = skey;		// TBD! HTML5 not fully support on mobile browser
+	dialog[0].setDataAttribute('skey', skey);
 
 	dialog.dialog('open');
 }
@@ -351,7 +352,8 @@ var bdel = function() {
 	var skey = li.dataset.skey;
 	var desc = li.querySelector('.description').innerText;
 
-	$('#config_dialog_delsys')[0].dataset.skey = skey;
+	//$('#config_dialog_delsys')[0].dataset.skey = skey;
+	$('#config_dialog_delsys')[0].setDataAttribute('skey', skey);
 	$('#config_del_imei').html(imei);
 	//$('#config_del_desc').html($(this).parent().find('desc').html());
 	$('#config_del_desc').html(desc);

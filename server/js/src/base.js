@@ -1,6 +1,8 @@
 /*
 */
 
+if(Modernizr) Modernizr.touch = true;		// TBD! Test touch interface
+
 window.log = function(){
   if(window.console){
 	try{

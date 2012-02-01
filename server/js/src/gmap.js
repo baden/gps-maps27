@@ -139,17 +139,20 @@ $.extend(GMap.prototype, {
 		var mapdiv = document.createElement('div');
 		mapdiv.id = this._mainDivId + '_m';
 		mapdiv.className = "map-container";
-		var controldiv = document.createElement('div');
-		controldiv.className = "map-control";
-		controldiv.innerHTML = ''+
-'<input type="radio" class="btn_map_type" id="'+this._mainDivId+'btn_map" value="0" name="'+this._mainDivId+'_type" checked="checked" /><label for="'+this._mainDivId+'btn_map">Карта</label>'+
-'<input type="radio" class="btn_map_type" id="'+this._mainDivId+'btn_sat" value="1" name="'+this._mainDivId+'_type" /><label for="'+this._mainDivId+'btn_sat">Спутник</label>'+
-'<input type="radio" class="btn_map_type" id="'+this._mainDivId+'btn_hybr" value="2" name="'+this._mainDivId+'_type" /><label for="'+this._mainDivId+'btn_hybr">Гибрид</label>'+
-'<input type="radio" class="btn_map_type" id="'+this._mainDivId+'btn_terr" value="3" name="'+this._mainDivId+'_type" /><label for="'+this._mainDivId+'btn_terr">Рельеф</label>';
-		
-		divSpan.append(mapdiv);
-		divSpan.append(controldiv);
 
+		if(!Modernizr.touch){
+			var controldiv = document.createElement('div');
+			controldiv.className = "map-control";
+			controldiv.innerHTML = ''+
+			'<input type="radio" class="btn_map_type" id="'+this._mainDivId+'btn_map" value="0" name="'+this._mainDivId+'_type" checked="checked" /><label for="'+this._mainDivId+'btn_map">Карта</label>'+
+			'<input type="radio" class="btn_map_type" id="'+this._mainDivId+'btn_sat" value="1" name="'+this._mainDivId+'_type" /><label for="'+this._mainDivId+'btn_sat">Спутник</label>'+
+			'<input type="radio" class="btn_map_type" id="'+this._mainDivId+'btn_hybr" value="2" name="'+this._mainDivId+'_type" /><label for="'+this._mainDivId+'btn_hybr">Гибрид</label>'+
+			'<input type="radio" class="btn_map_type" id="'+this._mainDivId+'btn_terr" value="3" name="'+this._mainDivId+'_type" /><label for="'+this._mainDivId+'btn_terr">Рельеф</label>';
+		}
+		divSpan.append(mapdiv);
+		if(!Modernizr.touch){
+			divSpan.append(controldiv);
+		}
 
 		//console.log(divSpan);
 		//console.log(divSpan.append('div'));
@@ -163,7 +166,11 @@ $.extend(GMap.prototype, {
 		var mapOptions = {
 			center: inst.settings.pos || new google.maps.LatLng(48.5000, 34.599),
 			mapTypeId: inst.settings.maptype || google.maps.MapTypeId.ROADMAP,
-			mapTypeControl: false,
+			//mapTypeControl: false,
+			mapTypeControl: Modernizr.touch,
+			mapTypeControlOptions: {
+				style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+      			},
 			scaleControl: true,
 			disableDoubleClickZoom: true,
 			draggableCursor: "default",
@@ -190,19 +197,18 @@ $.extend(GMap.prototype, {
 			});
 		}
 		*/
-
-		$(controldiv).buttonset();
-		$(controldiv).find('input').change(function(){
-			//log($(this).attr("value"));
-			switch($(this).attr("value")){
-				case '0': {map.setMapTypeId(google.maps.MapTypeId.ROADMAP); break }
-				case '1': {map.setMapTypeId(google.maps.MapTypeId.SATELLITE); break }
-				case '2': {map.setMapTypeId(google.maps.MapTypeId.HYBRID); break }
-				case '3': {map.setMapTypeId(google.maps.MapTypeId.TERRAIN); break }
-			}
-			
-		});
-
+		if(!Modernizr.touch){
+			$(controldiv).buttonset();
+			$(controldiv).find('input').change(function(){
+				//log($(this).attr("value"));
+				switch($(this).attr("value")){
+					case '0': {map.setMapTypeId(google.maps.MapTypeId.ROADMAP); break }
+					case '1': {map.setMapTypeId(google.maps.MapTypeId.SATELLITE); break }
+					case '2': {map.setMapTypeId(google.maps.MapTypeId.HYBRID); break }
+					case '3': {map.setMapTypeId(google.maps.MapTypeId.TERRAIN); break }
+				}
+			});
+		}
 
 	}
 

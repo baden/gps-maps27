@@ -855,6 +855,7 @@ config.updater.tabs[4] = function(){
 				//var imei = ui.item.attr('imei');
 				var skey = ui.item[0].dataset.skey;
 				var index = ui.item.index();
+				/*
 				$.getJSON('/api/sys/sort?skey=' + skey + '&index=' + index, function (data) {
 					//window.location = "/config";
 					//$(this).dialog('close');
@@ -862,7 +863,18 @@ config.updater.tabs[4] = function(){
 						log('Set new position for ' + skey + ' to ' + index);
 					}
 				});
-
+				*/
+				var ul = document.getElementById("config_sys_list");
+				var nslist = [].map.call(ul.childNodes, function(el){return el.dataset.skey;});
+				log('Sort:', ui, this, nslist);
+				//return;
+				config.helper.postJSON('/api/sys/sort?skey=' + skey + '&index=' + index, {slist: nslist}, function (data) {
+					//window.location = "/config";
+					//$(this).dialog('close');
+					if(data.result){
+						log('Set new position for ' + skey + ' to ' + index);
+					}
+				});
 			}
 		});
 		//$("#config_sys_list").disableSelection();

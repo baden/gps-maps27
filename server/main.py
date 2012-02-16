@@ -16,7 +16,7 @@ from datamodel.accounts import DBAccounts
 from datamodel.system import DBSystem
 from google.appengine.api import namespace_manager
 
-logging.getLogger().setLevel(logging.WARNING)
+#logging.getLogger().setLevel(logging.WARNING)
 
 SERVER_NAME = os.environ['SERVER_NAME']
 VERSION = '0'
@@ -397,18 +397,22 @@ class AddLog(webapp2.RequestHandler):
 
 class Config(webapp2.RequestHandler):
 	def post(self):
-		from datamodel import DBConfig
+		from datamodel.configs import DBConfig
 		from urllib import unquote_plus
-		from datamodel.channel import inform_account
+		#from datamodel.channel import inform_account
+		from datamodel.channel import inform
 		#from zlib import compress
 
+		os.environ['CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
 		self.response.headers['Content-Type'] = 'application/octet-stream'
 
 		for k,v in self.request.headers.items():
 			logging.info("== header: %s = %s" % (str(k), str(v)))
 
 		imei = self.request.get('imei', 'unknown')
-		system = DBSystem.get_or_create(imei, phone=self.request.get('phone', None), desc=self.request.get('desc', None))
+		#system = DBSystem.get_or_create(imei, phone=self.request.get('phone', None), desc=self.request.get('desc', None))
+		#TBD! Нет сохранения телефона
+		skey = DBSystem.key_by_imei(imei)
 
 		cmd = self.request.get('cmd', '')
 		if cmd == 'save':
@@ -426,9 +430,11 @@ class Config(webapp2.RequestHandler):
 			config = {}
 			for conf in body.split("\n"):
 				params = conf.strip().split()
+				logging.info("== PARAM: %s" % repr(params))
 				if len(params) == 4:
 					config[params[0]] = (params[1], params[2], params[3])
 
+			logging.info("== CONFIG: %s" % repr(config))
 			newconfig.config = config #compress(repr(config), 9)
 			#newconfig.strconfig = repr(config)
 			#newconfig.
@@ -440,7 +446,8 @@ class Config(webapp2.RequestHandler):
 
 			#updater.inform_account('change_slist', self.account, {'type': 'Adding'})
 			#send_message({'msg': 'cfgupd', 'data':{'skey': str(system.key())}}, akeys=[self.account.key()])
-			inform_account(self.account.key(), 'cfgupd', {'skey': str(system.key())})
+			#inform_account(self.account.key(), 'cfgupd', {'skey': str(system.key())})
+			inform(skey, 'cfgupd', {'skey': str(skey)})
 
 			self.response.out.write("CONFIG: OK\r\n")
 			return
@@ -453,7 +460,8 @@ class Params(webapp2.RequestHandler):
 		self.response.headers['Content-Type'] = 'application/octet-stream'
 
 		imei = self.request.get('imei', 'unknown')
-		system = DBSystem.get_or_create(imei)
+		#system = DBSystem.get_or_create(imei)
+		skey = DBSystem.key_by_imei(imei)		
 
 		cmd = self.request.get('cmd')
 
@@ -543,8 +551,8 @@ class BinBackup(BaseHandler):
 		from datetime import date, datetime, timedelta
 
 		imei = self.request.get('imei')
-		system = DBSystem.get_by_imei(imei)
-
+		#system = DBSystem.get_by_imei(imei)
+		skey = DBSystem.key_by_imei(imei)
 		#if system is None
 
 		cmd = self.request.get('cmd')
@@ -585,7 +593,7 @@ class BinBackup(BaseHandler):
 				self.redirect("/binbackup?imei=%s" % imei)
 				return
 			elif cmd == 'delall':
-				dbbindata = DBGPSBinBackup.all(keys_only=True).order('cdate').ancestor(system).fetch(500)
+				dbbindata = DBGPSBinBackup.all(keys_only=True).order('cdate').ancestor(skey).fetch(500)
 				if dbbindata:
 					db.delete(dbbindata)
 				self.redirect("/binbackup?imei=%s" % imei)
@@ -608,18 +616,18 @@ class BinBackup(BaseHandler):
 				asc = self.request.get('asc', 'None')
 
 				if cfilter:
-					dbbindata = DBGPSBinBackup.all().filter('cdate >=', today).order('-cdate').ancestor(system).fetch(count)
+					dbbindata = DBGPSBinBackup.all().filter('cdate >=', today).order('-cdate').ancestor(skey).fetch(count)
 				else:
 					if aftercdate and aftercdate!="None":
 						if asc == 'yes':
-							dbbindata = DBGPSBinBackup.all().filter("cdate >", datetime.strptime(aftercdate, "%Y%m%d%H%M%S") + timedelta(seconds = 1)).order('cdate').ancestor(system).fetch(count)
+							dbbindata = DBGPSBinBackup.all().filter("cdate >", datetime.strptime(aftercdate, "%Y%m%d%H%M%S") + timedelta(seconds = 1)).order('cdate').ancestor(skey).fetch(count)
 						else:
-							dbbindata = DBGPSBinBackup.all().filter("cdate >", datetime.strptime(aftercdate, "%Y%m%d%H%M%S") + timedelta(seconds = 1)).order('-cdate').ancestor(system).fetch(count)
+							dbbindata = DBGPSBinBackup.all().filter("cdate >", datetime.strptime(aftercdate, "%Y%m%d%H%M%S") + timedelta(seconds = 1)).order('-cdate').ancestor(skey).fetch(count)
 					else:
 						if asc == 'yes':
-							dbbindata = DBGPSBinBackup.all().order('cdate').ancestor(system).fetch(count)
+							dbbindata = DBGPSBinBackup.all().order('cdate').ancestor(skey).fetch(count)
 						else:
-							dbbindata = DBGPSBinBackup.all().order('-cdate').ancestor(system).fetch(count)
+							dbbindata = DBGPSBinBackup.all().order('-cdate').ancestor(skey).fetch(count)
 
 				for bindata in dbbindata:
 					if bindata.crcok:
@@ -696,8 +704,8 @@ class BinBackup(BaseHandler):
 				else:
 					self.redirect("/binbackup?imei=%s" % imei)
 
-		if system:
-			q = DBGPSBinBackup.all().order('-cdate').ancestor(system)
+		if skey:
+			q = DBGPSBinBackup.all().order('-cdate').ancestor(skey)
 
 			cursor = self.request.get('cursor')
 			if cursor:
@@ -736,7 +744,7 @@ class BinBackup(BaseHandler):
 				'cursor': cursor,
 				'ncursor': q.cursor(),
 				'total': total,
-				'system': system,
+				'skey': skey,
 				'allusers': allusers
 			})
 			return
@@ -762,7 +770,7 @@ class BinBackup(BaseHandler):
 			'imei': imei,
 			'dbbindata': dbbindata,
 			'total': total,
-			'system': system,
+			'skey': skey,
 			'allusers': allusers,
 			'oldest': oldest,
 			'coldest': coldest,

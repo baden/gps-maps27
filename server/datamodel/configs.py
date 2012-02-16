@@ -1,26 +1,29 @@
 ﻿# -*- coding: utf-8 -*-
 
 from google.appengine.ext import db
+#from zlib import compress, decompress
+import pickle
 
 class DBConfig(db.Model):
-	_config = db.BlobProperty()
+	_config = db.BlobProperty(default = pickle.dumps({}))
+	_debug = db.TextProperty(default='')
 
 	@classmethod
 	def get_by_imei(cls, imei):
 		return cls.get_or_insert(str(imei))
 
 	def get_config(self):
-		if self._config:
-			try:
-				configs = eval(decompress(self._config))
-			except:
-				configs = {}
-		else:
+		try:
+			#configs = eval(decompress(self._config))
+			configs = pickle.loads(self._config)
+		except:
 			configs = {}
 		return configs
 
 	def set_config(self, value):
-		self._config = compress(repr(value), 9)
+		#self._config = compress(repr(value), 9)
+		self._config = pickle.dumps(value)
+		self._debug = repr(value)
 		#self.put()
 
 	def del_config(self):

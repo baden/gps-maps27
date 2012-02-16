@@ -32,7 +32,11 @@ config.updater.add('change_slist', function(msg) {
 				if(config.account.systems[k].key == msg.data.skey) i = k;
 			}
 			if(i>=0) config.account.systems.splice(i, 1);*/
-		break;
+			break;
+		case 'Sorting':
+			//log('== TBD! Sorting', msg);
+			config.account.sys_keys = msg.data.slist;
+			break;
 	}
 	//var s = msg.data.system;
 });

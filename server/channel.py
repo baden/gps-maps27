@@ -11,7 +11,7 @@ from google.appengine.api import channel
 from datamodel.accounts import DBAccounts
 from datamodel.channel import DBUpdater, DBMessages, DISABLE_CHANNEL, register, handle_connection, handle_disconnection, send_message
 
-logging.getLogger().setLevel(logging.WARNING)
+#logging.getLogger().setLevel(logging.WARNING)
 
 from api import BaseApi
 

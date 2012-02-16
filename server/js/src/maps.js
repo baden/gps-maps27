@@ -570,7 +570,7 @@ var CreateLastMarker = function(s){
 
 	//if(p.data == null) return;
 	//log('Create last point', s);
-	if(!('last' in s)) {
+	if(!('last' in s) || (s.last === 0)) {
 		log('No last in data', s);
 		return;
 	}

@@ -29,12 +29,12 @@
 
   <link type="text/css" href="/plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.css" rel="stylesheet">
 
-  <script>
+  <!--script>
 	window.onerror = function (msg, url, line) {
 		alert("Error: " + msg + "\nURL: " + url + "\nLine:" + line);
 		return true;
 	};
-  </script>
+  </script-->
 
   <!--script defer type="text/javascript" src="/js/modernizr-1.5.min.js"></script-->
   <script defer type="text/javascript" src="/js/modernizr-2.0.6.js"></script>
@@ -49,7 +49,14 @@
   <script defer type="text/javascript" src="/_ah/channel/jsapi"></script>
   <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=ru&libraries=drawing,places"></script>
   <!--script type="text/javascript" src="/js/googlemaps/js.js?sensor=false&language=ru&libraries=drawing,places"></script-->
-  <script defer type="text/javascript" src="http://www.google.com/jsapi"></script>
+  <!--script defer type="text/javascript" src="http://www.google.com/jsapi"></script-->
+
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+      // Load the Visualization API and the piechart package.
+      google.load('visualization', '1.0', {'packages':['corechart']});
+  </script>
+
   <script defer src="/js/jquery-1.7.1.min.js"></script>
   <script defer src="/js/jquery.cookie.js"></script>
   <script defer src="/js/chainvas.min.js"></script>
@@ -281,6 +288,12 @@
 		</table>
 	</div>
 </div>
+<script type="text/javascript">
+	if(('google' in window) && ('load' in google)) {
+		google.load('visualization', '1', {packages: ['corechart']});
+	}
+</script>
+
 <div id="Tab_Geos">
 	<div id="geos_head">
 		<!--Cистема: <button id="geos_syslist" name="geos_syslist" style="width:auto;">Система</button>-->
@@ -611,7 +624,6 @@ s.parentNode.insertBefore(ga, s);
 	Например настройки темы хранить в localStorage, а информацию о системах подгружать.
   -->
   <script>document.write('<script defer type="text/javascript" src="/api/info.js?hash='+(new Date()).getTime().toString(36)+Math.floor(Math.random() * 2147483648).toString(36)+'"><\/script>')</script>
-
 
   <script defer src="/js/init_finish.js"></script>
 

@@ -24,7 +24,7 @@ SERVER_NAME = os.environ['SERVER_NAME']
 MAXPOINTS = 100000
 
 #logging.getLogger().setLevel(logging.DEBUG)
-logging.getLogger().setLevel(logging.WARNING)
+#logging.getLogger().setLevel(logging.WARNING)
 
 API_VERSION = 1.27
 
@@ -1609,40 +1609,21 @@ class Sys_Sort(BaseApi):
 		from datamodel.channel import inform_account
 		#from datamodel.namespace import private
 
-		index = self.request.get('index', None)
-		if index is None:
-			return {'result': 'no', 'reason': 'index not defined'}
-		index = int(index)
+		slist = [db.Key(k) for k in json.loads(self.request.get('slist', '[]'))]
+		#try:
+		#	slist = [db.Key(k) for k in json.loads(self.request.get('slist', '[]'))]
+		#except:
+		#	slist = self.account.systems_key
+		logging.info('=== Sort %s' % repr(slist))
 
-		#systems = self.account.systems
-		#slist = [s.imei for s in systems]
-		#if self.imei not in slist:
-		#	return {'result': 'no', 'reason': 'unknown system imei'}
-
-		#oldindex = slist.index(self.imei)
-		oldindex = self.account.systems_key.index(self.skey)
-
-		#logging.info(
-		#	'\n=====\n OLD index ' + str(oldindex) +
-		#	'\nIMEI_1: ' + db.get(self.account.systems_key[oldindex]).imei +
-		#	'\nIMEI_S: ' + self.imei
-		#)
-		#logging.info( '\n ==\n' + repr(systems))
-		#logging.info( '\n ==\n' + repr(slist))
-		#logging.info( '\n ==\n' + repr(self.account.systems_key))
-
-		if oldindex != index:
-			goted = self.account.systems_key[oldindex]
-			del self.account.systems_key[oldindex]
-			self.account.systems_key.insert(index, goted)
-			#logging.info('\n=====Change ' + str(goted) + '(' + db.get(goted).imei + ') to ' + str(index))
-
+		if self.account.systems_key != slist:
+			self.account.systems_key = slist
 			self.account.put()
 
-		#send_message({'msg': 'change_slist', 'data':{'type': 'Sorting'}}, akeys=[self.akey])
-		inform_account(self.akey, 'change_slist', {'type': 'Sorting'})
+			inform_account(self.akey, 'change_slist', {'type': 'Sorting', 'slist': [str(s) for s in slist]})
+			#inform_account(self.akey, 'change_slist', {'type': 'Sorting', 'data': []})
 
-		return {'result': 'sorted', 'desc': {'skey': str(self.skey), 'oldindex': oldindex, 'newindex': index}}
+		return {'result': 'ok', 'slist': [str(s) for s in slist]}
 
 class Sys_Desc(BaseApi):
 	#requred = ('account', 'imei')

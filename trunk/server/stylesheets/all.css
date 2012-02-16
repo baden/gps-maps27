@@ -381,16 +381,6 @@ h3 {
 	}
 
 
-	#config_sys_list li span.spanbrd {
-		border: 1px solid #ccc;
-		padding: 0px 6px 0px 6px;
-		margin-right: 4px;
-		cursor: pointer;
-		font-weight: normal;
-		display: inline-block;
-		min-width: 100px;
-		text-align: center;
-	}
 
 
    .syslist {
@@ -1110,6 +1100,18 @@ button.mm { padding-left: 5px; padding-right: 5px;}
 	position: absolute;
 	right: 10px;
 }
+
+#config_sys_list li span.spanbrd {
+	border: 1px solid #ccc;
+	padding: 0px 6px 0px 6px;
+	margin-right: 4px;
+	cursor: pointer;
+	font-weight: normal;
+	display: inline-block;
+	min-width: 110px;
+	text-align: center;
+}
+
 
 .ui-accordion .ui-accordion-content {
 	padding: 2px 2px 2px 2px;

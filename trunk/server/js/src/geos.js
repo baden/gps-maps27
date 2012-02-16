@@ -76,7 +76,9 @@
 		8: "ANGLE",
 		9: "DELTALAT",
 		10: "DELTALONG",
-		11: "DELTA"
+		11: "DELTA",
+		12: "DU",
+		13: "UMAX"
 	};
 
 	var td = function(value){

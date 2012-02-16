@@ -24,7 +24,7 @@ SERVER_NAME = os.environ['SERVER_NAME']
 
 glogal_counter = 0
 
-logging.getLogger().setLevel(logging.WARNING)
+#logging.getLogger().setLevel(logging.WARNING)
 
 class DBGPSBin(db.Model):
 	dataid = db.IntegerProperty()

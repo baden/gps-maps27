@@ -296,6 +296,7 @@ class InitConfig(BaseHandler):
 class AddLog(webapp2.RequestHandler):
 	def get(self):
 		#from datamodel import DBNewConfig, DBAccounts
+		from google.appengine.api import memcache
 		from datamodel.logs import GPSLogs
 		from datamodel.accounts import DBAccounts
 
@@ -372,7 +373,7 @@ class AddLog(webapp2.RequestHandler):
 		#	self.response.out.write('CONFIGUP\r\n')
 		#	memcache.set("update_config_%s" % imei, "yes")
 		""" TBD! Вынести в описание класса """
-		"""
+
 		value = memcache.get("update_config_%s" % imei)
 		if value is not None:
 			if value == "no":
@@ -389,9 +390,9 @@ class AddLog(webapp2.RequestHandler):
 				memcache.set("update_config_%s" % imei, "no")
 
 
-		for info in Informer.get_by_imei(imei):
-			self.response.out.write(info + '\r\n')
-		"""
+		#for info in Informer.get_by_imei(imei):
+		#	self.response.out.write(info + '\r\n')
+
 		self.response.write('ADDLOG: OK\r\n')
 
 
@@ -456,7 +457,9 @@ class Config(webapp2.RequestHandler):
 
 class Params(webapp2.RequestHandler):
 	def get(self):
-		from datamodel import DBConfig, DBNewConfig
+		from datamodel.configs import DBConfig, DBNewConfig
+		from google.appengine.api import memcache
+
 		self.response.headers['Content-Type'] = 'application/octet-stream'
 
 		imei = self.request.get('imei', 'unknown')

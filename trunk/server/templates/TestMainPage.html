@@ -61,7 +61,7 @@
 		});
 
 		$('#btn_get_secure_list').click(function(){
-			$.getJSON('/api/sys/secure_list', function (data) {
+			$.getJSON('/api/system/secure_list', function (data) {
 				log('Secure list:', data);
 				var div=$('#list_secure_list');
 				div.empty();

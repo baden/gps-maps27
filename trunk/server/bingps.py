@@ -4,6 +4,8 @@
  Я вот подумал отказаться от разделения bingps на прием и анализ.
  А то очередь выполняется только раз в секунду, и поэтому при активном трафике "parse" занимает
  много времени (если я правильно понимаю при поступлении чаще чем раз в секунду очередь будет расти бесконечно).
+
+ TBD! Переделать разбор пакетов на struct
 """
 
 import os
@@ -48,6 +50,8 @@ def SaveGPSPointFromBin(pdata, result):
 
 	#global jit_lat
 	#global jit_long
+
+	# TBD! Переделать разбор пакетов на struct
 
 	if ord(pdata[0]) != 0xF2:	# ID
 		logging.error("\n==\t GPS_PARSE_ERROR: ID != 0xF2")
@@ -149,6 +153,14 @@ def SaveGPSPointFromBin(pdata, result):
 
 	fsource = ord(pdata[26]);	# Причина фиксации координаты
 
+	toffset = ord(pdata[27]) + 256*ord(pdata[28]);	# Неточное смещение (+- 2%)
+	if toffset != 0:
+		if toffset == 0xFFFF:
+			logging.error("Toffset is 0xFFFF")
+		else:
+			logging.warning("Used toffset (%d seconds)" % toffset)
+			datestamp += timedelta(seconds=toffset)
+
 	#_log += '\n Date: %s' % datestamp.strftime("%d/%m/%Y %H:%M:%S")
 	#_log += '\n Latitude: %.5f' % latitude
 	#_log += '\n Longitude: %.5f' % longitude
@@ -190,7 +202,7 @@ def SaveGPSPointFromBin(pdata, result):
 	logging.info('POINT: %s' % repr(point))
 	"""
 
-	return {
+	point = {
 		'time': datestamp,
 		'lat': latitude,
 		'lon': longitude,
@@ -201,6 +213,9 @@ def SaveGPSPointFromBin(pdata, result):
 		'vin': vin,
 		'fsource': fsource 
 	}
+	logging.info('POINT: %s' % repr(point))
+
+	return point
 '''
 class BinGpsParse(webapp2.RequestHandler):
 	def post(self):
@@ -480,6 +495,21 @@ class BinGps(webapp2.RequestHandler):
 		_log += '\nOk\n'
 			
 		logging.info(_log)
+
+		value = memcache.get("update_config_%s" % imei)
+		if value is not None:
+			if value == "no":
+				pass
+			elif value == "yes":
+				self.response.out.write('CONFIGUP\r\n')
+		else:
+			newconfigs = DBNewConfig.get_by_imei(imei)
+			newconfig = newconfigs.config
+			if newconfig and (newconfig != {}):
+				memcache.set("update_config_%s" % imei, "yes")
+				self.response.out.write('CONFIGUP\r\n')
+			else:
+				memcache.set("update_config_%s" % imei, "no")
 		
 		self.response.write('BINGPS: OK\r\n')
 

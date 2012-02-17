@@ -13,7 +13,7 @@ from datamodel.channel import DBUpdater, DBMessages, DISABLE_CHANNEL, register, 
 
 #logging.getLogger().setLevel(logging.WARNING)
 
-from api import BaseApi
+from api.core import BaseApi
 
 class Chanel_GetToken(BaseApi):
 	#requred = ('account')

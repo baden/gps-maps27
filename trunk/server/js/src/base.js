@@ -560,7 +560,7 @@ config.helper = {
 */
 	exdialog: function(dialog_url, api_url, ext_data, ext) {
 		config.helper.getJSON(api_url+'&cmd=get', function(data){
-			//log('/api/sys/car?get', data);
+			//log('/api/system/car?get', data);
 			var info = data.info;
 			/*info.imei = imei;
 			info.desc = desc;*/
@@ -586,7 +586,7 @@ config.helper = {
 					}
 
 					config.helper.postJSON(api_url+'&cmd=set', data, function(data){
-						//log('/api/sys/car', data);
+						//log('/api/system/car', data);
 					});
 					$(this).dialog('close');
 				}

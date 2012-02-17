@@ -296,6 +296,7 @@ class InitConfig(BaseHandler):
 class AddLog(webapp2.RequestHandler):
 	def get(self):
 		#from datamodel import DBNewConfig, DBAccounts
+		from datamodel.configs import DBNewConfig
 		from google.appengine.api import memcache
 		from datamodel.logs import GPSLogs
 		from datamodel.accounts import DBAccounts

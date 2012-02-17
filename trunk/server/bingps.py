@@ -347,6 +347,7 @@ class BinGps(webapp2.RequestHandler):
 		#from google.appengine.api.labs import taskqueue
 		from datetime import datetime
 		from datamodel.geo import PointWorker, updateLasts
+		from datamodel.configs import DBNewConfig
 
 		os.environ['CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
 

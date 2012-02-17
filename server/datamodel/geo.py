@@ -77,6 +77,8 @@ FSOURCE = {
 	9: "DELTALAT",
 	10: "DELTALONG",
 	11: "DELTA",
+	12: "DU",
+	13: "UMAX",
 }
 
 #PACK_STR = 'iffffffBBBBiiiiiiii'
@@ -117,6 +119,10 @@ class DBGeo(db.Model):
 			return len(self.bin) / PACK_LEN
 
 	def u_to_v(self, u):
+		try:
+			fs = FSOURCE[u[8]]
+		except KeyError:
+			fs = 'unknown'
 		return {
 			'seconds': u[0], 
 			'time': self.date + timedelta(seconds = u[0]),
@@ -128,7 +134,7 @@ class DBGeo(db.Model):
 			'vin': u[6],
 			'sats': u[7],
 			'fsource': u[8],
-			'fsourcestr': FSOURCE[u[8]],
+			'fsourcestr': fs,
 		}
 	def v_to_p(self, t):
 		return struct.pack(PACK_STR,

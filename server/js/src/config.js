@@ -18,7 +18,7 @@ var saveconfig = function(it, val){
 	$('#button_config_restart').button( "option", "disabled", true );
 	if(val) config.ui[it] = val;
 	$.ajax({
-		url: '/api/system/config',
+		url: '/api/system/saveconfig',
 		dataType: 'json',
 		data: config.ui,
 		type: 'POST',
@@ -84,7 +84,7 @@ var ch_desc = function(){
 				var desc = dialog.find('textarea').val();
 				if(desc != olddesc){
 					li.querySelector('.description').innerText = desc;
-					$.getJSON('/api/sys/desc?skey=' + skey + '&desc=' + encodeURIComponent(desc), function (data) {
+					$.getJSON('/api/system/desc?skey=' + skey + '&desc=' + encodeURIComponent(desc), function (data) {
 						if(data.result){
 							var result = data.result;
 							if(result == "disabled"){
@@ -121,7 +121,7 @@ var ch_car = function(){
 
 	log('ch_car');
 
-	config.helper.exdialog('/html/dialogs/car.html', '/api/sys/car?skey='+skey, {imei:imei, desc:desc}, {
+	config.helper.exdialog('/html/dialogs/car.html', '/api/system/car?skey='+skey, {imei:imei, desc:desc}, {
 		create: function(event, ui) {
 			$(this.querySelector('div.tabs')).tabs();
 			var drivers = this.querySelector('ul.drivers');
@@ -144,8 +144,8 @@ var ch_car = function(){
 	});
 
 	/*
-	config.helper.getJSON('/api/sys/car?cmd=get&skey='+skey, function(data){
-		log('/api/sys/car?get', data);
+	config.helper.getJSON('/api/system/car?cmd=get&skey='+skey, function(data){
+		log('/api/system/car?get', data);
 		var info = data.info;
 		info.imei = imei;
 		info.desc = desc;
@@ -156,8 +156,8 @@ var ch_car = function(){
 				data = {skey:skey};
 				config.helper.parseform(form, data);
 
-				config.helper.postJSON('/api/sys/car?cmd=set&skey='+skey, data, function(data){
-					log('/api/sys/car', data);
+				config.helper.postJSON('/api/system/car?cmd=set&skey='+skey, data, function(data){
+					log('/api/system/car', data);
 				});
 
 				$(this).dialog('close');
@@ -192,7 +192,6 @@ var bconf = function(){
 	var skey = li.dataset.skey;
 	var desc = li.querySelector('.description').innerText;
 
-
 	if($('#config_params').length === 0){
 		var div = $('body').append(
 			'<div id="config_params"><div id="config_params_body">Загрузка данных с сервера...</div></div>'
@@ -200,64 +199,75 @@ var bconf = function(){
 	} else {
 		$('#config_params_body').html('Загрузка данных с сервера...');
 	}
-	$.getJSON('/api/sys/config?cmd=get&skey='+skey, function (data) {
-		if(data.answer == 'ok'){
-			if(data.config.length === 0){
-				$("#config_params_body").empty().html('Нет параметров. Возможно система еще не сохранила параметры.<br/>Можно послать SMS на номер системы с текстом <strong>saveconfig</strong> для принудительного сохранения параметров.');
-			} else {
-				//log('Config_GET:', data);
-				var rows = '<table class="tview"><thead><tr><th>№</th><th>Имя</th><th>Описание<span id="config_params_show_all" title="Показать все" class="cursor_pointer">...</span></th><th>Значение</th><th>Заводская установка</th><th>Очередь</th></tr></thead><tbody>';
-				var index = 1;
-				for(var i in data.config){
-					var v = data.config[i];
-					rows += '<tr name="'+v[0]+'"'+ (v[1].desc?'':' class="config_hide"') +'>';
-					rows +=	'<td>'+index+'</td>';
-					rows += '<td>'+v[0]+'</td>';
-					if(config.admin){
-						rows += '<td class="cfg_changeble">' + (v[1].desc || '-') + '</td>';
-					} else {
-						rows += '<td>' + (v[1].desc || '-') + '</td>';
-					}
-					rows += '<td class="cfg_changeble'+(v[1].wait?' wait':'')+'">' + v[1].value + '</td>';
-					rows += '<td>' + v[1]['default'] + '</td><td>' + ((v[1].wait)?(v[1].wait):'') + '</td></tr>';
-					index += 1;
-				}
-				rows += '</tbody></table>';
-				$("#config_params_body").empty().append(rows);
-				$('#config_params').dialog('option', 'position', 'center');
-				$('#config_params_show_all').click(function(){
-					//log('boo');
-					$('.config_hide').removeClass('config_hide');
-					$('#config_params').dialog('option', 'position', 'center');
-				});
-
-				var tb = $('#config_params_body table tbody');
-				//log('table = ', tb);
-				//log('table>tr>td:first = ', tb.find('tr').find('td:first'));
-				tb.find('tr').find('td:first').next().next().click(function(){
-					if(config.admin){
-						var name = $(this).parent().attr('name');
-						var pvalue = $(this).html();
-						var nvalue = prompt("Введите описание для '" + name + "'", pvalue);
-						if(nvalue && nvalue != pvalue){
-							//log('Change description', name);
-							$(this).html(nvalue);
-							sendGet('/api/param/desc?name=' + name + '&value=' + nvalue);
-						}
-					}
-				}).next().click(function(){
-					var name = $(this).parent().attr('name');
-					var pvalue = $(this).html();
-					var nvalue = prompt("Введите значение для '" + name + "'", pvalue);
-					if(nvalue && nvalue != pvalue){
-						//log('Change value', name);
-						$(this).next().next().html(nvalue);
-						$(this).addClass('wait');
-						sendGet('/api/sys/config?cmd=set&skey=' + skey + '&name=' + name + '&value=' + nvalue);
-					}
-				});
-			}
+	$.getJSON('/api/system/config?cmd=get&skey='+skey, function (data) {
+		if(data.answer != 'ok'){
+			log('Error! /api/system/config?cmd=get not return "ok"');
+			return;
 		}
+		if(data.config.length === 0){
+			$("#config_params_body").empty().html('Нет параметров. Возможно система еще не сохранила параметры.<br/>Можно послать SMS на номер системы с текстом <strong>saveconfig</strong> для принудительного сохранения параметров.');
+			return;
+		}
+		//log('Config_GET:', data);
+		var rows = '<table class="tview"><thead><tr><th>№</th><th>Имя</th><th>Описание<span id="config_params_show_all" title="Показать все" class="cursor_pointer">...</span></th><th>Тип</th><th>Значение</th><th>Заводская установка</th><th>Очередь</th></tr></thead><tbody>';
+		var index = 1;
+		for(var i in data.config){
+			var v = data.config[i];
+			rows += '<tr name="'+v[0]+'"'+ (v[1].desc?'':' class="config_hide"') +'>';
+			rows +=	'<td>'+index+'</td>';
+			rows += '<td>'+v[0]+'</td>';
+			if(config.admin){
+				rows += '<td class="cfg_changeble">' + (v[1].desc || '-') + '</td>';
+			} else {
+				rows += '<td>' + (v[1].desc || '-') + '</td>';
+			}
+			var title_desc = 'Другой тип';
+			switch(v[1].type){
+				case 'INT': title_desc = '0..32767'; break;
+			}
+			rows += '<td title="' + title_desc + '">' + v[1].type + '</td>';
+			rows += '<td class="cfg_changeble'+(v[1].wait?' wait':'')+'">' + v[1].value + '</td>';
+			rows += '<td>' + v[1]['default'] + '</td><td>' + ((v[1].wait)?(v[1].wait):'') + '</td></tr>';
+			index += 1;
+		}
+		rows += '</tbody></table>';
+		$("#config_params_body").empty().append(rows);
+		$('#config_params').dialog('option', 'position', 'center');
+		$('#config_params_show_all').click(function(){
+			//log('boo');
+			$('.config_hide').removeClass('config_hide');
+			$('#config_params').dialog('option', 'position', 'center');
+		});
+
+		var tb = $('#config_params_body table tbody');
+		//log('table = ', tb);
+		//log('table>tr>td:first = ', tb.find('tr').find('td:first'));
+		tb.find('tr').find('td:first').next().next().click(function(){
+			if(config.admin){
+				var name = $(this).parent().attr('name');
+				var pvalue = $(this).html();
+				var nvalue = prompt("Введите описание для '" + name + "'", pvalue);
+				if(nvalue && nvalue != pvalue){
+					//log('Change description', name);
+					$(this).html(nvalue);
+					sendGet('/api/param/desc?name=' + name + '&value=' + nvalue);
+				}
+			}
+		}).next().next().click(function(){
+			var name = $(this).parent().attr('name');
+			var pvalue = $(this).html();
+			var nvalue = prompt("Введите целочисленное значение (0..32000) для '" + name + "'", pvalue);
+			if(!nvalue) return;
+			nvalue = parseInt(nvalue);
+			if(nvalue<0) nvalue = 0;
+			if(nvalue>32767) nvalue = 32767;
+			if(nvalue != pvalue){
+				//log('Change value', name);
+				$(this).next().next().html(nvalue);
+				$(this).addClass('wait');
+				sendGet('/api/system/config?cmd=set&skey=' + skey + '&name=' + name + '&value=' + nvalue);
+			}
+		});
 	});
 	/*$('#config_params_close').button().click(function(){
 		$('#config_params, #config_overlay').remove();
@@ -275,7 +285,7 @@ var bconf = function(){
 		//position: ['left','top'],
 		buttons: {
 			'Отменить задание на изменение параметров': function() {
-				sendGet('/api/sys/config?cmd=cancel&skey=' + skey);
+				sendGet('/api/system/config?cmd=cancel&skey=' + skey);
 				$(this).dialog('close');
 			},
 			'Закрыть': function() {
@@ -323,7 +333,7 @@ var bpurge = function(){
 		minHeight: 390,
 		buttons: {
 			'Отмена': function() {
-				//sendGet('/api/sys/config?cmd=cancel&imei=' + imei);
+				//sendGet('/api/system/config?cmd=cancel&imei=' + imei);
 				$(this).dialog('close');
 			},
 			'Выполнить!': function() {
@@ -430,8 +440,8 @@ var btags = function() {
 		},
 		close: function(ev, ui) {
 			log('tag_dialog:close:', s.tags);
-			config.helper.postJSON('/api/sys/tags', {skey: skey, tags: s.tags}, function(data){
-				log('/api/sys/tags call successful', data);
+			config.helper.postJSON('/api/system/tags', {skey: skey, tags: s.tags}, function(data){
+				log('/api/system/tags call successful', data);
 			});
 
 			$(this).dialog('destroy');
@@ -539,7 +549,7 @@ config.updater.tabs[4] = function(){
 						//this.style.width = '200px';
 						if(desc != olddesc) {
 							log('change desc', skey, desc);
-							$.getJSON('/api/sys/desc?skey=' + skey + '&desc=' + encodeURIComponent(desc), function (data) {
+							$.getJSON('/api/system/desc?skey=' + skey + '&desc=' + encodeURIComponent(desc), function (data) {
 								if(data.result){
 									var result = data.result;
 									if(result == "disabled"){
@@ -583,7 +593,7 @@ config.updater.tabs[4] = function(){
 			log('imei', imei);
 			//var imei = $('#config_dialog_addsys #config_addsys_imei').val();
 			//var file = 
-			$.getJSON('/api/sys/add?imei=' + imei, function (data) {
+			$.getJSON('/api/system/add?imei=' + imei, function (data) {
 				//window.location = "/config";
 				//$(this).dialog('close');
 				if(data.result){
@@ -781,7 +791,7 @@ config.updater.tabs[4] = function(){
 					//var imei = $("#sysdesc_imei").html(); //document.getElementById('sysdesc_imei').value;
 					//var desc = document.getElementById('sys_desc').value;
 					log('Set desc for sys ' + imei + ' -> ' + desc);
-					$.getJSON('/api/sys/desc?imei=' + imei + '&desc=' + desc, function (data) {
+					$.getJSON('/api/system/desc?imei=' + imei + '&desc=' + desc, function (data) {
 						if(data.result){
 							var result = data.result;
 							if(result == "disabled"){
@@ -818,7 +828,7 @@ config.updater.tabs[4] = function(){
 					var imei = $('#config_del_imei').html();
 					var skey = this.dataset.skey;
 
-					$.getJSON('/api/sys/del?skey=' + skey, function (data) {
+					$.getJSON('/api/system/del?skey=' + skey, function (data) {
 						//ConfigList.Rebuild();	// Это неправильная реализация.
 					});
 					var ul = ConfigList.element;
@@ -856,7 +866,7 @@ config.updater.tabs[4] = function(){
 				var skey = ui.item[0].dataset.skey;
 				var index = ui.item.index();
 				/*
-				$.getJSON('/api/sys/sort?skey=' + skey + '&index=' + index, function (data) {
+				$.getJSON('/api/system/sort?skey=' + skey + '&index=' + index, function (data) {
 					//window.location = "/config";
 					//$(this).dialog('close');
 					if(data.result){
@@ -868,7 +878,7 @@ config.updater.tabs[4] = function(){
 				var nslist = [].map.call(ul.childNodes, function(el){return el.dataset.skey;});
 				log('Sort:', ui, this, nslist);
 				//return;
-				config.helper.postJSON('/api/sys/sort?skey=' + skey + '&index=' + index, {slist: nslist}, function (data) {
+				config.helper.postJSON('/api/system/sort?skey=' + skey + '&index=' + index, {slist: nslist}, function (data) {
 					//window.location = "/config";
 					//$(this).dialog('close');
 					if(data.result){

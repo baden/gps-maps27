@@ -977,10 +977,12 @@ config.updater.tabs[0] = function(){
 				});
 				li.addEventListener('mouseover', function(e){
 					[].forEach.call(document.querySelectorAll('.lastmarker'), function(el){el.classList.remove('lastup');});
-					document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]').classList.add('lastup');
+					var mark = document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]');
+					if(mark) mark.classList.add('lastup');
 				});
 				li.addEventListener('mouseout', function(e){
-					document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]').classList.remove('lastup');
+					var mark = document.querySelector('.lastmarker[skey="' + this.dataset.skey + '"]');
+					if(mark) mark.classList.remove('lastup');
 				});
 
 				li.innerHTML = '<span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>' + s.desc;

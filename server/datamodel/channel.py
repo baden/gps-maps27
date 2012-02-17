@@ -108,6 +108,7 @@ def send_message(message, akeys=[], skeys=[], domain="", timeout=DEFAULT_TIMEOUT
 	# Для работы в High Replication необходимо все записи разместить в одной сущности.
 	collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
 	#messagedb = DBMessages(parent = collect_key, message = pickle.dumps(message, protocol=pickle.HIGHEST_PROTOCOL))
+	logging.warning('\n\nRepr: parent:[%s]\nakeys:[%s]\nskeys:[%s]\ndomain:[%s]\nmessage:[%s]' % (repr(collect_key), repr(akeys), repr(skeys), repr(domain), repr(message)))
 	messagedb = DBMessages(parent = collect_key, akeys=akeys, skeys=skeys, domain=domain, message = repr(message))
 	messagedb.put()
 	#lazzy_run()

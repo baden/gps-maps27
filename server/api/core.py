@@ -161,20 +161,35 @@ class BaseApi(webapp2.RequestHandler):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 		self.response.write(self.js_pre + json.dumps(self._parcer(), indent=2) + self.js_post + "\r")
 
+api_start = datetime.utcnow()
 concurent = 0
+req_counter = 0
 class Version(BaseApi):
 	requred = ('nologin')
 	def parcer(self):
 		#from time import sleep
-		global concurent
+		global concurent, api_start, req_counter
 		conc = concurent
 		concurent += 1
 		#sleep(3.0)
 		self.response.headers['Access-Control-Allow-Origin'] = '*'
 		self.response.headers['Access-Control-Allow-Methods'] = "GET, POST, OPTIONS"
-		self.response.headers['Access-Control-Max-Age'] = "1728000"
+		#self.response.headers['Access-Control-Max-Age'] = "1728000"
+		now = datetime.utcnow()
+		work = now - api_start
+		req_counter += 1
+		info = {
+			'pid': os.getpid(),
+			'req_counter': req_counter,
+			'concurent': conc,
+			'api_start': api_start.isoformat(), #.strftime("%Y-%m-%d %H:%M:%S"),
+			'resp_time': now.isoformat(),
+			'worktime': work.seconds,
+			'environment': dict([(str(k),str(v)) for k,v in os.environ.items()]),
+			'headers': dict([(str(k), str(v)) for k,v in self.request.headers.items()]),
+		}
 		concurent -= 1
-		return {'answer': 'ok', 'version': API_VERSION, 'concurent': conc}
+		return {'answer': 'ok', 'version': API_VERSION, 'info': info}
 
 class ApiPage(webapp2.RequestHandler):
 	def get(self):

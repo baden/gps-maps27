@@ -48,9 +48,9 @@ java -jar .lib\yuicompressor-2.4.7.jar build\all.css -o build\all-min.css  --typ
 )
 
 if .%min% == .yes (
-copy build\all-min.html server\html\all.html
-copy build\all-min.css server\stylesheets\all.css
+copy build\all-min.html server\www\index.html
+copy build\all-min.css server\www\stylesheets\all.css
 ) else (
-copy build\all.html server\html\all.html
-copy build\all.css server\stylesheets\all.css
+copy build\all.html server\www\index.html
+copy build\all.css server\www\stylesheets\all.css
 )

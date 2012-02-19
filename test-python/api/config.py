@@ -27,7 +27,7 @@ def rawPOST2(url, body):
 	print 'Status: %s\r\nReason: %s\r\nHeaders:' % (response.status, response.reason)
 	for p in response.getheaders():
 		print p[0], ':', p[1]
-	print '\r\nMsg:\r\n%s' % response.msg
+	#print '\r\nMsg:\r\n%s' % response.msg
 	data = response.read()
 	conn.close()
 	print 'Data:\r\n%s' % data
@@ -50,7 +50,7 @@ def simpleGET2(url):
 	print 'Status: %s\r\nReason: %s\r\nHeaders:\r\n' % (response.status, response.reason)
 	for p in response.getheaders():
 		print p
-	print 'Msg:\r\n%s' % response.msg
+	#print 'Msg:\r\n%s' % response.msg
 	data = response.read()
 	conn.close()
 	print 'Data:\r\n%s' % data

@@ -39,7 +39,7 @@ def register(uuid):
 	user_id = uuid.split(':')[0]
 	#akey = db.Key.from_path('DBAccounts', user_id)
 	akey = DBAccounts.key_from_user_id(user_id)
-	logging.warning('== Generate channel-token for account: %s, uuid=%s' % (akey, uuid))
+	#logging.warning('== Generate channel-token for account: %s, uuid=%s' % (akey, uuid))
 	if not DISABLE_CHANNEL:
 	    token = channel.create_channel(uuid)
 	else:
@@ -47,7 +47,7 @@ def register(uuid):
 	return token
 
 def handle_connection(client_id):
-	logging.warning('== Connect client: %s' % client_id)
+	#logging.warning('== Connect client: %s' % client_id)
 	def txn():
 		root = DBUpdater.get_by_key_name('root')
 		if root is None:
@@ -63,7 +63,7 @@ def handle_connection(client_id):
 
 
 def handle_disconnection(client_id):
-	logging.warning('== Disconnect client: %s' % client_id)
+	#logging.warning('== Disconnect client: %s' % client_id)
 
 	def txn():
 		root = DBUpdater.get_by_key_name('root')
@@ -104,11 +104,11 @@ class DBMessages(db.Model):
 def send_message(message, akeys=[], skeys=[], domain="", timeout=DEFAULT_TIMEOUT):
 	from google.appengine.api.labs import taskqueue
 
-	logging.warning('\n\nExecute: send_message.\n')
+	#logging.warning('\n\nExecute: send_message.\n')
 	# Для работы в High Replication необходимо все записи разместить в одной сущности.
 	collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
 	#messagedb = DBMessages(parent = collect_key, message = pickle.dumps(message, protocol=pickle.HIGHEST_PROTOCOL))
-	logging.warning('\n\nRepr: parent:[%s]\nakeys:[%s]\nskeys:[%s]\ndomain:[%s]\nmessage:[%s]' % (repr(collect_key), repr(akeys), repr(skeys), repr(domain), repr(message)))
+	#logging.warning('\n\nRepr: parent:[%s]\nakeys:[%s]\nskeys:[%s]\ndomain:[%s]\nmessage:[%s]' % (repr(collect_key), repr(akeys), repr(skeys), repr(domain), repr(message)))
 	messagedb = DBMessages(parent = collect_key, akeys=akeys, skeys=skeys, domain=domain, message = repr(message))
 	messagedb.put()
 	#lazzy_run()

@@ -436,7 +436,10 @@ def updateLasts(skey, point, points):
 	from channel import inform
 	from google.appengine.api import memcache
 	imei = skey.name()
-	value = {'key': str(skey), 'skey': str(skey), 'last':{'point': repr_middle(point)}}
+	try:
+		value = {'key': str(skey), 'skey': str(skey), 'last':{'point': repr_middle(point)}}
+	except:
+		value = {'key': str(skey), 'skey': str(skey), 'last': 0}
 	memcache.set("geoLast:%s" % imei, value)
 	logging.warning('== geo.updateLasts(%s, %s, %s)' % (skey, repr_middle(point), points))
 	inform(skey, 'geo_change_last', value)

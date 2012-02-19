@@ -24,8 +24,7 @@ class Chanel_GetToken(BaseApi):
 
 		token = register(self.user.user_id() + ':' + uuid + ':' + os.environ['SERVER_NAME'])
 
-		logging.warning('== Goted token %s ' % token)
-
+		#logging.warning('== Goted token %s ' % token)
 		return {
 			'answer': 'ok',
 			#'akey': '%s' % DBAccounts.key_from_user_id(uuid.split('_')[0]),	#db.Key.from_path('DBAccounts', uuid.split('_')[0]),
@@ -44,7 +43,7 @@ class ChannelDisconnectHandler(webapp2.RequestHandler):
 
 class MessagePost(webapp2.RequestHandler):
 	def post(self):
-		logging.warning('Execute: messages post.')
+		#logging.warning('Execute: messages post.')
 		collect_key = db.Key.from_path('DefaultCollect', 'DBMessages')
 		messages_bc = []
 		messages_akey = {}
@@ -52,25 +51,25 @@ class MessagePost(webapp2.RequestHandler):
 		mkeys = []
 		query = DBMessages.all().ancestor(collect_key)
 		for mesg in query:
-			logging.warning('Message: %s' % mesg.message)
+			#logging.warning('Message: %s' % mesg.message)
 			#messages.append(pickle.loads(mesg.message))
 			value = eval(mesg.message)
 			if (mesg.akeys is not None) and (len(mesg.akeys) > 0):
-				logging.info('\n\n+akey')
+				#logging.info('\n\n+akey')
 				for akey in mesg.akeys:
 					if akey not in messages_akey:
 						messages_akey[akey] = [(value, mesg.domain)]
 					else:
 						messages_akey[akey].append((value, mesg.domain))
 			elif (mesg.skeys is not None) and (len(mesg.skeys) > 0):
-				logging.warning('\n\n+skey')
+				#logging.warning('\n\n+skey')
 				for skey in mesg.skeys:
 					if skey not in messages_skey:
 						messages_skey[skey] = [(value, mesg.domain)]
 					else:
 						messages_skey[skey].append((value, mesg.domain))
 			else:
-				logging.warning('\n\n+broadcast')
+				#logging.warning('\n\n+broadcast')
 				messages_bc.append((value, mesg.domain))
 			mkeys.append(mesg.key())
 			#mesg.delete()
@@ -93,7 +92,7 @@ class MessagePost(webapp2.RequestHandler):
 			try:
 				akey = DBAccounts.key_from_user_id(parts[0], domain=parts[2])
 			except:
-				logging.error('Error parce uuid. (uuid=%s)' % uuid)
+				#logging.error('Error parce uuid. (uuid=%s)' % uuid)
 				olduuids.append(uuid)
 				continue
 				
@@ -113,11 +112,11 @@ class MessagePost(webapp2.RequestHandler):
 						messages.append(msg[0])
 					_log += '\nMessage by akey:\n%s\n' % repr(msg)
 
-			logging.warning('uuid: %s, akey: %s (%s)' %(uuid, uuid.split('_')[0], str(akey)))
+			#logging.warning('uuid: %s, akey: %s (%s)' %(uuid, uuid.split('_')[0], str(akey)))
 
 			account = account_future.get_result()
 			if account is None:
-				logging.error('Error accont. (uuid=%s)' % uuid)
+				#logging.error('Error accont. (uuid=%s)' % uuid)
 				olduuids.append(uuid)
 				continue
 			
@@ -129,9 +128,10 @@ class MessagePost(webapp2.RequestHandler):
 					for msg in messages_skey[skey]:
 						if (msg[1] == '') or (msg[1] == parts[2]):
 							messages.append(msg[0])
-							logging.warning('  ==  Append %s:%s' % (repr(msg), repr(parts)))
+							#logging.warning('  ==  Append %s:%s' % (repr(msg), repr(parts)))
 						else:
-							logging.warning('  ==  Ignore %s:%s' % (repr(msg), repr(parts)))
+							#logging.warning('  ==  Ignore %s:%s' % (repr(msg), repr(parts)))
+							pass
 						_log += '\nMessage by skey:\n%s\n' % repr(msg)
 
 			if len(messages) > 0:
@@ -141,12 +141,12 @@ class MessagePost(webapp2.RequestHandler):
 						channel.send_message(uuid, json.dumps(messages))
 					_log += 'Send successful.\n'
 				except channel.InvalidChannelClientIdError, e:
-					logging.error("Channed error: (%s). TBD! Remove uuid from list." % str(e))
+					#logging.error("Channed error: (%s). TBD! Remove uuid from list." % str(e))
 					olduuids.append(uuid)
 			else:
 				_log += 'No messages for client: %s\n' % uuid
 
-			logging.warning(_log)
+			#logging.warning(_log)
 
 		if len(olduuids)>0:
 			root = DBUpdater.get_by_key_name('root')
@@ -171,7 +171,7 @@ class MessagePost(webapp2.RequestHandler):
 class Message(BaseApi):
 	def parcer(self):
 		from datamodel import DBSystem
-		logging.warning('Broadcast message ')
+		#logging.warning('Broadcast message ')
 		args = self.request.arguments()
 		message = dict((a, self.request.get(a, '')) for a in args)
 		#send_message(message, skeys=[DBSystem.imei2key('356895035359317')])

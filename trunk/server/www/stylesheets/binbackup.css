@@ -1,0 +1,121 @@
+h1 {
+	font-size: 100%;
+}
+
+div.bblock {
+	cursor: pointer;
+	display: inline-block;
+	/*width: 10%;*/
+	padding: 2px;
+	font-size: 0.9em;
+	margin-top: 2px;
+	margin-bottom: 2px;
+	/*line-height:1.8em;*/
+	border: 1px solid blue;
+	border-radius: 3px;
+	background-color: #F2EFE9;
+	/*-webkit-transition: all 0.2s ease-in-out;
+	-moz-transition: all 1s ease-in-out;
+	-o-transition: all 1s ease-in-out;*/
+	-webkit-transition: all 0.1s linear;
+	-moz-transition: all 0.1s linear;
+	-o-transition: all 0.1s linear;
+}
+
+div:hover.bblock {
+	/*-webkit-box-shadow:0 0 10px #004080;
+	-moz-box-shadow: 0 0 10px #004080;*/
+	-webkit-box-shadow:0 3px 6px #000000;
+	-moz-box-shadow: 0 3px 6px #000000;
+	-webkit-transform: scale(1.2) translate(0px,-3px);
+	-moz-transform: scale(1.2) translate(0px,0px);
+}
+
+
+div.bblock div {
+	line-height:0.8em;
+	padding: 0;
+	margin: 0;
+}
+
+
+div.bblock div.crcok {
+	background-color: #80FF80;
+}
+
+div.bblock div.crcfail {
+	background-color: #FF8080;
+}
+
+a.pushLink {
+    padding: 2px 8px 2px 8px;
+    text-decoration: none;
+    color: blue;
+    background-color: #FFF0FF;
+    border: 1px solid black;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-box-shadow:2 2 4px #004080;
+    -moz-box-shadow: 2 2 4px #004080;
+}
+
+a:hover.pushLink {
+    background-color: #8080FF;
+    color: white;
+    -webkit-box-shadow:2 0 6px #80FFFF;
+    -moz-box-shadow:2 2 6px #80FFFF;
+}
+
+a.smallButton {
+    padding: 0px 4px 0px 4px;
+    font-weight: bold;
+    text-decoration: none;
+    border: 1px solid #F0E0E0;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+	display: inline-block;
+	position: relative;
+	min-width: 8px;
+	min-height: 16px;
+}
+
+a:hover.smallButton {
+    border: 1px solid black;
+    background-color: #8080FF;
+    color: white;
+}
+
+a.Prev, a.Next {
+	padding: 2px 4px 2px 4px;
+	background-color: white;
+	/*position: absolute;*/
+	border: 1px solid black;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-box-shadow: 2 2 4px #404080;
+	-webkit-box-shadow: 2 2 4px #404080;
+	/*top: 36px;*/
+	text-decoration: none;
+	-webkit-transition: all 0.3s ease-out;
+	-moz-transition: all 0.3s ease-out;
+}
+
+a.Prev {
+	/*right: 16px;*/
+	/*top: 42px;*/
+}
+
+a.Next {
+	/*left: 16px;*/	
+	/*top: 42px;*/
+}
+
+a:hover.Prev, a:hover.Next {
+	background-color: #8080FF;
+	color: white;
+	-moz-box-shadow:0 0 20px #80FFFF;
+	-webkit-box-shadow:0 0 20px #80FFFF;
+}

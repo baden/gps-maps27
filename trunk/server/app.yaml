@@ -17,53 +17,80 @@ admin_console:
     url: /stats
 
 handlers:
+
+# 0. Служебные
+
+- url: /stats.*
+  script: google.appengine.ext.appstats.ui.app
+
 #- url: /_ah/queue/deferred
 #  script: libs.deferred.app
 #  #script: google.appengine.ext.deferred.application
 #  #login: admin
 
-- url: /stats.*
-  script: google.appengine.ext.appstats.ui.app
+# 1. Статика
+
+- url: /stylesheets
+  static_dir: www/stylesheets
+
+- url: /js
+  static_dir: www/js
+
+- url: /fonts
+  static_dir: www/fonts
+
+#- url: /html
+#  static_dir: www/html
+
+- url: /svg
+  static_dir: www/svg
+  mime_type: image/svg+xml
+
+- url: .*/favicon.ico
+  static_files: www/favicon.ico
+  upload: www/favicon.ico
+
+- url: /images/(.*\.(gif|png|jpg|ico))
+  static_files: www/images/\1
+  upload: www/images/(.*\.(gif|png|jpg|ico))
+
+- url: /sound/(.*\.(mp3|ogg))
+  static_files: www/sound/\1
+  upload: www/sound/(.*\.(mp3|ogg))
+
+- url: /(.*\.html)
+  static_files: www/\1
+  upload: www/(.*\.html)
+
+- url: /
+  static_files: www/index.html
+  upload: www/index.html
+  #login: required
+
+
+
+# 2. Генерируемая статика
+# 3. API
+# 4. Сбор данных
+# 5. Сервер обмена сообщениями
+
+- url: /.*
+  script: application.app
+
+
+# Устаревшее
 
 #- url: /prodeagle/
 #  script: prodeagle.harvest.application
 
-- url: /prodeagle/.*
-  static_files: static/blanks.html
-  upload: static/blanks.html
+#- url: /prodeagle/.*
+#  static_files: static/blanks.html
+#  upload: static/blanks.html
 
-- url: /stylesheets
-  static_dir: stylesheets
-
-- url: /js
-  static_dir: js
-
-- url: /fonts
-  static_dir: fonts
-
-- url: /html
-  static_dir: html
-
-- url: /main3
-  static_files: html/all.html
-  upload: html/all.html
-  login: required
-
-- url: /svg
-  static_dir: svg
-  mime_type: image/svg+xml
-
-- url: .*/favicon.ico
-  static_files: static/favicon.ico
-  upload: static/favicon.ico
-
-- url: /images/(.*\.(gif|png|jpg|ico))
-  static_files: images/\1
-  upload: images/(.*\.(gif|png|jpg|ico))
-
-- url: /sound/(.*\.(mp3|ogg))
-  static_files: sound/\1
-  upload: sound/(.*\.(mp3|ogg))
+#- url: /main3
+#  static_files: html/all.html
+#  upload: html/all.html
+#  login: required
 
 #- url: /_ah/channel/.*
 #  script: channel.app
@@ -72,15 +99,3 @@ handlers:
 #  static_files: static/\1
 #  mime_type: text/cache-manifest
 #  upload: static/(.*\.appcache)
-
-- url: /offline.html
-  static_files: static/offline.html
-  upload: static/offline.html
-
-- url: /
-  static_files: html/all.html
-  upload: html/all.html
-  #login: required
-
-- url: /.*
-  script: application.app

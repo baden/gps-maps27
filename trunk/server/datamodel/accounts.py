@@ -52,7 +52,8 @@ class DBAccounts(db.Model):
 			except:
 				pass
 		"""
-		rpc = db.create_rpc(deadline=10, read_policy=db.EVENTUAL_CONSISTENCY)	# Это позволяет генерировать один вызов для всех ключей (и дает значительную экономию по скорости)
+		#rpc = db.create_rpc(deadline=10, read_policy=db.EVENTUAL_CONSISTENCY)	# Это позволяет генерировать один вызов для всех ключей (и дает значительную экономию по скорости)
+		rpc = db.create_rpc(deadline=10)	# Это позволяет генерировать один вызов для всех ключей (и дает значительную экономию по скорости)
 		return DBSystem.get(self.systems_key, rpc=rpc)
 		#return db.get(self.systems_key, rpc=rpc)
 
@@ -66,7 +67,8 @@ class DBAccounts(db.Model):
 			except:
 				pass
 		"""
-		rpc = db.create_rpc(deadline=10, read_policy=db.EVENTUAL_CONSISTENCY)	# Это позволяет генерировать один вызов для всех ключей (и дает значительную экономию по скорости)
+		#rpc = db.create_rpc(deadline=10, read_policy=db.EVENTUAL_CONSISTENCY)	# Это позволяет генерировать один вызов для всех ключей (и дает значительную экономию по скорости)
+		rpc = db.create_rpc(deadline=10)	# Это позволяет генерировать один вызов для всех ключей (и дает значительную экономию по скорости)
 		#return DBSystem.get_async(self.systems_key, rpc=rpc)
 		return db.get_async(self.systems_key, rpc=rpc)
 

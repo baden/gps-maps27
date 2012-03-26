@@ -54,6 +54,10 @@ handlers:
   static_files: www/images/\1
   upload: www/images/(.*\.(gif|png|jpg|ico))
 
+- url: /img/(.*\.(gif|png|jpg|ico))
+  static_files: www/img/\1
+  upload: www/img/(.*\.(gif|png|jpg|ico))
+
 - url: /sound/(.*\.(mp3|ogg))
   static_files: www/sound/\1
   upload: www/sound/(.*\.(mp3|ogg))
@@ -61,6 +65,11 @@ handlers:
 - url: /(.*\.html)
   static_files: www/\1
   upload: www/(.*\.html)
+
+- url: /testlib.appcache
+  static_files: www/testlib.appcache
+  mime_type: text/cache-manifest
+  upload: www/testlib.appcache
 
 - url: /
   static_files: www/index.html

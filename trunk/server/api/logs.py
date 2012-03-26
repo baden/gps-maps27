@@ -1,5 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 from core import BaseApi
+import logging
 
 class Get(BaseApi):
 	requred = ('skey')
@@ -40,11 +41,12 @@ class Del(BaseApi):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 
 		lkey = self.request.get("lkey", None)
-		
+		logging.info('api.logs.del (key=%s)' % lkey)
 		#logsq = GPSLogs.all().ancestor(self.skey).order('-date').fetch(1000)
 		#GPSLogs.get(lkey).delete()
 		try:
-			db.delete(db.Key(lkey))
+			GPSLogs.get(lkey).delete()
+			#db.delete(db.Key(lkey))
 		except:
 			return {
 				"answer": "fail",

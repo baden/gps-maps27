@@ -2,8 +2,8 @@ import httplib
 import urllib
 import random
 
-#GETFROM = "localhost:80"
-GETFROM = "point.gps.navi.cc:80"
+GETFROM = "localhost:80"
+#GETFROM = "point.gps.navi.cc:80"
 
 def main():
 	conn = httplib.HTTPConnection(GETFROM)
@@ -16,5 +16,4 @@ def main():
 	print data
 
 if __name__ == "__main__":
-	main()
 	main()

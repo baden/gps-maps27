@@ -236,7 +236,7 @@ MyMarker.prototype.onRemove = function() {
 }
 
 MyMarker.prototype.draw = function() {
-	//log('MyMarker.prototype.draw: This:', this);
+	//log('MyMarker.prototype.draw: This:', this, this.point);
 
 	if(this.point){
 		// Size and position the overlay. We use a southwest and northeast

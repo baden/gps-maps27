@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+from datetime import datetime
 
 CRC16_CCITT_table = (
         0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, 0x8108, 0x9129, 0xa14a, 0xb16b,
@@ -28,3 +29,8 @@ CRC16_CCITT_table = (
 def CRC16(crc, data):
     """ Compute correct enough :grin: CRC16 CCITT for using in BF2142 auth token """
     return (((crc << 8) & 0xff00) ^ CRC16_CCITT_table[((crc >> 8) ^ (0xff & data))])
+
+def unixtime(dt):
+	epoch = datetime(1970, 1, 1)
+	#seconds_in_a_day = 60 * 60 * 24
+	return (dt-epoch).total_seconds()

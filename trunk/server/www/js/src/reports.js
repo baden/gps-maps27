@@ -54,6 +54,39 @@ var genReport = function(skey, start, stop, title) {
 		if (data.answer == 'ok') {
 			//ParcePath(data);
 			log("Show report...");
+			var fuel = 0;
+			var fm = {
+				0: data.car.fuel_midle * Math.pow(2, data.car.fuel_midle0 / 100.0),
+				20: data.car.fuel_midle * Math.pow(2, data.car.fuel_midle20 / 100.0),
+				40: data.car.fuel_midle * Math.pow(2, data.car.fuel_midle40 / 100.0),
+				60: data.car.fuel_midle * Math.pow(2, data.car.fuel_midle60 / 100.0),
+				80: data.car.fuel_midle * Math.pow(2, data.car.fuel_midle80 / 100.0),
+				100: data.car.fuel_midle * Math.pow(2, data.car.fuel_midle100 / 100.0),
+				120: data.car.fuel_midle * Math.pow(2, data.car.fuel_midle120 / 100.0)
+			};
+
+			// Вычисление расхода в зависимости от скорости
+			// Написана коряво.
+			var fuel_middle = function(speed) {
+				var ofs, p1, p2;
+				if(speed <= 20.0) {
+					ofs = 0; p1 = fm[0];  p2 = fm[20];
+				} else if(speed <= 40.0){
+					ofs = 20; p1 = fm[20]; p2 = fm[40];
+				} else if(speed <= 60.0){
+					ofs = 40; p1 = fm[40]; p2 = fm[60];
+				} else if(speed <= 80.0){
+					ofs = 60; p1 = fm[60]; p2 = fm[80];
+				} else if(speed <= 100.0){
+					ofs = 80; p1 = fm[80]; p2 = fm[100];
+				} else if(speed <= 120.0){
+					ofs = 100; p1 = fm[100]; p2 = fm[120];
+				} else {
+					ofs = 120; p1 = fm[120]; p2 = fm[120];
+				}
+				return (p2-p1)*(speed-ofs)/20.0 + p1;
+			}
+			//window['fm'] = fuel_middle;
 
 			$('#report_total_dist').html(ln_to_km(data.summary.length));
 			$('#report_total_movetime').html(td_to_hms(data.summary.movetime));
@@ -77,7 +110,10 @@ var genReport = function(skey, start, stop, title) {
 				switch(rec.type){
 					case 'move': {
 						if(rec.duration == 0) continue;
-						tp = 'Движение</td><td>' + ln_to_km(rec.length) + ', ' + rec.speed.toFixed(1) + ' км/ч'; break
+						//var f = rec.length * data.car.fuel_midle / 100;
+						var f = rec.length * fuel_middle(rec.speed) / 100;
+						fuel += f;
+						tp = 'Движение</td><td>' + ln_to_km(rec.length) + ', ' + rec.speed.toFixed(1) + ' км/ч, &#8776;' + f.toFixed(2) + ' л'; break
 					}
 					case 'stop': {
 						//var rdiv = $('div');
@@ -123,6 +159,8 @@ var genReport = function(skey, start, stop, title) {
 				"</tr>" );
 					
 			}
+			$('#report_total_fuel_midle').html(fuel.toFixed(1) + ' л');
+
 			$(tbody).children('tr').click(function(){
 				//log(this);
 				$(this).css('font-weight', 'bold');

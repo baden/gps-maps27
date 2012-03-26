@@ -1,7 +1,8 @@
-﻿import httplib, urllib
+﻿#
+import httplib, urllib
 
 SERVER = "localhost"
-#SERVER = "point.gps.navi.cc"
+# SERVER = "point.gps.navi.cc"
 SERVER_PORT = 80
 IMEI = "1234"
 

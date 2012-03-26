@@ -155,33 +155,10 @@ class Car(BaseApi):
 		import pickle
 
 		if self.request.get('cmd', '') == 'get':
-			q = DBCar.get(self.skey)
-			if q is not None:
-				car = {
-					'number': q.number,
-					'model': q.model,
-					'year': q.year,
-					'drive': q.drive,
-					'vin': q.vin,
-					'teh': q.teh,
-					'drivers': [],
-					'casco': q.casco,
-					'comments': q.comments
-				}
-			else:
-				car = {
-					'number': '',
-					'model': '',
-					'year': '',
-					'drive': '',
-					'vin': '',
-					'teh': '',
-					'drivers': [],
-					'casco': '',
-					'comments': ''
-				}
+			car = DBCar.get(self.skey)
 		elif self.request.get('cmd', '') == 'set':
 			car = {'set': 'set', 'params': self.request.POST.items()}
+			# TBD   datamodel.car    .get
 			DBCar.set( self.skey,
 				number = self.request.POST['number'],
 				model = self.request.POST['model'],
@@ -190,7 +167,16 @@ class Car(BaseApi):
 				vin = self.request.POST['vin'],
 				teh = self.request.POST['teh'],
 				casco = self.request.POST['casco'],
-				comments = self.request.POST['comments']
+				comments = self.request.POST['comments'],
+				fuel_midle = float(self.request.POST['fuel_midle'].replace(',','.')),
+				fuel_stop = float(self.request.POST['fuel_stop'].replace(',','.')),
+				fuel_midle0 = int(self.request.POST['fuel_midle0']),
+				fuel_midle20 = int(self.request.POST['fuel_midle20']),
+				fuel_midle40 = int(self.request.POST['fuel_midle40']),
+				fuel_midle60 = int(self.request.POST['fuel_midle60']),
+				fuel_midle80 = int(self.request.POST['fuel_midle80']),
+				fuel_midle100 = int(self.request.POST['fuel_midle100']),
+				fuel_midle120 = int(self.request.POST['fuel_midle120']),
 			)
 		else:
 			return {'result': 'error', 'reason': 'unknown operation'}

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+	<title>GPS наблюдение - Образы прошивок</title>
+	<meta name="author" content="Batrak Denis (denis@batrak.net">
+	<meta name="description" content="Firmware">
+	<!--meta id="meta" name="viewport" content="width=device-width; initial-scale=1.0; user-scalable=no" /-->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="shortcut icon" type="image/png" href="about:blank" />
+
+	<link rel="stylesheet" href="stylesheets/bootstrap.css">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+	<link rel="stylesheet" href="stylesheets/bootstrap-responsive.css">
+
+
+	<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+	<!-- Le fav and touch icons -->
+	<!--link rel="apple-touch-icon-precomposed" sizes="114x114" href="../assets/ico/apple-touch-icon-114-precomposed.png">
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="../assets/ico/apple-touch-icon-72-precomposed.png">
+	<link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png"-->
+
+</head>
+
+<body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Образы прошивок</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="#">Образы</a></li>
+              <li><a href="#about">О программе</a></li>
+              <li><a href="#contact">Контакты</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+	<!--div class="container-fliud" id="block" style="padding-top: 42px;"><div id="loading"-->
+	<div class="container">
+
+	<button class="btn btn-primary" id="firmware_update"><i class="icon-refresh icon-white"></i> Обновить</button>
+	<table id="log_table" class="table table-striped table-condensed">
+			<thead><tr>
+				<th>Имя образа</th>
+				<th>Версия HW</th>
+				<th>Версия SW</th>
+				<th>Субверсия HW</th>
+				<th>Дата добавления</th>
+				<th>Размер</th>
+				<th>Описание</th>
+				<th title="Загрузить бинарный образ">Бин</th>
+				<th title="Загрузить текстовый образ">Текст</th>
+				<th title="Загрузить упакованый образ">Пак</th>
+				<th title="Удалить">X</th>
+			</tr></thead>
+			<tbody>
+				
+			</tbody>
+		</table>
+
+	<h2 id="about">О программе</h2>
+		Образы используются для дистанционного обновления прошивок систем.
+	<h2 id="contact">Связь с автором</h2>
+		Пожелания и замечания пишите мне на e-mail. <a href="mailto:denis@batrak.net">denis@batrak.net</a>
+
+	</div>
+
+  <!--script src="js/require-min.js"></script-->
+  <script src="js/jquery-1.7.1.min.js"></script>
+
+<script>
+(function(){
+	window.log = function(){
+		if(window.console){
+			try{
+				console.log( Array.prototype.slice.call(arguments) );
+			} catch(ex) {
+				log('Error in console', ex);
+			}
+		}
+	}
+
+	var tbody = document.body.querySelector('table tbody');
+	var update = function(){
+		/*require(['/api/firmware/list?callback=define'], function(list){
+			log('list', list);
+		});*/
+		tbody.innerHTML = '<tr><td colspan=11>Загрузка...</td></tr>';
+		$.getJSON('/api/firmware/list', function(data){
+			log('list', data);
+			if(data && (data.answer == 'ok')){
+				var lines = [];
+				for(var i=0, il=data.firmwares.length; i<il; i++){
+					var fw = data.firmwares[i];
+					log('l=', fw);
+					lines.push(
+						'<tr>'+
+							'<td>' + fw.keyname +
+							'</td><td>' + fw.hwid +
+'<a class="btn btn-mini" href="/firmware?cmd=getbin&hwid=' + fw.hwid + '&subid=' + fw.subidhex + '" title="Загрузить самый свежий бинарный образ для этого HW">B</a>' +
+'<a class="btn btn-mini" href="/firmware?cmd=get&hwid=' + fw.hwid + '&subid=' + fw.subidhex + '" title="Загрузить самый свежий текстовый образ для этого HW">T</a>' +
+'<a class="btn btn-mini" href="/firmware?cmd=getpack&hwid='+ fw.hwid + '&subid=' + fw.subidhex + '" title="Загрузить самый свежий упакованый текстовый образ для этого HW">P</a>' +
+'<a class="btn btn-mini" href="/firmware?cmd=check&hwid=' + fw.hwid + '&subid=' + fw.subidhex + '" title="Запросить версию самого свежего образа для этого HW">?</a>' +
+'<a class="btn btn-mini" href="/firmware?hwid=' + fw.hwid + '" title="Показывать только образы для этого HW">F</a>' +
+'<a class="btn btn-mini" href="/firmware?cmd=get&boot=yes&hwid=' + fw.hwid + '" title="Загрузить загрузчик для этого образа">BL</a>' +
+
+							'</td><td>' + fw.swid +
+							'</td><td>' + fw.subid +
+							'</td><td>' + fw.cdate +
+							'</td><td>' + fw.size +
+							'</td><td>' + fw.desc +
+							'</td><td><a class="btn btn-mini" href="/firmware?cmd=getbin&key=' + fw.key +'" title="Загрузить бинарный образ">B</a>' +
+							'</td><td><a class="btn btn-mini" href="/firmware?cmd=get&key=' + fw.key + '" title="Загрузить текстовый образ">T</a>' +
+							'</td><td><a class="btn btn-mini" href="/firmware?cmd=getpack&key=' + fw.key + '" title="Загрузить упакованый текстовый образ">P</a>' +
+							'</td><td><a class="btn btn-mini" href="/firmware?cmd=del&key=' + fw.key + '" title="Удалить">X</a>' +
+							'</td>' +
+						'</tr>'
+					);
+				}
+				tbody.innerHTML = lines.join('');
+			} else {
+			}
+		});
+	}
+	$('#firmware_update').click(update);
+	update();
+})();
+</script>
+
+</body>
+
+</html>
+
+
+
+

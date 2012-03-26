@@ -22,6 +22,16 @@ API_VERSION = 1.0
 SERVER_NAME = os.environ['SERVER_NAME']
 MAXPOINTS = 100000
 
+PROFILER = True
+import time
+if sys.platform == "win32":
+    # On Windows, the best timer is time.clock()
+    profiler_timer = time.clock
+else:
+    # On most other platforms the best timer is time.time()
+    profiler_timer = time.time
+
+
 #logging.getLogger().setLevel(logging.DEBUG)
 #logging.getLogger().setLevel(logging.WARNING)
 
@@ -152,14 +162,39 @@ class BaseApi(webapp2.RequestHandler):
 
 		return self.parcer()
 
-	def get(self):
+	def api(self):
 		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
 		#self.response.headers['Access-Control-Allow-Origin'] = '*'
-		self.response.write(self.js_pre + json.dumps(self._parcer(), indent=2) + self.js_post + "\r")
+		callback = self.request.get('callback', None)
+		if PROFILER:
+			start = profiler_timer()
+			answ = self._parcer()
+			stop = profiler_timer()
+			answ['profiler'] = {
+				#'start': start,
+				#'stop': stop,
+				'duration': int((stop-start)*1000000.0),
+				'duration_item': 'us'
+			}
+			if callback:
+				#self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
+				self.response.write(callback + '= ' + self.js_pre + json.dumps(answ, indent=2) + self.js_post + "\r")
+				#self.response.write(self.js_pre + json.dumps(answ, indent=2) + self.js_post + "\r")
+			else:
+				self.response.write(self.js_pre + json.dumps(answ, indent=2) + self.js_post + "\r")
+		else:
+			if callback:
+				#self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
+				self.response.write(callback + '= ' + self.js_pre + json.dumps(self._parcer(), indent=2) + self.js_post + "\r")
+				#self.response.write(self.js_pre + json.dumps(self._parcer(), indent=2) + self.js_post + "\r")
+			else:
+				self.response.write(self.js_pre + json.dumps(self._parcer(), indent=2) + self.js_post + "\r")
+
+	def get(self):
+		self.api()
 
 	def post(self):
-		self.response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
-		self.response.write(self.js_pre + json.dumps(self._parcer(), indent=2) + self.js_post + "\r")
+		self.api()
 
 api_start = datetime.utcnow()
 concurent = 0

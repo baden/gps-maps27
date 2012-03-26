@@ -107,7 +107,16 @@ class BaseHandler(webapp2.RequestHandler):
 		logging.info('--------------> Increment session')
 
 		template_args['session'] = self.session
+		path = os.path.join(os.path.dirname(__file__), 'templates', filename)
+		#logging.info('path=%s', path)
+		#with open(path) as f:
+		#	for line in f:
+		#		logging.info('line:%s', line)
+		#		#print line
 
+		#self.response.write(self.jinja2.render_template(path, **template_args))
+		#self.jinja2.
+		logging.info('Jinja default config (%s)' % repr(jinja2.default_config))
 		self.response.write(self.jinja2.render_template(filename, **template_args))
 
 

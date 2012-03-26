@@ -411,14 +411,15 @@ var faviconCtx;
 //});
 
 window.config.working = function(){
-	var workingdiv = document.getElementById('working');
-	workingdiv.style.display = 'inline';
+	window.config.workingdiv = window.config.workingdiv || document.getElementById('working');
+	window.config.workingdiv.innerText = 'Работаем...';
+	window.config.workingdiv.style.display = 'inline';
 
 // Draw dynamic favicon
 //log('faviconCtx', faviconCtx);
 	faviconCtx
 		.clearRect(0,0,16,16)
-		.prop('fillStyle', '#0a0')
+		.prop('fillStyle', '#a00')
 		.roundRect(0, 0, 16, 16, 2)
 		.fill();
 	//	.drawImage(current, 0, 0, 16, 16);
@@ -426,9 +427,15 @@ window.config.working = function(){
 	document.querySelector('link[rel="shortcut icon"]').setAttribute('href', favicon.toDataURL());
 }
 
-window.config.workingdone = function(){
-	var workingdiv = document.getElementById('working');
-	workingdiv.style.display = 'none';
+window.config.workingdone = function(title){
+	//var workingdiv = document.getElementById('working');
+	window.config.workingdiv = window.config.workingdiv || document.getElementById('working');
+	if(title) {
+		window.config.workingdiv.innerText = title;
+		setTimeout(function(){log('window.config.workingdone:', title);window.config.workingdiv.style.display = 'none';}, 5000);
+	} else {
+		window.config.workingdiv.style.display = 'none';
+	}
 	faviconCtx
 		.clearRect(0,0,16,16)
 		.prop('fillStyle', '#0ab')
@@ -469,6 +476,11 @@ config.helper = {
 			element.removeChild(element.firstChild);
 		}
 	},
+
+	/* Разделение числа на сотни, тысячи пробелом */
+	digitformat: function(d) {
+		return d.toString().replace(/\s+/g, '').replace(/(\d)(?=(\d\d\d)+([^\d]|$))/g, '$1 ');
+	},
 	postJSON: function(url, data, callback){
 		config.working();
 		var formData = new FormData();
@@ -484,9 +496,14 @@ config.helper = {
 		xhr.onreadystatechange = function() {
 			if(xhr.readyState === xhr.DONE) {
 				if(xhr.status === 200 || xhr.status === 304) {
-					callback(JSON.parse(xhr.responseText));
-				}
-				config.workingdone();
+					var result = JSON.parse(xhr.responseText);
+					callback(result);
+					if(result.profiler){
+						config.workingdone('Выполнено за ' + config.helper.digitformat(result.profiler.duration) + ' мксек');
+					} else {
+						config.workingdone();
+					}
+				} else config.workingdone();
 			}
 		}
 		//xhr.onload = function(e) { /*log('Del log line', e);*/ };
@@ -499,9 +516,14 @@ config.helper = {
 		xhr.onreadystatechange = function() {
 			if(xhr.readyState === 4) {
 				if(xhr.status === 200 || xhr.status === 304) {
-					callback(JSON.parse(xhr.responseText));
-				}
-				config.workingdone();
+					var result = JSON.parse(xhr.responseText);
+					callback(result);
+					if(result.profiler){
+						config.workingdone('Выполнено за ' + config.helper.digitformat(result.profiler.duration) + ' мксек');
+					} else {
+						config.workingdone();
+					}
+				} else config.workingdone('Ошибка.');
 			}
 		}
 		xhr.send(null);
@@ -585,6 +607,7 @@ config.helper = {
 						}
 					}
 
+					log(api_url+'&cmd=set', data);
 					config.helper.postJSON(api_url+'&cmd=set', data, function(data){
 						//log('/api/system/car', data);
 					});
@@ -670,6 +693,20 @@ config.helper.clone = clone;
 /*window.onbeforeunload=function(){
 	return 'Ну неужели вам не понравилось?';
 }*/
+var wr_tab = document.getElementById('tabs');
+window.onresize = function() {
+	//log('w: ', window.innerWidth, 'h:', window.innerHeight);
+	wr_tab.style.height = window.innerHeight + 'px';
+}
+wr_tab.style.height = window.innerHeight + 'px';
+window['wr_tab'] = wr_tab;
+
+window.onbeforeprint = function(){
+	log('onbeforeprint');
+}
+window.onafterprint = function(){
+	log('onafterprint');
+}
 
 })(window, jQuery);
 

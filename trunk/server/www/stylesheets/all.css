@@ -590,14 +590,19 @@ ul#map_zones_list li {
 	cursor: pointer;
 }
 
-ul#map_zones_list li.highlight, ul#map_zones_list li:hover {
-	background-color: lime;
-}
+	ul#map_zones_list li.highlight, ul#map_zones_list li:hover {
+		background-color: lime;
+	}
 
-ul#map_zones_list li span:last-child {
-	display: inline-block;
-	float: right;
-}
+	ul#map_zones_list li span:last-child {
+		display: inline-block;
+		float: right;
+	}
+
+	ul#map_zones_list li span[data-foo="edit"] {
+		border: 1px solid black;
+	}
+
 
 div#groupselect {
 	position: absolute;
@@ -820,7 +825,14 @@ div.lastmarker {
 	/*background-color: #fff;*/
 
 	background-image: url(/images/car-default.png);
+}
 
+div.lastmarkerstop {
+	background-image: url(/images/car-stop.png);
+}
+
+div.lastmarkermove {
+	background-image: url(/images/car-move.png);
 }
 
 div.lastmarker div.lastmarker-title {
@@ -1221,7 +1233,12 @@ div.cfg_iframe {
 }
 
 span.tags {
-	border: 1px solid blue;
+	padding-left: 2px !important;
+	padding-right: 2px !important;
+	margin-left: 2px !important;
+	background-color: antiqueWhite;
+	box-shadow: 1px 1px 2px #444;
+	font-size: 80%;
 }
 
 span.description {

@@ -31,7 +31,8 @@ var saveconfig = function(it, val){
 
 var span = function(tag, title) {
 	var span_el = document.createElement('span');
-	span_el.className = 'ui-widget ui-state-default ui-corner-all ui-button ui-button-text-only tags';
+//	span_el.className = 'ui-widget ui-state-default ui-corner-all ui-button ui-button-text-only tags';
+	span_el.className = 'tags';
 	span_el.title = title;
 	span_el.innerText = tag;
 	return span_el;
@@ -64,6 +65,8 @@ var ch_desc = function(){
 	'');
 
 	$(dialog_div).find('textarea').keypress(function(ev){
+//	$('#config_addsys_imei').keypress(function(ev){
+		log('#config_addsys_imei.keypress()', ev);
 		if(ev.which == 13) {
 			//log('TEXTAREA_13:', $(this).parents('div[role="dialog"]').find('button').first());
 			$(this).parents('div[role="dialog"]').find('button').first().click();
@@ -132,6 +135,40 @@ var ch_car = function(){
 			$(this.querySelector('button.drvedit')).button().click(function(){
 				config.helper.exdialog('/html/dialogs/drivers.html', '/api/misc/drivers?skey='+skey, {imei:imei, desc:desc}, {});
 			});
+
+			var base = parseFloat($('input[name="fuel_midle"]')[0].value);
+			var val_spans = $('#correction').find('table span[role="value"]');
+
+			/*var draw_lines = function(){
+				//$('#correction')[0].innerHTML += '<svg style="position: absolute; top: 0px; left: 0px;"><path fill="none" stroke="black" d="M 227 239 L 328 90 L 346 250 L 201 124 L 410 150 L 228 238" /></svg>';
+				$('#correction')[0].innerHTML += '<canvas></canvas>';
+			}*/
+
+			$('#correction').find('table input[type="range"]').bind('change', function(ev){
+				//log('change', this.value, ev);
+				var v = parseInt(this.value, 10)/100.0;	// Значение в диапазоне -1..1
+				//this.parentNode.parentNode.querySelector('input[type="text"]').value = (base * Math.pow(2, 2*v)).toFixed(1);
+				this.parentNode.parentNode.querySelector('input[type="text"]').value = (base * Math.pow(2, v)).toFixed(1);
+			});
+			$('#correction').find('table input[type="text"]').bind('change', function(ev){
+				var v = parseFloat(this.value)/base;
+				log('change', v, Math.log(v)/Math.log(2));
+				this.parentNode.parentNode.querySelector('input[type="range"]').value = Math.log(v)/Math.log(2) * 100;
+			});
+
+			var refill = function(){
+				base = parseFloat($('input[name="fuel_midle"]')[0].value);
+				$('#correction').find('table input[type="range"]').each(function(i, el){
+					//log('====', el);
+					var v = parseInt(el.value, 10)/100.0;	// Значение в диапазоне -1..1
+					//this.parentNode.parentNode.querySelector('input[type="text"]').value = (base * Math.pow(2, 2*v)).toFixed(1);
+					el.parentNode.parentNode.querySelector('input[type="text"]').value = (base * Math.pow(2, v)).toFixed(1);
+				});
+			}
+
+			$('input[name="fuel_midle"]').bind('change', refill);
+			refill();
+			//draw_lines();
 		},
 		open: function(){
 		},
@@ -456,6 +493,15 @@ var btags = function() {
 	
 }
 
+var parentOf = function(element, parent) {
+	var par = parent;
+	while(par.nodeName.toLowerCase() !== "body") {
+		if(element.parentNode === par) return true;
+		par = par.parentNode;
+	}
+	return false;
+}
+
 config.updater.tabs[4] = function(){
 	log('Tab Config activated.');
 	$("#config_list").accordion("resize");
@@ -484,6 +530,9 @@ config.updater.tabs[4] = function(){
 		$(ctl_div).find('.bico').button().click(bico);
 		$(ctl_div).find('.bdel').button().click(bdel);
 
+		document.getElementById('config_sys_list').addEventListener('mouseover', function(){
+		}, false);
+
 		ConfigList = new SysList('config_sys_list', {
 			element: function(s){
 				var li = document.createElement('li');
@@ -501,20 +550,32 @@ config.updater.tabs[4] = function(){
 					tag_block.appendChild(span(s.tags[k], ''));
 				}
 
-				li.addEventListener('mouseover', function(){
+				li.addEventListener('mouseover', function(event){
 					//log('config_list:mouseover', this);
 					this.appendChild(ctl_div);
 					tag_block.style.display = 'none';
-					return false;
+					//return true;
+					event.preventDefault();
 				}, false);
-				li.addEventListener('mouseout', function(ev){
+				li.addEventListener('mouseout', function(event){
 					//log('config_list:mouseout', this);
-					if((ev.target != ctl_div) && (ev.toElement != ctl_div) && (ev.target.parentNode != ctl_div) && (ev.toElement.parentNode != ctl_div) && (ev.target.parentNode.parentNode != ctl_div) && (ev.toElement.parentNode.parentNode != ctl_div)) {
+					/*
+					if((event.target != ctl_div) && (event.toElement != ctl_div) && (event.target.parentNode != ctl_div) && (event.toElement.parentNode != ctl_div) && (event.target.parentNode.parentNode != ctl_div) && (event.toElement.parentNode.parentNode != ctl_div)) {
 						this.removeChild(ctl_div);
 						//log('config_list:mouseout', this, ev);
 					}
-					tag_block.style.display = '';
-					return false;
+					*/
+					//tag_block.style.display = '';
+					//if(ev.target !== this){
+						//log('event.target = ', event.target, 'this = ', this);
+					if(parentOf(event.toElement, this)){
+						//log(event, parentOf(event.toElement, this));
+						this.removeChild(ctl_div);
+						tag_block.style.display = '';
+					}
+					//}
+					event.preventDefault();
+					//return true;
 				}, false);
 				li.querySelector('span.description').addEventListener('keypress', function(ev){
 					//log(ev.charCode);
@@ -587,6 +648,17 @@ config.updater.tabs[4] = function(){
 
 	if(window.config.account.user.admin) $('.admin').show();
 		// Закладка "Наблюдаемые системы"
+
+	$('#config_addsys_imei').keypress(function(ev){
+		log('#config_addsys_imei.keypress()', ev);
+		if(ev.which == 13) {
+			//log('TEXTAREA_13:', $(this).parents('div[role="dialog"]').find('button').first());
+			$(this).parents('div[role="dialog"]').find('button').first().click();
+			return false;
+		}
+		return true;
+	});
+
 
 	$("#config_button_sys_add").click(function(){ $("#config_dialog_addsys").dialog('open'); });
 		var do_add_sys = function(imei, cb) {
@@ -741,8 +813,8 @@ config.updater.tabs[4] = function(){
 				'	<option value="3">"Срочное" оповещение о вхождении в зону</option>'+
 				'	<option value="4">Начало трека при покидании зоны</option>'+
 				'	<option value="5">Конец трека при вхождении в зону</option>'+
-				'	<option value="6">Событие 6</option>'+
-				'	<option value="7">Событие 7</option>'+
+				'	<option value="6">Зона погрузки</option>'+
+				'	<option value="7">Зона разгрузки</option>'+
 				'	<option value="8">Событие 8</option>'+
 				'	<option value="9">Событие 9</option>'+
 				'	<option value="10">Событие 10</option>'+

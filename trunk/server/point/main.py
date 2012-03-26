@@ -29,27 +29,15 @@ class AddLog(webapp2.RequestHandler):
 		#from datamodel import DBNewConfig, DBAccounts
 		from datamodel.configs import DBNewConfig
 		from google.appengine.api import memcache
-		from datamodel.logs import GPSLogs
-		from datamodel.accounts import DBAccounts
+		from datamodel.logs import AddLog
 
 		from datetime import datetime
-		from inform import Informer
-		from alarm import Alarm
-		from datamodel.channel import inform
 
 		self.response.headers['Content-Type'] = 'application/octet-stream'
 
 		imei = self.request.get('imei', 'unknown')
-		#skey = DBSystem.getkey_or_create(imei)
-		skey = DBSystem.key_by_imei(imei)
-
-		text = self.request.get('text', None)
-		label = int(self.request.get('label', '0'))
-		mtype = self.request.get('mtype', None)
 		slat = self.request.get('lat', '0000.0000E')
 		slon = self.request.get('lon', '00000.0000N')
-		fid = self.request.get('fid', 'unknown')
-		ceng = self.request.get('ceng', '')
 
 		lat = float(slat[:2]) + float(slat[2:9]) / 60.0
 		lon = float(slon[:3]) + float(slon[3:10]) / 60.0
@@ -60,51 +48,23 @@ class AddLog(webapp2.RequestHandler):
 		if slon[-1] == 'W':
 			lon = -lon
 
-		data = {
+		log = {
+			'imei': imei,
+			'skey': DBSystem.key_by_imei(imei),
+			'akey': self.request.get('akey', None),
+			'text': self.request.get('text', None),
+			'label': int(self.request.get('label', '0'), 10),
+			'mtype': self.request.get('mtype', None),
 			'lat': lat,
 			'lon': lon,
-			'fid': fid,
-			'ceng': ceng,
+			'fid': int(self.request.get('fid', '0'), 10),
+			'ceng': self.request.get('ceng', ''),
 			'dt': datetime.now().strftime("%y%m%d%H%M%S")
 		}
 
-		if mtype == 'alarm':
-			if text is None: text = u'Нажата тревожная кнопка.'
-			alarmmsg = Alarm.add_alarm(imei, int(fid, 10), db.GeoPt(lat, lon), ceng)
+		#skey = DBSystem.getkey_or_create(imei)
 
-		if mtype == 'alarm_confirm':
-			if text is None:
-				akey = self.request.get('akey', None)
-				account = DBAccounts.get(db.Key(akey))
-				text = u'Тревога подтверждена оператором %s' % account.user.nickname()
-
-		if mtype == 'alarm_cancel':
-			if text is None:
-				akey = self.request.get('akey', None)
-				account = DBAccounts.get(db.Key(akey))
-				text = u'Отбой тревоги оператором %s' % account.user.nickname()
-
-		if text != 'ignore me':	# Ping
-			gpslog = GPSLogs(parent = skey, text = text, label = label, mtype = mtype, pos = db.GeoPt(lat, lon))
-			gpslog.put()
-
-			inform(skey, 'addlog', {
-				'skey': str(skey),
-				#'time': gpslog.date.strftime("%d/%m/%Y %H:%M:%S"),
-				'time': datetime.utcnow().strftime("%y%m%d%H%M%S"),
-				'text': text,
-				'label': label,
-				'mtype': mtype,
-				'key': "%s" % gpslog.key(),
-				'data': data,
-			})	# Информировать всех пользователей, у которых открыта страница Отчеты
-
-		#newconfigs = DBNewConfig.get_by_imei(imei)
-		#newconfig = newconfigs.config
-		#if newconfig and (newconfig != {}):
-		#	self.response.out.write('CONFIGUP\r\n')
-		#	memcache.set("update_config_%s" % imei, "yes")
-		""" TBD! Вынести в описание класса """
+		AddLog(log)
 
 		value = memcache.get("update_config_%s" % imei)
 		if value is not None:
@@ -121,10 +81,6 @@ class AddLog(webapp2.RequestHandler):
 			else:
 				memcache.set("update_config_%s" % imei, "no")
 
-
-		#for info in Informer.get_by_imei(imei):
-		#	self.response.out.write(info + '\r\n')
-
 		self.response.write('ADDLOG: OK\r\n')
 
 
@@ -139,8 +95,8 @@ class Config(webapp2.RequestHandler):
 		os.environ['CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
 		self.response.headers['Content-Type'] = 'application/octet-stream'
 
-		for k,v in self.request.headers.items():
-			logging.info("== header: %s = %s" % (str(k), str(v)))
+		#for k,v in self.request.headers.items():
+		#	logging.info("== header: %s = %s" % (str(k), str(v)))
 
 		imei = self.request.get('imei', 'unknown')
 		#system = DBSystem.get_or_create(imei, phone=self.request.get('phone', None), desc=self.request.get('desc', None))
@@ -158,16 +114,16 @@ class Config(webapp2.RequestHandler):
 				else:
 					body = self.request.body
 
-			logging.info("== CONFIG_BODY: %s" % body)
+			#logging.info("== CONFIG_BODY: %s" % body)
 
 			config = {}
 			for conf in body.split("\n"):
 				params = conf.strip().split()
-				logging.info("== PARAM: %s" % repr(params))
+				#logging.info("== PARAM: %s" % repr(params))
 				if len(params) == 4:
 					config[params[0]] = (params[1], params[2], params[3])
 
-			logging.info("== CONFIG: %s" % repr(config))
+			#logging.info("== CONFIG: %s" % repr(config))
 			newconfig.config = config #compress(repr(config), 9)
 			#newconfig.strconfig = repr(config)
 			#newconfig.
@@ -263,13 +219,17 @@ class Params(webapp2.RequestHandler):
 		else:
 			self.response.out.write('CMD_ERROR\r\n')
 
-'''
 
 # обновление программного обеспечения
-class Firmware(BaseHandler):
+#from plugins.test import BaseHandler
+
+# Тут осталось толь та часть, которая относится к отправке прошивки в системы
+
+class Firmware(webapp2.RequestHandler):
 	def get(self):
 		from datamodel.firmware import DBFirmware
 		from utils import CRC16
+
 		cmd = self.request.get('cmd', None)
 		key = self.request.get('key', None)
 		swid = self.request.get('swid', None)
@@ -383,12 +343,7 @@ class Firmware(BaseHandler):
 				else:
 					self.response.write('NOT FOUND\r\n')
 			else:
-				self.redirect("/firmware")
-		else:
-			template_values = {}
-			firmwares = DBFirmware.get_all(hwid=hwid).fetch(100)
-			template_values['firmwares'] = [f.todict() for f in firmwares]
-			self.render_template(self.__class__.__name__ + '.html', **template_values)
+				self.response.write('ERROR CMD\r\n')
 
 	def post(self):
 		from datamodel.firmware import DBFirmware
@@ -405,7 +360,6 @@ class Firmware(BaseHandler):
 
 		self.response.write("ROM ADDED: %d\r\n" % len(data['pdata']))
 
-'''
 
 class Inform(webapp2.RequestHandler):
 	def get(self):

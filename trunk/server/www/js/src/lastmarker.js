@@ -310,6 +310,8 @@ LastMarker.prototype.onRemove = function() {
 LastMarker.prototype.draw = function() {
 	try{
 	if(this.position){
+		log('LastMarker.prototype.draw', this, this.point);
+
 		// Size and position the overlay. We use a southwest and northeast
 		// position of the overlay to peg it to the correct position and size.
 		// We need to retrieve the projection from this overlay to do this.
@@ -325,6 +327,15 @@ LastMarker.prototype.draw = function() {
 		var div = this.div;
 		div.style.left = divpx.x - 8 + 'px';
 		div.style.top = divpx.y - 8 + 'px';
+
+		// !Проблема пооддержки старых браузеров
+		if(this.point.speed < 1.0) {
+			div.classList.add('lastmarkerstop');
+			div.classList.remove('lastmarkermove');
+		} else {
+			div.classList.add('lastmarkermove');
+			div.classList.remove('lastmarkerstop');
+		}
 
 		if(this.shape){
 			this.shape.setAttributeNS(null, 'transform', 'rotate('+this.point.course+')');

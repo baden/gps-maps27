@@ -84,18 +84,18 @@ FSOURCE = {
 #PACK_STR = 'iffffffBBBBiiiiiiii'
 PACK_STR = 'iffffffBBBBi'
 #           ^^^^^^^^^^^^
-#           │││││││││││└ res3 (int)
-#           ││││││││││└─ res2 (byte)
-#           │││││││││└── res1 (byte)
-#           ││││││││└─── fsource (byte)
-#           │││││││└──── sats (byte)
-#           ││││││└───── vin (float)
-#           │││││└────── vout (float)
-#           ││││└─────── course (float)
-#           │││└──────── speed (float)
-#           ││└───────── lon (float)
-#           │└────────── lat (float)
-#           └─────────── seconds (int)
+#           │││││││││││└ res3 (int) 	11 временная реализация photo
+#           ││││││││││└─ res2 (byte)	10
+#           │││││││││└── res1 (byte)	9
+#           ││││││││└─── fsource (byte)	8
+#           │││││││└──── sats (byte)	7
+#           ││││││└───── vin (float)	6
+#           │││││└────── vout (float)	5
+#           ││││└─────── course (float)	4
+#           │││└──────── speed (float)	3
+#           ││└───────── lon (float)	2
+#           │└────────── lat (float)	1
+#           └─────────── seconds (int)	0
 PACK_LEN = 36
 MAX_RECS = 1024*1024//PACK_LEN		# Максимальное количество точей в одной записи
 
@@ -135,6 +135,7 @@ class DBGeo(db.Model):
 			'sats': u[7],
 			'fsource': u[8],
 			'fsourcestr': fs,
+			'photo': u[11],
 		}
 	def v_to_p(self, t):
 		return struct.pack(PACK_STR,
@@ -147,7 +148,7 @@ class DBGeo(db.Model):
 			t['vin'],
 			t['sats'],
 			t['fsource'],
-			0, 0, 0#,  0, 0, 0, 0, 0, 0, 0	# Reserve
+			0, 0, t['photo']#,  0, 0, 0, 0, 0, 0, 0	# Reserve
 		)
 
 	def get_item(self, offset):
@@ -408,7 +409,7 @@ def getGeoLast(skey):
 '''
 
 """
-	Потенциально процедура может давать исключение при большом количестве систем (если общий результат более 1МБ
+	Потенциально процедура может давать исключение при большом количестве систем (если общий результат более 1МБ)
 """
 def getGeoLast(skeys):
 	from google.appengine.api import memcache
@@ -421,7 +422,8 @@ def getGeoLast(skeys):
 			if req is not None:
 				point = req.get_last()
 				value = {'point': repr_middle(point)}
-				memcache.add("geoLast:%s" % skey, value)
+				#value = {'key': str(skey), 'skey': str(skey), 'last':{'point': repr_middle(point)}}
+				memcache.add("geoLast:%s" % str(skey), value)
 				values[str(skey)] = value
 			else:
 				values[str(skey)] = 0
@@ -440,7 +442,8 @@ def updateLasts(skey, point, points):
 		value = {'key': str(skey), 'skey': str(skey), 'last':{'point': repr_middle(point)}}
 	except:
 		value = {'key': str(skey), 'skey': str(skey), 'last': 0}
-	memcache.set("geoLast:%s" % imei, value)
+	#memcache.set("geoLast:%s" % imei, value)
+	memcache.set("geoLast:%s" % str(skey), value['last'])
 	logging.warning('== geo.updateLasts(%s, %s, %s)' % (skey, repr_middle(point), points))
 	inform(skey, 'geo_change_last', value)
 

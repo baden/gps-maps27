@@ -2,6 +2,8 @@
 from core import BaseApi
 import json
 
+from google.appengine.ext import db
+
 class Add(BaseApi):
 	#requred = ('akey')
 	def parcer(self):

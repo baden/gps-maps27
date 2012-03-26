@@ -1,5 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 from google.appengine.ext import db
+from utils import unixtime
 
 DEFAULT_COLLECT = 'DefaultCollect'
 
@@ -54,6 +55,19 @@ class DBFirmware(db.Model):
 			'subid': "%d" % self.subid,
 			'subidhex': "%04X" % self.subid,
 			'cdate': self.cdate,
+			'size': self.size,
+			'desc': self.desc
+		}
+
+	def toJSON(self):
+		return {
+			'key': str(self.key()),
+			'keyname': self.key().name(),
+			'hwid': "%04X" % self.hwid,
+			'swid': "%04X" % self.swid,
+			'subid': "%d" % self.subid,
+			'subidhex': "%04X" % self.subid,
+			'cdate': unixtime(self.cdate),
 			'size': self.size,
 			'desc': self.desc
 		}

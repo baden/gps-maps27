@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!--html manifest="/testlib.appcache" class="no-js"-->
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>GPS наблюдение</title>
+  <meta name="author" content="Batrak Denis (denis@batrak.net">
+  <meta id="meta" name="viewport" content="width=device-width; initial-scale=1.0; user-scalable=no" />
+  <link rel="shortcut icon" type="image/png" href="about:blank" />
+
+  <link rel="stylesheet" href="stylesheets/bootstrap.css">
+  <link rel="stylesheet" href="stylesheets/bootstrap-responsive.css">
+  <link rel="stylesheet" href="stylesheets/bootstrap/datepicker.css">
+  <link rel="stylesheet" href="stylesheets/testlib.css">
+  <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+  <script>
+	google.load('visualization', '1', {packages: ['corechart']});
+  </script>
+
+</head>
+
+<body>
+	<div id="header" class="navbar navbar-fixed-top noprint">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<a class="brand" href="#">Нави</a>
+				<div class="nav-collapse">
+					<ul class="nav">
+						<li id="map_item"><a href="#map">Карта</a></li>
+						<li id="report_item"><a href="#report">Отчеты</a></li>
+						<li id="logs_item"><a href="#logs">События</a></li>
+						<li id="geos_item"><a href="#geos">Экспорт GPS</a></li>
+						<li id="configs_item"><a href="#configs">Настройки</a></li>
+						<li id="help_item"><a href="#help">Помощь</a></li>
+					</ul>
+					<p class="navbar-text pull-right"><a href="#logout">username</a></p>
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+	</div>
+	<div class="container-fliud" id="block" style="padding-top: 42px;"><div id="loading">
+		<p style="text-align: center; padding-top: 100px; line-height: 30px;">
+			<b style="font-size: 200%;">Загрузка...</b> <br />
+			Если долго ничего не происходит значит что-то не так. Сожалеем об этом. Мы честно этого не хотели.<br />
+			<img src="images/loading137.gif" alt="Loading..."></img>
+		</p>
+		
+	</div></div>
+
+	<!--div id="console" style="position: fixed; display: inline-block; overflow: auto; top: 300px; left:10px; right:10px; bottom: 10px; border: 1px solid red;"></div-->
+	<!--style>
+		#console {
+			display: block; width: 100%; border: 1px solid red;
+		}
+		#console p {
+			padding: 0;
+			margin: 0;
+		}
+	</style>
+	<div id="console"></div-->
+
+  <script>
+	var debug_console = document.getElementById('console');
+	window.log = function(){
+		var log_line;
+		if(window.console){
+			try{
+				log_line = Array.prototype.slice.call(arguments);
+			} catch(ex) {
+				log('Error in console', ex);
+			}
+			console.log( log_line );
+		}
+
+		function addEvent(elem, type, fn) {
+			if ( elem.addEventListener ) {
+				elem.addEventListener( type, fn, false );
+			} else if ( elem.attachEvent ) {
+				elem.attachEvent( "on" + type, fn );
+			} else {
+				fn();
+			}
+		}
+		//var ln = document.createElement('p');
+		//ln.innerHTML = '' + log_line;
+		//debug_console.appendChild(ln);
+	}
+  </script>
+
+
+  <!--script defer type="text/javascript" src="/js/modernizr-2.5.3.js"></script-->
+  <script defer type="text/javascript" src="/js/html5-dataset.js"></script>
+  <script defer src="js/jquery-1.7.1.min.js"></script>
+  <script defer src="js/underscore.js"></script>
+  <script defer src="js/backbone.js"></script>
+
+  <script defer src="js/bootstrap.js"></script>
+  <script defer src="js/bootstrap/bootstrap-dropdown.js"></script>
+  <script defer src="js/bootstrap/bootstrap-datepicker.js"></script>
+
+  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=ru&libraries=drawing,places,geometry"></script>
+  <!--script type="text/javascript" src="/js/googlemaps/js.js?sensor=false&language=ru&libraries=drawing,places"></script-->
+
+  <script defer data-main="js/main" src="js/require.js"></script>
+
+
+
+  <!--script type="text/javascript" src="https://www.google.com/jsapi"></script-->
+
+  <!--script defer type="text/javascript" src="/js/modernizr.custom.13819.js"></script>
+  <script defer src="js/jquery-1.7.1.min.js"></script>
+  <script defer src="js/underscore-min.js"></script>
+  <script defer src="js/backbone-min.js"></script>
+  <script defer src="js/require-min.js"></script>
+  <script defer src="js/common-pro.js"></script-->
+
+
+
+<script>
+	//log('P.S.');
+</script>
+
+</body>
+</html>

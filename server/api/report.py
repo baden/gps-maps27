@@ -3,7 +3,7 @@
 """
 	TBD!
 	Эта процедура не threadsafe _!!!
-	Необходимо избавиться от self (переделать по аналогии с 
+	Необходимо избавиться от self (переделать по аналогии с ...)
 """
 from core import BaseApi
 from core import MAXPOINTS
@@ -14,7 +14,8 @@ class Get(BaseApi):
 		from math import log, sqrt
 		from datamodel.geo import distance
 		from datetime import datetime
-		from datamodel import DBGeo
+		from datamodel.geo import DBGeo
+		from datamodel.car import DBCar
 
 		#pfrom = self.request.get("from")
 		dtfrom = datetime.strptime(self.request.get("from"), "%y%m%d%H%M%S")
@@ -129,6 +130,7 @@ class Get(BaseApi):
 
 			check_point(slf['prev_point'], slf)
 
+		car = DBCar.get(self.skey)
 		return {
 			'answer': 'ok',
 			'dtfrom': str(dtfrom),
@@ -141,6 +143,7 @@ class Get(BaseApi):
 				'maxspeed': max_speed
 			},
 			'report': slf['report'],
+			'car': car
 		}
 '''
 class Report_Get(BaseApi):

@@ -1,0 +1,119 @@
+body, html {
+	overflow-x: hidden;
+}
+/* Hide for both screenreaders and browsers
+   css-discuss.incutio.com/wiki/Screenreader_Visibility */
+.hidden { display: none; visibility: hidden; } 
+
+
+.dropdown-menu a {
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.map-container {
+	width: 100%;
+	height: 100%;
+}
+
+select.maptypecontrol {
+	margin-top: 5px;
+	margin-right: 5px;
+	width: 140px;
+	opacity: 0.8;
+	-webkit-transition: opacity 0.2s ease-out;
+}
+
+select.maptypecontrol:hover {
+	opacity: 1.0;
+}
+
+/*
+#header a {
+	display: inline-block;
+	height: 32px;
+	line-height: 32px;
+	padding: 0px 20px 0 20px;
+	background-color: #2C2C2C;
+	border: 1px solid blue;
+}
+
+#header a.active {
+	background-color: #ccc;
+}
+
+#block {
+	border: 1px solid blue;
+}
+*/
+
+/*
+ * Media queries for responsive design
+ * These follow after primary styles so they will successfully override. 
+ */
+
+@media all and (orientation:portrait) { 
+  /* Style adjustments for portrait mode goes here */
+
+  .brand {
+	display: none;
+  }
+
+}
+
+@media all and (orientation:landscape) { 
+  /* Style adjustments for landscape mode goes here */
+}
+
+/* Grade-A Mobile Browsers (Opera Mobile, iPhone Safari, Android Chrome)  
+   Consider this: www.cloudfour.com/css-media-query-for-mobile-is-fools-gold/ */
+@media screen and (max-device-width: 480px) {
+
+  .brand {
+	display: none;
+  }
+  
+  /* Uncomment if you don't want iOS and WinMobile to mobile-optimize the text for you
+     j.mp/textsizeadjust 
+  html { -webkit-text-size-adjust:none; -ms-text-size-adjust:none; } */
+}
+
+@media screen and (max-device-width: 600px) {
+
+  .brand {
+	display: none;
+  }
+  
+  /* Uncomment if you don't want iOS and WinMobile to mobile-optimize the text for you
+     j.mp/textsizeadjust 
+  html { -webkit-text-size-adjust:none; -ms-text-size-adjust:none; } */
+}
+
+/* 
+ * print styles
+ * inlined to avoid required HTTP connection www.phpied.com/delay-loading-your-print-css/ 
+ */
+@media print {
+  * { background: transparent !important; color: #444 !important; text-shadow: none !important; }
+  a, a:visited { color: #444 !important; text-decoration: underline; }
+  a:after { content: " (" attr(href) ")"; } 
+  abbr:after { content: " (" attr(title) ")"; }
+  .ir a:after { content: ""; }  /* Don't show links for images */
+  pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
+  thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */ 
+  tr, img { page-break-inside: avoid; }
+  @page { margin: 0.5cm; }
+  p, h2, h3 { orphans: 3; widows: 3; }
+  h2, h3{ page-break-after: avoid; }
+
+	body {
+	  padding-top: 0px;
+	}
+	.noprint {
+	  display: none;
+	}
+	#block {
+	  width: 700px;
+	  height: 700px;
+	}
+}

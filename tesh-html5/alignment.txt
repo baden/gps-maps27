@@ -1,0 +1,28 @@
+Равномерное распределение элементов по ширине.
+
+ul {
+        font: 14px Verdana, Geneva, sans-serif;
+        text-align: justify;
+
+        /* Обнуляем для родителя*/
+        line-height: 0;
+        font-size: 1px; /* 1px для Opera */
+
+        /* Лекарство для IE6-7*/
+        text-justify: newspaper;
+        zoom:1;
+
+        /* Включаем в работу последнюю строку*/
+        text-align-last: justify;
+}
+
+
+<div class="test-box">
+	<ul>
+		<li>1</li>
+		<li>2</li>
+		<li>3</li>
+		<li>4</li>
+		<li>5</li>
+	</ul>
+</div>

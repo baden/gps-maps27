@@ -46,6 +46,15 @@ class DBCar(db.Model):
 	casco = db.StringProperty(multiline=False)		# № страхового полиса
 	comments = db.TextProperty()				# комментарий и т.д.
 	drivers = db.ListProperty(db.Key, default=None)		# Водители (ссылки на записи DBDriver)
+	fuel_midle = db.FloatProperty(default=10.0)		# Средний расход топлива
+	fuel_stop = db.FloatProperty(default=2.0)		# Средний расход топлива при стоянке с работающим двигателем
+	fuel_midle0 = db.IntegerProperty(default=0)		# Коррекция расхода при скорости 0 км/ч
+	fuel_midle20 = db.IntegerProperty(default=0)		# Коррекция расхода при скорости 0 км/ч
+	fuel_midle40 = db.IntegerProperty(default=0)		# Коррекция расхода при скорости 0 км/ч
+	fuel_midle60 = db.IntegerProperty(default=0)		# Коррекция расхода при скорости 0 км/ч
+	fuel_midle80 = db.IntegerProperty(default=0)		# Коррекция расхода при скорости 0 км/ч
+	fuel_midle100 = db.IntegerProperty(default=0)		# Коррекция расхода при скорости 0 км/ч
+	fuel_midle120 = db.IntegerProperty(default=0)		# Коррекция расхода при скорости 0 км/ч
 
 	@classmethod
 	@at_local
@@ -57,7 +66,50 @@ class DBCar(db.Model):
 	@at_local
 	def get(cls, skey, **kwargs):
 		collect_key = db.Key.from_path(DEFAULT_COLLECT, cls.__name__)
-		return cls.get_by_key_name(skey.name(), parent=collect_key)
+		q = cls.get_by_key_name(skey.name(), parent=collect_key)
+		if q is not None:
+			car = {
+				'number': q.number,
+				'model': q.model,
+				'year': q.year,
+				'drive': q.drive,
+				'vin': q.vin,
+				'teh': q.teh,
+				'drivers': [],
+				'casco': q.casco,
+				'comments': q.comments,
+				'fuel_midle': q.fuel_midle,
+				'fuel_stop': q.fuel_stop,
+				'fuel_midle0': q.fuel_midle0,
+				'fuel_midle20': q.fuel_midle20,
+				'fuel_midle40': q.fuel_midle40,
+				'fuel_midle60': q.fuel_midle60,
+				'fuel_midle80': q.fuel_midle80,
+				'fuel_midle100': q.fuel_midle100,
+				'fuel_midle120': q.fuel_midle120,
+			}
+		else:
+			car = {
+				'number': '',
+				'model': '',
+				'year': '',
+				'drive': '',
+				'vin': '',
+				'teh': '',
+				'drivers': [],
+				'casco': '',
+				'comments': '',
+				'fuel_midle': 0.0,
+				'fuel_stop': 0.0,
+				'fuel_midle0': 0,
+				'fuel_midle20': 0,
+				'fuel_midle40': 0,
+				'fuel_midle60': 0,
+				'fuel_midle80': 0,
+				'fuel_midle100': 0,
+				'fuel_midle120': 0,
+			}
+		return car
 
 class DBDriver(db.Model):
 	fio = db.StringProperty(multiline=False)		# ФИО водителя

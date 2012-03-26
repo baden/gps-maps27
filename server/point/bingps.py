@@ -9,6 +9,7 @@
 """
 
 import os
+import sys
 import webapp2
 import logging
 from google.appengine.ext import db
@@ -27,6 +28,13 @@ SERVER_NAME = os.environ['SERVER_NAME']
 glogal_counter = 0
 
 PROFILER = True
+import time
+if sys.platform == "win32":
+    # On Windows, the best timer is time.clock()
+    profiler_timer = time.clock
+else:
+    # On most other platforms the best timer is time.time()
+    profiler_timer = time.time
 
 #logging.getLogger().setLevel(logging.WARNING)
 
@@ -163,6 +171,8 @@ def SaveGPSPointFromBin(pdata, result):
 			logging.warning("Used toffset (%d seconds)" % toffset)
 			datestamp += timedelta(seconds=toffset)
 
+	photo = ord(pdata[29]) + 256*ord(pdata[30]);	# Данные с фотодатчика (временная реализация)
+
 	#_log += '\n Date: %s' % datestamp.strftime("%d/%m/%Y %H:%M:%S")
 	#_log += '\n Latitude: %.5f' % latitude
 	#_log += '\n Longitude: %.5f' % longitude
@@ -213,7 +223,8 @@ def SaveGPSPointFromBin(pdata, result):
 		'course': course,
 		'vout': vout,
 		'vin': vin,
-		'fsource': fsource 
+		'fsource': fsource,
+		'photo': photo 
 	}
 	logging.info('POINT: %s' % repr(point))
 
@@ -350,9 +361,10 @@ class BinGps(webapp2.RequestHandler):
 		from datetime import datetime
 		from datamodel.geo import PointWorker, updateLasts
 		from datamodel.configs import DBNewConfig
-		from time import time
+		from datamodel.logs import AddLog
 
-		work_start = time()
+		if PROFILER:
+			work_start = profiler_timer()
 
 		os.environ['CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
 
@@ -439,7 +451,8 @@ class BinGps(webapp2.RequestHandler):
 		_log = "\n== BINGPSPARSE ["
 
 		key = None
-		point = None	# Тут будет последняя добавленная точка
+		point = None		# Тут будет добавленная точка
+		last_point = None	# Тут будет последняя добавленная точка
 
 		plen = len(pdata)
 
@@ -470,7 +483,13 @@ class BinGps(webapp2.RequestHandler):
 						else:
 							lasttime = point['time']
 							worker.Add_point(point)
+							last_point = point
 							points += 1
+						if point['fsource'] == 13:	# UMAX
+							AddLog({
+								'skey': skey,
+								'text': u'<b>Внимание! Высокое напряжение основного питания!</b> UTC: %s' % point['time'].strftime("%d/%m/%y %H:%M:%S")
+							})
 				else:
 					_log += '\n Unknown id=%02X' % p_id
 				offset += p_len
@@ -486,9 +505,10 @@ class BinGps(webapp2.RequestHandler):
 
 		worker.Flush()
 
-		if points > 0:
+		if points > 0 and (last_point is not None):
 			_log += '\n==\tSaved points: %d\n' % points
-			updateLasts(skey, point, points)
+			#logging.warning('skey=%s, point=%s, points=%s' % (repr(skey), repr(point), repr(points)))
+			updateLasts(skey, last_point, points)
 		else:
 			logging.error("Packet has no data or data is corrupted.\n")
 
@@ -519,7 +539,7 @@ class BinGps(webapp2.RequestHandler):
 
 		if PROFILER:
 			self.response.write('SAVED: %d\r\n' % points)
-			self.response.write('TIME: %.1f ms\r\n' % ((time() - work_start)*1000.0))
+			self.response.write('TIME: %.1f ms\r\n' % ((profiler_timer() - work_start)*1000.0))
 		self.response.write('BINGPS: OK\r\n')
 
 		'''

@@ -11,15 +11,32 @@
 		<span id="geos_viewtype">
 		<input type="radio" id="geos_type_last" value="0" name="geos_viewtype" checked="checked"><label for="geos_type_last">Сегодня</label>
 		<input type="radio" id="geos_type_for_day" value="1" name="geos_viewtype"><label for="geos_type_for_day">В выбранные сутки: <input id="geos_datepicker"></input></label>
-		</span>
+		</span><span id="geos_stats">?</span>
 		<!--div id="progressbar"></div-->
 	</div>
 
 	<div id="geos_body">
 		<table class="ui-widget ui-widget-content tview">
 			<thead>
-				<tr class="ui-widget-header"><th rowspan=2>Время</th><th rowspan=2>Широта</th><th rowspan=2>Долгота</th><th rowspan=2>Спутники<span title="Показать график" class="ui-icon ui-icon-calculator showchart" value="sats"></span></th><th rowspan=2>Скорость<span title="Показать график" class="ui-icon ui-icon-calculator showchart" value="speed"></span></th><th colspan=2>Питание</th><th rowspan="2">Тип метки</th></tr>
-				<tr class="ui-widget-header"><th>основное<span title="Показать график" class="ui-icon ui-icon-calculator showchart" value="vout"></span></th><th>резервное<span title="Показать график" class="ui-icon ui-icon-calculator showchart" value="vin"></span></th></tr>
+				<tr class="ui-widget-header">
+					<th rowspan=2>Время</th>
+					<th rowspan=2>Широта</th>
+					<th rowspan=2>Долгота</th>
+					<th rowspan=2 title="Спутники
+Показать график"><span class="ui-icon ui-icon-calculator showchart" style="background-image: url(images/sputnik.png);width: 32px;height: 32px;background-position: 0px 0px;" data-value="sats"></span></th>
+					<th rowspan=2 title="Скорость
+Показать график"><span class="ui-icon ui-icon-calculator showchart" style="background-image: url(images/ulitka.png);width: 32px;height: 32px;background-position: 0px 0px;" data-value="speed"></span></th>
+					<th colspan=2>Питание</th>
+					<th rowspan="2">Тип метки</th>
+					<th rowspan=2 title="Фотодатчик
+Показать график"><span class="ui-icon ui-icon-calculator showchart" style="background-image: url(images/photo.png);width: 32px;height: 32px;background-position: 0px 0px;" data-value="photo"></span></th>
+				</tr>
+				<tr class="ui-widget-header">
+					<th>осн.<span title="Основное
+Показать график" class="ui-icon ui-icon-calculator showchart" data-value="vout"></span></th>
+					<th>рез.<span title="Резервное
+Показать график" class="ui-icon ui-icon-calculator showchart" data-value="vin"></span></th>
+				</tr>
 			</thead>
 			<tbody>
 			</tbody>

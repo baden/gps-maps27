@@ -1,0 +1,24 @@
+CACHE MANIFEST
+# AppName: gps-maps27
+# User: hello dolly
+# Version: 1.0
+
+CACHE:
+
+/testlib.html
+/stylesheets/bootstrap.css
+/stylesheets/bootstrap-responsive.css
+/stylesheets/testlib.css
+/js/modernizr.custom.13819.js
+/js/jquery-1.7.1.min.js
+/js/underscore-min.js
+/js/backbone-min.js
+/js/require-min.js
+/js/common-pro.js
+
+
+NETWORK:
+/
+initconfig.js
+/_ah/channel
+http://localhost/_ah/login

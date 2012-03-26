@@ -19,7 +19,9 @@ config.updater.add('change_slist', function(msg) {
 		case 'Adding':
 			if(!(msg.data.system.key in config.account.systems)){
 				var system = config.helper.clone(msg.data.system);
-				config.account.systems.push(system);
+				//config.account.systems.push(system);
+				config.account.systems[system.skey] = system;
+				config.account.sys_keys.push(system.skey);
 				//config.sysbykey[system.key] = system;
 			}
 			break;

@@ -10,4 +10,5 @@ imports = [
 	(r'/manifest/gps-maps27\.appcache', 'plugins.cache.Appcache'),
 	(r'/test.*', 'plugins.test.TestMainPage'),
 	(r'/main2.*', 'plugins.test.TestMain2'),
+	(r'/fw.*', 'plugins.firmware.Firmware'),
 ]

@@ -39,6 +39,7 @@
   <!--script defer type="text/javascript" src="/js/modernizr-1.5.min.js"></script-->
   <script defer type="text/javascript" src="/js/modernizr-2.0.6.js"></script>
   <script defer type="text/javascript" src="/js/html5-dataset.js"></script>
+  <script defer type="text/javascript" src="/js/require.js"></script>
   <!--script>document.write('<script defer type="text/javascript" src="/js/html5-dataset.js"><\/script>')</script-->
 
 
@@ -47,7 +48,7 @@
   <![endif]-->
 
   <script defer type="text/javascript" src="/_ah/channel/jsapi"></script>
-  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=ru&libraries=drawing,places"></script>
+  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=ru&libraries=drawing,places,geometry"></script>
   <!--script type="text/javascript" src="/js/googlemaps/js.js?sensor=false&language=ru&libraries=drawing,places"></script-->
   <!--script defer type="text/javascript" src="http://www.google.com/jsapi"></script-->
 
@@ -130,6 +131,7 @@
 			<button id="map_zone_edit" title="Редактировать зону">Р</button>
 			<button id="map_track_calc" title="Проложить маршрут">T</button>
 			<button id="map_places" title="Объекты">М</button>
+			<button id="map_print" title="Печать">П</button>
 		</div>
 
 		<div id="zone_panel">
@@ -238,6 +240,7 @@
 			<tr><td>-</td><td>Средняя скорость движения</td><td id="report_total_avspeed">-</td></tr>
 			<tr><td>-</td><td>Общее время стоянок и остановок</td><td id="report_total_stoptime">-</td></tr>
 			<tr><td>-</td><td>Максимальная скорость</td><td id="report_total_maxspeed">-</td></tr>
+			<tr><td>-</td><td title="По данным среднего расхода.">Расход топлива</td><td id="report_total_fuel_midle">-</td></tr>
 		</tbody>
 	</table>
 
@@ -301,15 +304,32 @@
 		<span id="geos_viewtype">
 		<input type="radio" id="geos_type_last" value="0" name="geos_viewtype" checked="checked"><label for="geos_type_last">Сегодня</label>
 		<input type="radio" id="geos_type_for_day" value="1" name="geos_viewtype"><label for="geos_type_for_day">В выбранные сутки: <input id="geos_datepicker"></input></label>
-		</span>
+		</span><span id="geos_stats">?</span>
 		<!--div id="progressbar"></div-->
 	</div>
 
 	<div id="geos_body">
 		<table class="ui-widget ui-widget-content tview">
 			<thead>
-				<tr class="ui-widget-header"><th rowspan=2>Время</th><th rowspan=2>Широта</th><th rowspan=2>Долгота</th><th rowspan=2>Спутники<span title="Показать график" class="ui-icon ui-icon-calculator showchart" value="sats"></span></th><th rowspan=2>Скорость<span title="Показать график" class="ui-icon ui-icon-calculator showchart" value="speed"></span></th><th colspan=2>Питание</th><th rowspan="2">Тип метки</th></tr>
-				<tr class="ui-widget-header"><th>основное<span title="Показать график" class="ui-icon ui-icon-calculator showchart" value="vout"></span></th><th>резервное<span title="Показать график" class="ui-icon ui-icon-calculator showchart" value="vin"></span></th></tr>
+				<tr class="ui-widget-header">
+					<th rowspan=2>Время</th>
+					<th rowspan=2>Широта</th>
+					<th rowspan=2>Долгота</th>
+					<th rowspan=2 title="Спутники
+Показать график"><span class="ui-icon ui-icon-calculator showchart" style="background-image: url(images/sputnik.png);width: 32px;height: 32px;background-position: 0px 0px;" data-value="sats"></span></th>
+					<th rowspan=2 title="Скорость
+Показать график"><span class="ui-icon ui-icon-calculator showchart" style="background-image: url(images/ulitka.png);width: 32px;height: 32px;background-position: 0px 0px;" data-value="speed"></span></th>
+					<th colspan=2>Питание</th>
+					<th rowspan="2">Тип метки</th>
+					<th rowspan=2 title="Фотодатчик
+Показать график"><span class="ui-icon ui-icon-calculator showchart" style="background-image: url(images/photo.png);width: 32px;height: 32px;background-position: 0px 0px;" data-value="photo"></span></th>
+				</tr>
+				<tr class="ui-widget-header">
+					<th>осн.<span title="Основное
+Показать график" class="ui-icon ui-icon-calculator showchart" data-value="vout"></span></th>
+					<th>рез.<span title="Резервное
+Показать график" class="ui-icon ui-icon-calculator showchart" data-value="vin"></span></th>
+				</tr>
 			</thead>
 			<tbody>
 			</tbody>
@@ -576,9 +596,9 @@
 		<a id="a_login" href="/">nickname</a>
 	</div>
 
-	<div id="loading_div" style="visibility: hidden; position: absolute; left:0px; top:0px; right:0px; bottom:0px; background-color: grey; /*opacity:0.9*/; font-family: Verdana; font-size: 100px; color: #CCC; display: table-cell; vertical-align: middle; z-index: 1001; text-align: center;">
+	<div id="loading_div" style="/*visibility: hidden;*/ position: absolute; left:0px; top:0px; right:0px; bottom:0px; background-color: grey; /*opacity:0.9*/; font-family: Verdana; font-size: 60px; color: #CCC; display: table-cell; vertical-align: middle; z-index: 1001; text-align: center;">
 		Загрузка...
-		<p style="font-size: 36px;">Если длительное время ничего не происходит, попробуйете перезагрузить страницу (F5).</p>
+		<p style="font-size: 24px;">Если длительное время ничего не происходит, попробуйете перезагрузить страницу (F5).</p>
 	</div>
 
   <script defer src="/js/init_start.js"></script>
@@ -590,6 +610,7 @@
         параллельно с загрузкой initconfig.js. Например декорирование jQuery UI (хотябы tabs).
   -->
   <script defer src="/js/src/base.js?v=1"></script>
+  <script defer src="/js/src/progressBar.js?v=1"></script>
   <script defer src="/js/src/updater.js?v=1"></script>
   <script defer src="/js/src/alert.js?v=1"></script>
   <script defer src="/js/src/syslist.js?v=1"></script>
@@ -604,6 +625,7 @@
   <script defer src="/js/src/maps.js?v=1"></script>
   <script defer src="/js/src/reports.js?v=1"></script>
   <script defer src="/js/src/logs.js?v=1"></script>
+
   <script defer src="/js/src/post.js?v=1"></script>
   <!--script defer src="/js/all-min.js?v=1"></script-->
 

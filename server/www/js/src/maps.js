@@ -17,6 +17,7 @@ var showed_path = [];
 var flightPath = null; //[];
 var flightPathBounds = null;
 //var fpi = 0;
+var pb;
 
 var stop_markers = [];
 
@@ -54,10 +55,15 @@ function LoadPoints1(){
 var GetPath = function(skey_, from, to){
 	skey = skey_;
 	ruler1.setSysKey(skey);
-	$.getJSON('/api/geo/get?skey=' + skey + '&from=' + from + '&to=' + to, function (data) {
+//	$.getJSON('/api/geo/get?skey=' + skey + '&from=' + from + '&to=' + to, function (data) {
+	pb.start(100);
+	//pb.updateBar(1);
+	config.helper.getJSON('/api/geo/get?skey=' + skey + '&from=' + from + '&to=' + to, function (data) {
 		if (data.answer && data.points.length > 0) {
+			pb.updateBar(50);
 			ParcePath(data);
 		}
+		pb.hide();
 	});
 }
 
@@ -497,11 +503,25 @@ var CreateMap = function () {
 	//log('CreateMap: begin');
 	//if(google.'maps')
 	geocoder = new google.maps.Geocoder();
+
+	var prev_config = localStorage.getItem('map.config');
+	if(prev_config){
+		prev_config = JSON.parse(prev_config);
+	} else {
+		prev_config = {
+			zoom: 6
+			, center: [48.370848,32.717285]
+			, typeId: google.maps.MapTypeId.ROADMAP
+		}
+	}
+	log('Default map config', prev_config);
+
 	var $map = $('#map').gmap({
-		pos: new google.maps.LatLng(48.370848,32.717285), // Default position - Ukraine
-		zoom: 6,
+		pos: new google.maps.LatLng(prev_config.center[0], prev_config.center[1]) // Default position - Ukraine
+		, zoom: prev_config.zoom
 		//marker: 'center',
-		markertitme: 'aaa'
+		, maptype: prev_config.typeId
+		, markertitme: 'aaa'
 	});
 
 	//var map = $('#map').gmap('option', 'getMap');
@@ -511,10 +531,21 @@ var CreateMap = function () {
 	//console.log('CreateMap:', map);
 
 	google.maps.event.addListener(map, 'zoom_changed', function(){
-		//console.log("Map: zoom_changed.");
 		PathRebuild();
 	});
 	google.maps.event.addListener(map, 'mousemove', UpdateMarker);
+
+	var saveMapState = function() {
+		localStorage.setItem('map.config', JSON.stringify({
+			center: [map.getCenter().lat(), map.getCenter().lng()]
+			, zoom: map.getZoom()
+			, typeId: map.getMapTypeId()
+		}));
+		//console.log("Map: idle.", map.getZoom(), map.getCenter(), map.getMapTypeId());
+	}
+	
+	google.maps.event.addListener(map, 'idle', saveMapState);
+	google.maps.event.addListener(map, 'maptypeid_changed', saveMapState);
 
 	//google.maps.event.addListener(map, 'click', function(){
 	//	console.log("Map: clicked.");
@@ -558,6 +589,9 @@ var CreateMap = function () {
 		log('Address', place.name, address, place);
 
 	});
+
+	pb = progressBar();
+        map.controls[google.maps.ControlPosition.RIGHT].push(pb.getDiv());
 }
 
 
@@ -1047,5 +1081,49 @@ document.getElementById('map_track_calc').addEventListener('click', function(ev)
 */
 
 //window.config.alarm.show_alert_icons();
+var MapPrint = function()
+{
+	//var w = window.open('', 'Print', 'width=300');
+	//var m = config.map.getDiv();
+	//var old_p = m.parentNode;
+
+	//w.document.body.appendChild(m.cloneNode(1));
+	//w.document.write(m.innerHTML);
+	//w.print();
+	var div = document.createElement('div');
+	window.document.body.appendChild(div);
+	div.style.width = '' + document.body.clientWidth + 'px';
+	div.style.height = '' + document.body.scrollHeight + 'px';
+	//div.style.width = '600px';
+	//div.style.height = '1000px';
+	//div.style.left = divpx.x - 8 + 'px';
+	//div.style.top = divpx.y - 8 + 'px';
+
+	//log('d=', div, div.style.width);
+	wr_tab.style.height = window.innerHeight + 'px';
+	var tab_nav = document.getElementsByClassName('ui-tabs-nav')[0];
+	var map_div = document.getElementById('Tab_Map');
+	var panel = $('#panel');
+
+	tab_nav.style.display = 'none';
+	map_div.style.top = '0';
+
+	panel.addClass('stat-hided');
+	//panel.find('span').removeClass('ui-icon-circle-triangle-e').addClass('ui-icon-circle-triangle-w');
+	$('#map').addClass('stat-hided');
+
+	log('== before print');
+	window.print();
+	log('== after print');
+	panel.removeClass('stat-hided');
+	//$(this).find('span').removeClass('ui-icon-circle-triangle-w').addClass('ui-icon-circle-triangle-e');
+	$('#map').removeClass('stat-hided');
+
+	tab_nav.style.display = '';
+	map_div.style.top = '';
+
+}
+
+$('#map_print').click(MapPrint);
 
 })(window, jQuery);

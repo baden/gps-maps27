@@ -1,0 +1,10 @@
+body {
+  padding-top: 0px;
+}
+.noprint {
+  display: none;
+}
+#block {
+  width: 700px;
+  height: 700px;
+}

@@ -302,6 +302,7 @@ class Get(BaseApi):
 
 		maxp = MAXPOINTS
 		for point in DBGeo.get_items_by_range(self.skey, dtfrom, dtto, maxp):
+			#logging.info('point=%s' % repr(point))
 			d = max(MS, max(abs(plat - point['lat']), abs(plon - point['lon'])))
 			plat = point['lat']
 			plon = point['lon']
@@ -634,11 +635,11 @@ class Report(BaseApi):
 				point['vout'],
 				point['vin'],
 				point['speed'],
-				point['fsource'], 0, 0
+				point['fsource'], point['photo'], 0
 			));
 
 		return {'answer': 'ok',
-			'format': ('datetime', 'lat', 'lon', 'sats', 'vout', 'vin', 'speed'),
+			'format': ('datetime', 'lat', 'lon', 'sats', 'vout', 'vin', 'speed', 'photo'),
 			#'points': points[::-1]		# Выдадим в обратной последовательности
 			'points': points
 		}

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<!--html manifest="/testlib.appcache" class="no-js"-->
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>GPS наблюдение</title>
+  <meta name="author" content="Batrak Denis (denis@batrak.net">
+  <meta id="meta" name="viewport" content="width=device-width; initial-scale=1.0; user-scalable=no" />
+  <link rel="shortcut icon" type="image/png" href="about:blank" />
+
+  <link rel="stylesheet" href="stylesheets/bootstrap.css">
+  <link rel="stylesheet" href="stylesheets/bootstrap-responsive.css">
+  <link rel="stylesheet" href="stylesheets/bootstrap/datepicker.css">
+  <link rel="stylesheet" href="stylesheets/testlib.css">
+  <!--script type="text/javascript" src="http://www.google.com/jsapi"></script>
+  <script>
+	google.load('visualization', '1', {packages: ['corechart']});
+  </script-->
+
+</head>
+
+<body>
+  Коррекция:
+  <div id="visualization">
+  </div>
+  <div id="vis_ctrl" style="display: none; position: absolute;"><button id="vis_plus">+</button><button id="vis_minus">-</button></div>
+
+
+  Коррекция:
+	<style>
+	#correction input[type="text"] {
+		width: 40px;
+	}
+	#correction input[type="range"] {
+		width: 95%;
+	}
+	#correction div {
+		position: relative;
+	}
+	#correction span {
+		position: relative;
+		top: 2px;
+		display: inline-block;
+		/*width: 25%;*/
+		text-align: left;
+	}
+	#correction span:first-child {
+		left: 0px
+		/*text-align: left;*/
+	}
+	#correction span:nth-child(2) {
+		left: 22%;
+		/*margin-left: 16px;*/
+		/*margin-left: -36px;*/
+	}
+	#correction span:nth-child(3) {
+		left: 46%;
+		/*margin-left: -32px;
+		padding-left: 16px;
+		text-align: right;*/
+	}
+	#correction span:last-child {
+		left:70%;
+		/*text-align: right;*/
+	}
+</style>
+  <div id="correction" style="width: 400px; height: 300px; border: 1px solid blue;">
+	<table style="width:100%">
+	<tr><td><td><div style="width: 100%; overflow: hidden;"><span>0.5x</span><span>1x</span><span>2x</span><span>4x</span></div><td>
+	<tr><td>0 км/ч: <td><input type="range" min="-100" max="200" value="0" tabindex="-1" /><td><input type="text" value="0"/>
+	<tr><td>20 км/ч: <td><input type="range" min="-100" max="200" value="0" tabindex="-1" /><td><input type="text" value="0"/>
+	<tr><td>40 км/ч: <td><input type="range" min="-100" max="200" value="0" tabindex="-1" /><td><input type="text" value="0"/>
+	<tr><td>60 км/ч: <td><input type="range" min="-100" max="200" value="0" tabindex="-1" /><td><input type="text" value="0"/>
+	<tr><td>80 км/ч: <td><input type="range" min="-100" max="200" value="0" tabindex="-1" /><td><input type="text" value="0"/>
+	<tr><td>100 км/ч: <td><input type="range" min="-100" max="200" value="0" tabindex="-1" /><td><input type="text" value="0"/>
+	<tr><td>120 км/ч: <td><input type="range" min="-100" max="200" value="0" tabindex="-1" /><td><input type="text" value="0"/>
+	</table>
+  </div>
+
+  <script>
+	var debug_console = document.getElementById('console');
+	window.log = function(){
+		var log_line;
+		if(window.console){
+			try{
+				log_line = Array.prototype.slice.call(arguments);
+			} catch(ex) {
+				log('Error in console', ex);
+			}
+			console.log( log_line );
+		}
+
+		function addEvent(elem, type, fn) {
+			if ( elem.addEventListener ) {
+				elem.addEventListener( type, fn, false );
+			} else if ( elem.attachEvent ) {
+				elem.attachEvent( "on" + type, fn );
+			} else {
+				fn();
+			}
+		}
+
+		//var ln = document.createElement('p');
+		//ln.innerHTML = '' + log_line;
+		//debug_console.appendChild(ln);
+	}
+  </script>
+
+
+  <!--script defer type="text/javascript" src="/js/modernizr-2.5.3.js"></script-->
+  <script defer type="text/javascript" src="/js/html5-dataset.js"></script>
+  <script src="js/jquery-1.7.1.min.js"></script>
+  <script defer src="js/underscore.js"></script>
+  <script defer src="js/backbone.js"></script>
+
+  <script defer src="js/bootstrap.js"></script>
+  <script defer src="js/bootstrap/bootstrap-dropdown.js"></script>
+  <script defer src="js/bootstrap/bootstrap-datepicker.js"></script>
+
+  <!--script type="text/javascript" src="/js/googlemaps/js.js?sensor=false&language=ru&libraries=drawing,places"></script-->
+
+
+  <!--script type="text/javascript" src="https://www.google.com/jsapi"></script-->
+
+  <!--script defer type="text/javascript" src="/js/modernizr.custom.13819.js"></script>
+  <script defer src="js/jquery-1.7.1.min.js"></script>
+  <script defer src="js/underscore-min.js"></script>
+  <script defer src="js/backbone-min.js"></script>
+  <script defer src="js/require-min.js"></script>
+  <script defer src="js/common-pro.js"></script-->
+
+
+<script>
+	log('P.S.');
+	var base = 10.4;
+	var val_spans = $('table span[role="value"]');
+	$('table input[type="range"]').bind('change', function(ev){
+		//log('change', this.value, ev);
+		var v = parseInt(this.value, 10)/100.0;	// Значение в диапазоне -1..1
+		//this.parentNode.parentNode.querySelector('input[type="text"]').value = (base * Math.pow(2, 2*v)).toFixed(1);
+		this.parentNode.parentNode.querySelector('input[type="text"]').value = (base * Math.pow(2, v)).toFixed(1);
+	});
+	$('table input[type="text"]').bind('change', function(ev){
+		var v = parseFloat(this.value)/base;
+		log('change', v, Math.log(v)/Math.log(2));
+		this.parentNode.parentNode.querySelector('input[type="range"]').value = Math.log(v)/Math.log(2) * 100;
+	});
+</script>
+
+</body>
+</html>

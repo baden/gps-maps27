@@ -52,4 +52,6 @@ imports = [
 	('/api/alarm/confirm*', 'api.alarm.Confirm'),
 	('/api/alarm/cancel*', 'api.alarm.Cancel'),
 	('/api/alarm/get*', 'api.alarm.Get'),
+
+	('/api/firmware/list.*', 'api.firmware.List'),
 ]

@@ -39,11 +39,13 @@
 			        draggable: false
 			});
 
-			GeosSysList = new SysList('geos_syslist');
-			GeosSysList.selectSys = function(system) {
-				skey = system.skey;
-				genReport();
-			}
+			GeosSysList = new SysList('geos_syslist', {
+				select: function(system) {
+					log('report.select', system);
+					skey = system.skey;
+					genReport();
+				}
+			});
 			//GeosSysList.Rebuild();
 			
 			if(window.config.account.systems && window.config.account.sys_keys.length>0) {
@@ -61,7 +63,8 @@
 	}
 
 
-	var tbody = $('#geos_body table tbody');
+	//var tbody = $('#geos_body table tbody');
+	var tbody = document.body.querySelector('#geos_body table tbody');
 	var skey;
 
 	var fsource = {
@@ -88,6 +91,21 @@
 		});
 		return res;
 	}
+	tbody.addEventListener('mouseover', function(ev){
+		//log('mouseover', ev.target);
+		if(ev.target.nodeName.toLowerCase() == 'td'){
+			var par = ev.target.parentNode.childNodes;
+			var lat = parseFloat(par[1].innerHTML); //.slice(4,-4)
+			var lon = parseFloat(par[2].innerHTML); //.slice(4,-4)
+			if(!isNaN(lat) && !isNaN(lon)){
+				//log('geo preview', lat, lon);
+				var pos = new google.maps.LatLng(lat, lon);
+				gmap.panTo(pos);
+				gmarker.setPosition(pos);
+			}
+		}
+	}, false);
+
 
 	var genReport = function(){
 		log('GEOS: Update report');
@@ -108,7 +126,11 @@
 		}
 
 //		$.getJSON('/api/geo/report', {skey: skey, from: date+'000000', to: date+'235959'}, function (data) {
-		$.getJSON('/api/geo/report', {skey: skey, from: Date_to_url(Date_to_daystart(date)), to: Date_to_url(Date_to_daystop(date))}, function (data) {
+//		$.getJSON('/api/geo/report', {skey: skey, from: Date_to_url(Date_to_daystart(date)), to: Date_to_url(Date_to_daystop(date))}, function (data) {
+		console.time('table-clear');
+		tbody.innerHTML = '';
+		console.timeEnd('table-clear');
+		config.helper.getJSON('/api/geo/report?skey=' + skey + '&from=' + Date_to_url(Date_to_daystart(date)) + '&to=' + Date_to_url(Date_to_daystop(date)), function (data) {
 			if (data.answer && data.answer == 'ok') {
 
 				var vdata = {
@@ -160,22 +182,13 @@
 					vdata[name].vmax = Math.max(vdata[name].vmax, value);
 				}
 
-				tbody.empty();
+				document.getElementById('geos_stats').innerHTML = '' + data.points.length + ' точек';
+
+				//tbody.empty();
 				//var progress = $( "#progressbar" );
 				//progress.progressbar({value: 0});
 				for(var i in data.points){
-					//if(i%10 == 0){
-					//	progress.progressbar({value: i*100/data.points.length});
-					//}
-
 					p = data.points[i];
-					var row = '<tr>';
-//					row += td([p[0], p[1].toFixed(5), p[2].toFixed(5), p[3], p[6].toFixed(1), p[4].toFixed(1), p[5].toFixed(2)]);
-					row += td([dt_to_time(p[0]), p[1].toFixed(5), p[2].toFixed(5), p[3], p[6].toFixed(1), p[4].toFixed(1), p[5].toFixed(2), fsource[p[7]]]);
-					row += '</tr>';
-					//tbody.append(row);
-					tbody.prepend(row);
-
 					vdata.vout.vsum += p[4];
 					vdata.vin.vsum += p[5];
 					vdata.speed.vsum += p[6];
@@ -194,6 +207,21 @@
 					}
 					//vdata.addRow([p[0].toString(), 1.2]);
 				}
+				
+				console.time('table-string');
+				var tbl = [];
+				for(var i=data.points.length-1,l=data.points.length; i>=0; i--){
+					var p = data.points[i];
+					tbl.push('<tr>'+td([dt_to_time(p[0]), p[1].toFixed(5), p[2].toFixed(5), p[3], p[6].toFixed(1), p[4].toFixed(1), p[5].toFixed(2), fsource[p[7]], p[8]])+'</tr>');
+				}
+				//tbody.append(tbl.join(''));
+				console.timeEnd('table-string');
+				console.time('table-render');
+				tbody.innerHTML = tbl.join('');
+				console.timeEnd('table-render');
+				//google.maps.event.trigger(gmap, 'resize');
+				$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
+				
 				/*if(vcnt){
 						add_data('vout', 2);
 						add_data('vin', 3);
@@ -225,7 +253,7 @@
 				draw_data('speed', 'Скорость (средняя)');
 				draw_data('sats', 'Спутники (усредненное значение)');
 			}
-
+			/*
 			var $p = $('#geos_body table tr:first th:last')[0];
 			$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
 			$('#geos_body table tr').unbind('mouseover');
@@ -243,13 +271,14 @@
 					}
 				}
 			});
+			*/
 		});
 
 
 	}
 
 	$('span.showchart').click(function(){
-		var name = $(this).attr('value');
+		var name = $(this).attr('data-value');
 		log('showchart', name);
 		//if(vdata[name].data.getNumberOfRows()>0){
 			$('.geos_vis').hide();

@@ -16,6 +16,7 @@ var selectedShape;
 var colors = ['#1E90FF', '#FF1493', '#32CD32', '#FF8C00', '#4B0082'];
 var selectedColor;
 var colorButtons = {};
+var zonelist = document.getElementById('map_zones_list');
 
 function clearSelection() {
 	if (selectedShape) {
@@ -120,11 +121,17 @@ function deleteZone(zkey) {
 }
 
 var update_zone_list = function(){
-	var zone_type_names = {'polygon': 'Фигура', 'polyline': 'Линия', 'circle': 'Окружность', 'rectangle': 'Прямоугольник'};
+	var zone_type_names = {'polygon': 'Область', 'polyline': 'Линия', 'circle': 'Окружность', 'rectangle': 'Прямоугольник'};
 	$('#map_zones_list').empty();
 	for(var i in zones){
 		var zone = zones[i];
-		$('#map_zones_list').append('<li zkey="' + i + '"><span data-foo="edit" title="Информация о зоне.">E</span> '+(zone_type_names[zone.type]||'<Неподдерживаемый тип>')+'<span title="Удалить зону." class="ui-icon ui-icon-close" data-foo="del"></li>');
+		var area = '';
+		//if('getPath' in zone.overlay) {
+		if(zone.type == 'polygon') {
+			//log('calculateArea', zone.overlay.getPath().getArray());
+			area = ' <span role="area">' + calculateArea(zone.overlay.getPath().getArray()) + '</span> га';
+		}
+		$('#map_zones_list').append('<li zkey="' + i + '"><span data-foo="edit" title="Информация о зоне.">E</span> '+(zone_type_names[zone.type]||'<Неподдерживаемый тип>') + area + '<span title="Удалить зону." class="ui-icon ui-icon-close" data-foo="del"></li>');
 	}
 	$('#map_zones_list li').click(function(ev){
 		var zkey = $(this).attr('zkey');
@@ -241,15 +248,37 @@ function cancelFromLocal() {
 	localStorage.removeItem('zones.last.edit');
 }
 
+function updatearea(newShape) {
+	var zl = zonelist.querySelector('li[zkey="'+newShape.zkey+'"] span[role="area"]');
+	var area = calculateArea(newShape.getPath().getArray());
+
+	zl.innerHTML = area;
+}
+
 function configEdit(newShape){
 	google.maps.event.addListener(newShape, 'click', function() {
 		setSelection(newShape);
 	});
+	google.maps.event.addListener(newShape, 'mouseover', function(event){
+		//log('mousrover');
+		if('zkey' in this) $('#map_zones_list li[zkey='+this.zkey+']').addClass('highlight');
+		this.setOptions({strokeWeight: 4});
+	});
+	google.maps.event.addListener(newShape, 'mouseout', function(event){
+		if('zkey' in this) $('#map_zones_list li[zkey='+this.zkey+']').removeClass('highlight');
+		if(this.type == 'polyline') {
+			this.setOptions({strokeWeight: 2});
+		} else {
+			this.setOptions({strokeWeight: 1});
+		}
+	});
+
 	if((newShape.type == 'polygon') || (newShape.type == 'polyline')){
 		var vertices = newShape.getPath();
 		google.maps.event.addListener(vertices, 'insert_at', function(index) {
 			//log('Polygon event: insert_at', newShape, index);
 			//log('TBD! Save new point is', vertices.getAt(index).toString());
+			updatearea(newShape);
 			newShape.dirty = true;	// При снятии выделения необходимо сохранить зону.
 			saveToLocal(newShape);
 			//SaveZoneToServer(newShape);
@@ -258,13 +287,15 @@ function configEdit(newShape){
 			//log('Polygon event: remove_at', newShape, index, el);
 			//log('TBD! Remove new point at index', index);
 			//SaveZoneToServer(newShape);
+			updatearea(newShape);
 			newShape.dirty = true;	// При снятии выделения необходимо сохранить зону.
 			saveToLocal(newShape);
 		});
 		google.maps.event.addListener(vertices, 'set_at', function(index, el) {
-			//log('Polygon event: set_at', newShape, index, el);
+			//log('Polygon event: set_at', newShape, index, el, zl);
 			//log('TBD! Save new point ', el.toString(), 'at index', index);
 			//SaveZoneToServer(newShape);
+			updatearea(newShape);
 			newShape.dirty = true;	// При снятии выделения необходимо сохранить зону.
 			saveToLocal(newShape);
 		});
@@ -557,7 +588,9 @@ var zones_activate = function(){
 		var zone = zones[i];
 		zone.overlay.setOptions({clickable: true});
 		//if(zone.type == 'polygon'){
+		/*
 		var eventsclick = google.maps.event.addListener(zone.overlay, 'mouseover', function(event){
+			//log('mousrover');
 			if('zkey' in this) $('#map_zones_list li[zkey='+this.zkey+']').addClass('highlight');
 			this.setOptions({strokeWeight: 4});
 		});
@@ -569,6 +602,7 @@ var zones_activate = function(){
 				this.setOptions({strokeWeight: 1});
 			}
 		});
+		*/
 		//}
 	}
 }
@@ -606,6 +640,93 @@ ZoneKit.prototype.Edit = function(){
 }
 
 window['ZoneKit'] = ZoneKit;
+
+var earthRadiusMeters=6367460.0;
+var metersPerDegree=2.0*Math.PI*earthRadiusMeters/360.0;
+var degreesPerRadian=180.0/Math.PI;
+var radiansPerDegree=Math.PI/180.0;
+var metersPerKm=1000.0;
+var meters2PerHectare=10000.0;
+var feetPerMeter=3.2808399;
+var feetPerMile=5280.0;
+var acresPerMile2=640;
+
+var calculateArea = function(points) {
+	if(points.length > 2) {
+		/*
+		var areaMeters2 = PlanarPolygonAreaMeters2(points);
+		if(areaMeters2 > 1000000.0) areaMeters2 = SphericalPolygonAreaMeters2(points);
+		*/
+		//return '' + (areaMeters2 / meters2PerHectare).toFixed(2) + '(' + (google.maps.geometry.spherical.computeArea(points) / meters2PerHectare).toFixed(2) + ')';
+		var area = google.maps.geometry.spherical.computeArea(points) / meters2PerHectare;
+		if(area >= 1000.0) return config.helper.digitformat(area.toFixed(0));
+		else if(area > 10.0) return area.toFixed(2);
+		else return area.toFixed(3);
+	}
+	return '?';
+}
+
+var PlanarPolygonAreaMeters2 = function(points) {
+    var a=0.0;
+    for(var i=0;i<points.length;++i)
+        {var j=(i+1)%points.length;
+        var xi=points[i].lng()*metersPerDegree*Math.cos(points[i].lat()*radiansPerDegree);
+        var yi=points[i].lat()*metersPerDegree;
+        var xj=points[j].lng()*metersPerDegree*Math.cos(points[j].lat()*radiansPerDegree);
+        var yj=points[j].lat()*metersPerDegree;
+        a+=xi*yj-xj*yi;}
+    return Math.abs(a/2.0);
+}
+
+var SphericalPolygonAreaMeters2 = function(points) {
+    var totalAngle=0.0;
+    //alert(points[0]);
+    for(i=0;i<points.length;++i)
+        {var j=(i+1)%points.length;
+        var k=(i+2)%points.length;
+        totalAngle+=Angle(points[i],points[j],points[k]);}
+    var planarTotalAngle=(points.length-2)*180.0;
+    var sphericalExcess=totalAngle-planarTotalAngle;
+    if(sphericalExcess>420.0)
+        {totalAngle=points.length*360.0-totalAngle;
+        sphericalExcess=totalAngle-planarTotalAngle;}
+    else if(sphericalExcess>300.0&&sphericalExcess<420.0)
+        {sphericalExcess=Math.abs(360.0-sphericalExcess);}
+    return sphericalExcess*radiansPerDegree*earthRadiusMeters*earthRadiusMeters;
+}
+
+var Angle = function(p1,p2,p3) {
+    var bearing21=Bearing(p2,p1);
+    var bearing23=Bearing(p2,p3);
+    var angle=bearing21-bearing23;
+    if(angle<0.0) angle+=360.0;
+    return angle;
+}
+
+var Bearing = function(from,to) {
+    var lat1=from.lat()*radiansPerDegree;
+    var lon1=from.lng()*radiansPerDegree;
+    var lat2=to.lat()*radiansPerDegree;
+    var lon2=to.lng()*radiansPerDegree;
+    var angle=-Math.atan2(Math.sin(lon1-lon2)*Math.cos(lat2),Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2));
+    if(angle<0.0) angle+=Math.PI*2.0;
+    angle=angle*degreesPerRadian;
+    return angle;
+}
+
+var Areas = function(areaMeters2) {
+    var areaHectares=areaMeters2/meters2PerHectare;
+    var areaKm2=areaMeters2/metersPerKm/metersPerKm;
+    var areaFeet2=areaMeters2*feetPerMeter*feetPerMeter;
+    var areaMiles2=areaFeet2/feetPerMile/feetPerMile;
+    var areaAcres=areaMiles2*acresPerMile2;
+    //return areaMeters2.toPrecision(4)+' m&sup2; / '+areaHectares.toPrecision(4)+' hectares / '+areaKm2.toPrecision(4)+' km&sup2; / '+areaFeet2.toPrecision(4)+' ft&sup2; / '+areaAcres.toPrecision(4)+' acres / '+areaMiles2.toPrecision(4)+' mile&sup2;';}
+    var area = areaMeters2+' m&sup2; / '+areaHectares.toFixed(4)+' hectares / '+areaKm2.toFixed(4)+' km&sup2;<br />'
+        +areaFeet2.toFixed(2)+' ft&sup2; / '+areaAcres.toFixed(4)+' acres / '+areaMiles2.toFixed(4)+' mile&sup2;';
+    return area;
+}
+
+
 
 //$(window).unload(function(){log("Don't forget save edited zones.");});
 //$(window).unload( function () { clearSelection(); } );	// Сохранение результатов редактирования при выходе. Хрен знает получится или нет.

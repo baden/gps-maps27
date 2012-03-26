@@ -3,7 +3,7 @@
 import os
 import webapp2
 from google.appengine.api import users
-
+from random import randint
 
 class Appcache(webapp2.RequestHandler):
 	def get(self):
@@ -13,6 +13,12 @@ class Appcache(webapp2.RequestHandler):
 			user = 'None'
 		else:
 			user = user.nickname()
+
+		
+		if os.environ['HTTP_HOST'] == 'localhost':
+			version = os.environ['CURRENT_VERSION_ID']	# + str(randint(0, 10**6))	# Такой подход не пашет
+		else:
+			version = os.environ['CURRENT_VERSION_ID']
 
 		manifest = """CACHE MANIFEST
 # AppName: %s
@@ -67,7 +73,7 @@ initconfig.js
 /_ah/channel
 http://localhost/_ah/login
 *
-""" % (os.environ['APPLICATION_ID'] + '@' + os.environ['SERVER_NAME'], user, os.environ['CURRENT_VERSION_ID'])
+""" % (os.environ['APPLICATION_ID'] + '@' + os.environ['SERVER_NAME'], user, version)
 
 		#for i in os.environ.keys():
 		#	manifest += '# ' + i + ' = ' + str(os.environ[i]) + '\n'

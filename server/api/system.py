@@ -392,3 +392,30 @@ class SaveConfig(BaseApi):
 		self.account.putconfig(config)
 
 		return {'answer': 'ok', 'dump': json.dumps(config) + "\r"}
+
+class SetIcon(BaseApi):
+	#requred = ('account', 'imei')
+	requred = ('account', 'skey')
+	def parcer(self, **argw):
+		from datamodel.channel import inform
+		from datamodel.namespace import private
+		import pickle
+
+		name = self.request.get('name', 'car')
+
+		#system = self.account.system_by_imei(self.imei)
+		#if
+		system = DBSystem.get(self.skey)
+		if system is None:
+			return {'answer': 'no', 'reason': 'nosys'}
+		#system.desc = desc
+		oldicon = pickle.loads(system.icon)
+		oldicon[private()] = name
+		system.icon = pickle.dumps(oldicon)
+		system.put()
+		
+		inform(self.skey, 'change_icon', {
+			'name': name
+		}, domain=private())
+
+		return {'result': 'ok', 'skey': str(self.skey), 'imei': system.imei, 'name': name}

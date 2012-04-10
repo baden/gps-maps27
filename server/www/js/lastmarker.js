@@ -284,6 +284,7 @@ LastMarker.prototype.onAdd = function() {
 	//$(div).mouseover(function(){console.log('aaa');});
 }
 
+
 LastMarker.prototype.setPosition = function(point, position) {
 //	log('Marker change position', point);
 	this.position = position;
@@ -309,7 +310,6 @@ LastMarker.prototype.onRemove = function() {
 }
 
 LastMarker.prototype.draw = function() {
-
 	if(this.position){
 		// Size and position the overlay. We use a southwest and northeast
 		// position of the overlay to peg it to the correct position and size.
@@ -333,6 +333,8 @@ LastMarker.prototype.draw = function() {
 		//log('div g transformation', );
 	}
 }
+
+
 
 window['LastMarker'] = LastMarker;	// Экспорт глобального имени
 

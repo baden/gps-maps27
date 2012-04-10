@@ -514,6 +514,7 @@ var CreateMap = function () {
 			, typeId: google.maps.MapTypeId.ROADMAP
 		}
 	}
+	//prev_config.typeId = 'Quest';	// С 1м апреля
 	log('Default map config', prev_config);
 
 	var $map = $('#map').gmap({
@@ -663,9 +664,13 @@ var CreateLastMarker = function(s){
 var dateInterval = function(){
 	//window.console.group('update lasts');
 	//log('update last values', lastpos);
+	var now = +new Date();
 	for(var i in lastpos){
-		var now = +new Date();
+		lastpos[i].marker.draw();
 		var dt = (now - lastpos[i].time)/1000;
+		var dtf = dt;
+		if(dt<0) dt = 0;
+		//log(' == dateInterval', lastpos[i], config.account.systems[i].last.point, dt);
 		var dt_days = Math.floor(dt/60/60/24)
 		var dt_days_lab = ((dt_days%10 == 1)&&(dt_days!=11))?' день ':((dt_days%10 in {2:0,3:0,4:0})&&!(dt_days in {12:0,13:0,14:0}))?' дня ':' дней ';
 
@@ -681,11 +686,33 @@ var dateInterval = function(){
 			var el = MapSysList.element.querySelector('li[data-skey="'+i+'"]>span:first-child');
 			if(el) {
 				el.title = 'Поледнее известное положение\n'+dt_days+dt_days_lab + dt_hours+dt_hours_lab + dt_mins+dt_mins_lab + 'назад';
+				if(dt_days > 0) {
+					el.innerHTML = '' + dt_days + 'д';
+				} else if(dt_hours > 0) {
+					el.innerHTML = '' + dt_hours + 'ч';
+				} else if(dt_mins > 0) {
+					el.innerHTML = '' + dt_mins + 'м';
+				} else {
+					el.innerHTML = 'Ok';
+				}
+				if(dtf >= 10*60) {
+					el.style.backgroundColor = 'rgb(192, 192, 192)';
+					el.style.color = 'black';
+					//el.style.color = 'white';
+				} else if(config.account.systems[i].last.point.speed >= 1.0){
+					el.style.backgroundColor = 'rgb(0, 192, 0)';
+					el.style.color = 'black';
+					//el.style.color = 'white';
+				} else {
+					el.style.backgroundColor = 'rgb(255, 0, 0)';
+					el.style.color = 'white';
+				}
 			}
 		}
 	}
 }
-setInterval(dateInterval, 60000);
+setInterval(dateInterval, 30000);
+//setInterval(dateInterval, 5000);
 
 var GetLastPositions = function() {
 	//log('Get last positions...');
@@ -1019,7 +1046,9 @@ config.updater.tabs[0] = function(){
 					if(mark) mark.classList.remove('lastup');
 				});
 
-				li.innerHTML = '<span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>' + s.desc;
+				//li.innerHTML = '<span class="ui-icon ui-icon-zoomin" title="Центровать последнее положение на карте"></span>' + s.desc;
+				li.innerHTML = '<span style="width: 20px;font-size: 80%; font-weight: normal; text-align: right; color: #444; box-shadow: 0px 0px 1px black; margin-right: 2px; padding:1px 2px 1px 0px;overflow: hidden;/*position: absolute;right: 22px;*/background-color: white;">88ч</span>' + s.desc;
+
 				} else {
 					li.innerText = s.desc;
 				}
@@ -1055,6 +1084,7 @@ config.updater.tabs[0] = function(){
 				}
 			}
 		});
+		dateInterval();
 	}
 	//log('MAP: tab update');
 	google.maps.event.trigger(map, 'resize');

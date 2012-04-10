@@ -185,7 +185,8 @@ LastMarker.prototype.onAdd = function() {
 
 	//var direction = document.createElement('svg');
 	var svg = document.createElementNS(SVG.ns, "svg:svg");
-	svg.setAttribute("style", 'margin: -8px -8px -8px -8px');
+	//svg.setAttribute("style", 'margin: -8px -8px -8px -8px');
+	svg.setAttribute("style", 'margin: -8px -8px -15px -4px');
 	svg.setAttribute("width", '32px');
 	svg.setAttribute("height", '32px');
 	// Set the coordinates used by drawings in the canvas
@@ -197,7 +198,8 @@ LastMarker.prototype.onAdd = function() {
 	g.setAttributeNS(null, 'transform', 'translate(16,16)');
 
 	var shape = document.createElementNS(SVG.ns, "polyline");
-	shape.setAttributeNS(null, "points", "-8,-4 0,-15 8,-4");
+	//shape.setAttributeNS(null, "points", "-12,-4 0,-15 12,-4");
+	shape.setAttributeNS(null, "points", "-7,-11 0,-15 7,-11");
 	shape.setAttributeNS(null, "fill", "none");
 	shape.setAttributeNS(null, "stroke", "black");
 	shape.setAttributeNS(null, "stroke-width", "2px");
@@ -307,10 +309,20 @@ LastMarker.prototype.onRemove = function() {
 */
 }
 
+LastMarker.lastmarklist = ['aircraftsmall','airport','alien','apartment-3','apple','archery','atv','bank','bicycle_shop','bomber-2',
+	'bulldozer','bus','cablecar','campfire-2','camping-2','car','chicken-2','convertible','cow-export','cruiseship','cycling',
+	'disability','female-2','footprint','helicopter','horseriding','hotairbaloon','jetfighter','military','motorbike','motorcycle',
+	'pets','phantom','planecrash','sailing','smiley_happy','snowmobiling','sportscar','sportutilityvehicle','steamtrain',
+	'taxi','train','tramway','trolley','truck3','turtle-2','ufo','van','vespa'];
+
+
 LastMarker.prototype.draw = function() {
+	var now = +new Date();
 	try{
 	if(this.position){
-		log('LastMarker.prototype.draw', this, this.point);
+		var dt = Math.floor((now - dt_to_Date(this.point.time))/1000);	// Время, прошедшее с последней фиксации в секундах
+		if(dt<0) dt = 0;
+		//log('LastMarker.prototype.draw', this, this.point, dt);
 
 		// Size and position the overlay. We use a southwest and northeast
 		// position of the overlay to peg it to the correct position and size.
@@ -325,17 +337,44 @@ LastMarker.prototype.draw = function() {
 
 		// Resize the image's DIV to fit the indicated dimensions.
 		var div = this.div;
-		div.style.left = divpx.x - 8 + 'px';
-		div.style.top = divpx.y - 8 + 'px';
+		//div.style.left = divpx.x - 8 + 'px';
+		//div.style.top = divpx.y - 8 + 'px';
+		div.style.left = divpx.x - 12 + 'px';
+		div.style.top = divpx.y - 12 + 'px';
 
-		// !Проблема пооддержки старых браузеров
-		if(this.point.speed < 1.0) {
-			div.classList.add('lastmarkerstop');
-			div.classList.remove('lastmarkermove');
+		div.style.width = '24px';
+		div.style.height = '24px';
+		//div.classList.add('sprite-car');
+		var classcolor = '';
+
+		if(dt >= 10*60) {	// Пока значение фиксированное - 10 минут
+			div.style.backgroundColor = '#ccc';
+			classcolor = 'spritecolor-yellow';
+		} else if(this.point.speed < 1.0) {
+			/*div.classList.add('lastmarkerstop');
+			div.classList.remove('lastmarkermove');*/
+			//div.style.backgroundImage = 'url(/images/car-stop.png)';
+			//div.classList.add('spritecolor-red');
+			div.style.backgroundColor = 'rgba(255, 0, 0, 1.0)';
+			classcolor = 'spritecolor-red';
+			//div.style.backgroundImage = 'url(/plugins/mapiconscollection-markers/karting.png)';
+			//div.style.backgroundImage = 'url(/plugins/mapiconscollection-markers-simp/karting.png)';
 		} else {
-			div.classList.add('lastmarkermove');
-			div.classList.remove('lastmarkerstop');
+			div.style.backgroundColor = 'rgba(0, 212, 0, 1.0)';
+			classcolor = 'spritecolor-green';
+			//div.classList.add('spritecolor-green');
+			//div.style.backgroundImage = 'url(/images/car-move.png)';
+			//div.style.backgroundImage = 'url(/images/100cars.png)';
+			//div.style.backgroundPosition = '-16px -26px';
+			/*div.classList.add('lastmarkermove');
+			div.classList.remove('lastmarkerstop');*/
 		}
+		//log('=====skey', config.account.systems[this.skey].icon);
+		//div.className = 'lastmarker ' + classcolor + ' sprite-' + LastMarker.lastmarklist[Math.floor(Math.random()*LastMarker.lastmarklist.length)];
+		div.className = 'lastmarker ' + classcolor + ' sprite-' + config.account.systems[this.skey].icon;
+		//div.style.backgroundPositionY =  (parseInt(window.getComputedStyle(div,'')['backgroundPositionY']) + 22) + 'px';
+		/*div.style.setProperty('background-position-x', '' + (parseInt(window.getComputedStyle(div,'')['backgroundPositionX']) - 6) + 'px', 'important');
+		div.style.setProperty('background-position-y', '' + (parseInt(window.getComputedStyle(div,'')['backgroundPositionY']) - 14) + 'px', 'important');*/
 
 		if(this.shape){
 			this.shape.setAttributeNS(null, 'transform', 'rotate('+this.point.course+')');

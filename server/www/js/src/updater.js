@@ -52,6 +52,10 @@ config.updater.add('*', function(msg){
 */
 });
 
+config.updater.add('change_icon', function(msg) {
+	config.account.systems[msg.skey].icon = msg.data.name;
+});
+
 config.updater.tabs = [];
 
 //window['Updater'] = Updater;

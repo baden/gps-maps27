@@ -812,6 +812,9 @@ div.lastmarker {
 	width: 16px;
 	height: 16px;
 
+	border-radius: 12px;
+	border: 1px solid rgba(0, 0, 0, 0.4);
+
 	/*border: 1px solid black;
 	border-radius: 9px;
 	-moz-border-radius: 9px;
@@ -824,9 +827,10 @@ div.lastmarker {
 	padding: 0px 0px 0px 0px;
 	/*background-color: #fff;*/
 
-	background-image: url(/images/car-default.png);
+	/*background-image: url(/images/car-default.png);*/
 }
 
+/*
 div.lastmarkerstop {
 	background-image: url(/images/car-stop.png);
 }
@@ -834,6 +838,7 @@ div.lastmarkerstop {
 div.lastmarkermove {
 	background-image: url(/images/car-move.png);
 }
+*/
 
 div.lastmarker div.lastmarker-title {
 	position: absolute;
@@ -858,8 +863,12 @@ div.lastmarker div.lastmarker-title p {
 	margin-top: -2px;
 }
 
+div.lastmarker-label:hover {
+	opacity: 0.9;
+}
+
 div.lastmarker:hover, div.lastup {
-	border-color: #fff;
+	border-color: #000;
 	z-index: 102;
 	/*-webkit-box-shadow: 4px 4px 6px #606060;
 	-moz-box-shadow: 4px 4px 6px #606060;*/
@@ -868,6 +877,7 @@ div.lastmarker:hover, div.lastup {
 	margin-left: -1px;
 	margin-top: -1px;*/
 	z-index: 10001;
+	/*opacity: 0.80;*/
 }
 
 div.lastmarker:hover div.lastmarker-label {
@@ -888,20 +898,24 @@ div.lastup div.lastmarker-label {
 div.lastmarker-label {
 	position: absolute;
 	border: 1px solid black;
-	left: 8px;
-	bottom: 16px;
-	background-color: #fcf;
+	/*left: 8px;*/
+	left: 21px;
+	bottom: 21px;
+	/*background-color: #fcf;*/
+	background-color: rgba(255, 120, 255, 0.5);
 	white-space: nowrap;
 	padding: 0px 5px 0px 5px;
 	border-top-left-radius: 7px 7px;
 	border-bottom-right-radius: 7px 7px;
+	border-top-right-radius: 7px 7px;
 	-webkit-transition: all 0.2s linear;
 	height: 18px;
 	min-height: 18px;
 	overflow: hidden;
-	opacity: 0.85;
+	opacity: 1.0;
 	z-index: 10000;
 }
+
 
 div.lastmarker-control {
 	/*width: 100%;*/
@@ -1103,8 +1117,8 @@ div#geos_body {
 }
 /* config.css */
 #config_sys_list { list-style-type: none; margin: 0; padding: 0; }
-#config_sys_list li {height: 22px; }
-#config_sys_list li span { padding: 0; margin: 0;}
+#config_sys_list li {height: 26px; }
+#config_sys_list li span { padding: 0; margin: 2px 0px 0px 0px;}
 #config_sys_list li span.mm { display: inline-block; width: 16px; height: 16px;}
 button.mm { padding-left: 5px; padding-right: 5px;}
 
@@ -1124,9 +1138,34 @@ button.mm { padding-left: 5px; padding-right: 5px;}
 	text-align: center;
 }
 
+#config_sys_list li span:nth-child(3) {
+	margin-left: 24px;
+}
+
+#config_sys_list li div.spanicon {
+	display: inline-block;
+	height: 24px;
+	position: absolute;
+	cursor: pointer;
+}
+
+#config_sys_list li div.spanicon:hover {
+	background-color: #ccf;
+}
+
 
 .ui-accordion .ui-accordion-content {
 	padding: 2px 2px 2px 2px;
+}
+
+#config_icon div.spritecolor-red {
+	cursor: pointer;
+	border: 1px solid rgba(0, 0, 0, 0);
+}
+
+#config_icon div.spritecolor-red:hover {
+	background-color: #ccf;
+	border: 1px solid black;
 }
 
 

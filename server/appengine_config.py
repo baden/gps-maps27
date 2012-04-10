@@ -13,9 +13,12 @@ logging.info('Loading %s from %s', __name__, __file__)
 #apptrace_URL_PATTERNS  = ['^/$']
 #apptrace_TRACE_MODULES = ['api.py']
 
+# Пока запретис статистику
+'''
 def webapp_add_wsgi_middleware(app):
     app = recording.appstats_wsgi_middleware(app)
     return app
+'''
 
 #os.environ['ROOT_NAMESPACE'] = 'point'
 

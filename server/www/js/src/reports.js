@@ -113,7 +113,7 @@ var genReport = function(skey, start, stop, title) {
 						//var f = rec.length * data.car.fuel_midle / 100;
 						var f = rec.length * fuel_middle(rec.speed) / 100;
 						fuel += f;
-						tp = 'Движение</td><td>' + ln_to_km(rec.length) + ', ' + rec.speed.toFixed(1) + ' км/ч, &#8776;' + f.toFixed(2) + ' л'; break
+						tp = 'Движение</td><td>' + ln_to_km(rec.length) + ', ' + rec.speed.toFixed(1) + ' км/ч, ' + f.toFixed(2) + ' л'; break
 					}
 					case 'stop': {
 						//var rdiv = $('div');
@@ -356,7 +356,7 @@ config.updater.tabs[1] = function(){
 	} else return;
 
 	//var task_report_line()
-
+	if(0){
 	document.getElementById('reports_table_log_task_show').addEventListener('click', function(){
 		var div = document.getElementById('reports_table_log_task');
 		var tbody = div.querySelector('table tbody');
@@ -376,6 +376,7 @@ config.updater.tabs[1] = function(){
 		config.helper.dialog('/html/dialogs/task_report.html', {}, {
 		});
 	}, false);
+	}
 
 	if('google' in window) geocoder = new google.maps.Geocoder();
 	$("#nav_reports").button("option", "disabled", true);

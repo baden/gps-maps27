@@ -38,6 +38,9 @@ class DBSystem(db.Model):
 	"""
 	descbydomain = db.BlobProperty(default=pickle.dumps({}))
 
+	# Пиктограмма
+	icon = db.BlobProperty(default=pickle.dumps({}))
+
 	def todict(self):
 		from datetime import datetime
 		try:
@@ -48,6 +51,10 @@ class DBSystem(db.Model):
 			tags = pickle.loads(self.tags)[private()]
 		except:
 			tags = []
+		try:
+			icon = pickle.loads(self.icon)[private()]
+		except:
+			icon = 'car'
 
 		return {
 			"key": str(self.key()),
@@ -57,6 +64,7 @@ class DBSystem(db.Model):
 			"desc_global": self.desc,
 			"desc": desc,
 			"tags": tags,
+			"icon": icon,
 			"premium": self.premium >= datetime.utcnow()
 		}
 

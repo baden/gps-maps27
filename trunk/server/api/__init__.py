@@ -34,6 +34,7 @@ imports = [
 	('/api/system/car*', 'api.system.Car'),
 	('/api/system/secure_list*', 'api.system.SecureList'),
 	('/api/system/saveconfig*', 'api.system.SaveConfig'),
+	('/api/system/seticon*', 'api.system.SetIcon'),
 
 	('/api/param/desc*', 'api.param.Desc'),
 

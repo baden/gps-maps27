@@ -26,6 +26,7 @@ function GMap() {
 		pos: new google.maps.LatLng(48.370848,32.717285), // Default position - Ukraine
 		zoom: 6,
 		maptype: google.maps.MapTypeId.ROADMAP,
+		//maptype: 'Quest',	// С 1м апреля!
 		marker: 'none',
 		markertitme: 'Ooooops!'
 	}
@@ -208,6 +209,22 @@ var VisicomType = new google.maps.ImageMapType({
 //VisicomType.projection = new YandexProjection();  
 
 
+var QuestType = new google.maps.ImageMapType({
+	getTileUrl: function(coord, zoom) {
+		//return 'http://tms'+ ((coord.x+coord.y)%4) +'.visicom.ua/1.0.3/world_ru/'+ zoom +'/'+ coord.x +'/'+ coord.y +'.png';
+		return 'http://mt'+ ((coord.x+coord.y)%4) +'.google.com/vt/lyrs=8bit,m@174000000&hl=en&src=app&x='+ coord.x +'&s=&y='+ coord.y +'&z='+ zoom +'&s=G';
+
+	},
+	tileSize: new google.maps.Size(256, 256),
+	isPng: true,
+	alt: "Квест",
+	name: "Квест",
+	maxZoom: 22,
+	minZoom:0
+	//, opacity:0.5
+});
+
+
 // 
 
 // ------------------------
@@ -330,6 +347,7 @@ $.extend(GMap.prototype, {
 		var mapOptions = {
 			center: inst.settings.pos || new google.maps.LatLng(48.5000, 34.599),
 			mapTypeId: inst.settings.maptype || google.maps.MapTypeId.ROADMAP,
+			//mapTypeId: inst.settings.maptype || 'Quest',	// С 1м апреля!
 			//mapTypeControl: ,
 			//mapTypeControl: Modernizr.touch,
 			mapTypeControlOptions: {
@@ -357,6 +375,7 @@ $.extend(GMap.prototype, {
 		mapTypeIds.push("Wikimapia");
 		mapTypeIds.push("Visicom");
 		//mapTypeIds.push("Google");
+		mapTypeIds.push("Quest");
 
 			//, mapTypeId: "Apple"
 		mapOptions = {
@@ -364,6 +383,7 @@ $.extend(GMap.prototype, {
 			, zoom: inst.settings.zoom
 			, streetViewControl: false
 			, mapTypeId: inst.settings.maptype || google.maps.MapTypeId.ROADMAP
+			//, mapTypeId: inst.settings.maptype || 'Quest'	// С 1м апреля
 			, mapTypeControlOptions: {
 				mapTypeIds: mapTypeIds
 				, style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
@@ -433,6 +453,7 @@ $.extend(GMap.prototype, {
 		map.mapTypes.set('2GIS', gis2Type);
 		map.mapTypes.set('Wikimapia', WikimapiaType);
 		map.mapTypes.set('Visicom', VisicomType);
+		map.mapTypes.set('Quest', QuestType);
 		//map.mapTypes.set('GISMO', GisMapType);
 
 		inst.settings.map = map;

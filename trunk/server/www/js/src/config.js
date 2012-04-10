@@ -389,8 +389,73 @@ var bpurge = function(){
 	});
 }
 
-var bico = function() {
-	alert('В разработке');
+var ch_icon = function() {
+	// Выбор иконки для объекта
+	var li = this.parentNode;
+	var imei = li.dataset.imei;
+	var skey = li.dataset.skey;
+	var desc = li.querySelector('.description').innerText;
+	log('ch icon', this, skey);
+
+	if($('#config_icon').length === 0){
+		var icons = [];
+		for(var i=0, l=LastMarker.lastmarklist.length; i<l; i++){
+			icons.push('<div class="spritecolor-red sprite-'+LastMarker.lastmarklist[i]+'" style="display: inline-block;" data-name="'+LastMarker.lastmarklist[i]+'"></div>');
+			//if((i+1)%16 == 0) icons.push('<br />');
+		}
+		$('body').append(
+			//'<div id="config_overlay" class="ui-widget-overlay"></div>' +
+			'<div id="config_icon">' +
+				icons.join('') +
+			//'Объект:<strong><label></label></strong><br/><br/>' +
+			//'<button></button><br/>' +
+			'</div>'
+		);
+	}
+
+	//$('#config_purgegps label').first().html(imei+':'+$(this).parent().children('desc').html());
+	//$('#config_icon label').first().html(imei+':'+desc);
+	//div.children('strong').children('label').first().html(imei+':'+$(this).parent().children('desc').html());
+	$('#config_icon')[0].setDataAttribute('skey', skey);
+	$('#config_icon').dialog({
+		autoOpen: true,
+		title: 'Назначение пиктограммы',
+		modal: true,
+		//minHeight: 390,
+		buttons: {
+			'Отмена': function() {
+				//sendGet('/api/system/config?cmd=cancel&imei=' + imei);
+				$(this).dialog('close');
+			}
+			/*'Выполнить!': function() {
+				var icon = '';
+				//log('Удаление GPS данных для системы', imei, ' до даты ', dateto);
+				$(this).dialog('close');
+			}*/
+		},
+		create: function() {
+			var me = this;
+			//log('create', skey);
+			$('#config_icon div.spritecolor-red').click(function(){
+				var name = this.dataset.name;
+				var skey = $('#config_icon')[0].dataset.skey;
+				//log('select', name, skey);
+				$.getJSON('/api/system/seticon?skey='+skey+'&name='+name, function (data) {
+					if(data && (data.result == 'ok')){
+						//alert('Иконка обновлена.');
+					} else {
+						alert('Ошибка:\r\n'+data.result);
+					}
+				});
+				config.account.systems[skey].icon = name;
+				//var el = $('ul#config_sys_list li[data-skey="'+skey+'"] div.spanicon');
+				//log('======= el', el);
+				$('ul#config_sys_list li[data-skey="'+skey+'"] div.spanicon')[0].className = 'spanicon spritecolor-red sprite-'+name;
+				$(me).dialog('close');
+			});
+		}
+	});
+
 }
 
 var bdel = function() {
@@ -521,13 +586,14 @@ config.updater.tabs[4] = function(){
 		//$(ctl_div).find('button').button();
 
 		$(ctl_div).find('.bdesc').button().click(ch_desc);
+		//$(ctl_div).find('.bicon').button().click(ch_icon);
 		$(ctl_div).find('.bcar').button().click(ch_car);
 		if(config.admin) $(ctl_div).find('.calarm').button().click(cancel_alarm);
 		$(ctl_div).find(".bzone").button().click(bzone);
 		$(ctl_div).find(".btags").button().click(btags);
 		$(ctl_div).find('.bconf').button().click(bconf);
 		if(config.admin) $(ctl_div).find('.bpurge').button().css('color', 'red').click(bpurge);
-		$(ctl_div).find('.bico').button().click(bico);
+		//$(ctl_div).find('.bico').button().click(bico);
 		$(ctl_div).find('.bdel').button().click(bdel);
 
 		document.getElementById('config_sys_list').addEventListener('mouseover', function(){
@@ -540,6 +606,7 @@ config.updater.tabs[4] = function(){
 				//li.style.width = '200px';
 				//li.className = 'ui-widget ui-widget-content';
 				li.innerHTML = '<span class="ui-icon ui-icon-arrowthick-2-n-s mm msp"></span>' +
+					'<div class="spanicon spritecolor-red sprite-'+config.account.systems[s.key].icon+'"></div>' +
 					'<span class="spanbrd" title="IMEI">' + s.imei.replace(/-.*/,'') + '</span><span class="spanbrd" title="Телефон">' + (s.phone!='None'?(s.phone):'не определен') + '</span>' +
 					'<span class="description" contenteditable>' + s.desc + '</span>' +
 					'';
@@ -577,6 +644,7 @@ config.updater.tabs[4] = function(){
 					event.preventDefault();
 					//return true;
 				}, false);
+				li.querySelector('div.spanicon').addEventListener('click', ch_icon);
 				li.querySelector('span.description').addEventListener('keypress', function(ev){
 					//log(ev.charCode);
 					if(ev.charCode == 13) {
@@ -645,6 +713,9 @@ config.updater.tabs[4] = function(){
 			//log('ConfigList:change_tag', msg, li);
 		});
 
+		config.updater.add('change_icon', function(msg) {
+			$('ul#config_sys_list li[data-skey="' + msg.skey + '"] div.spanicon')[0].className = 'spanicon spritecolor-red sprite-' + msg.data.name;
+		});
 
 	if(window.config.account.user.admin) $('.admin').show();
 		// Закладка "Наблюдаемые системы"

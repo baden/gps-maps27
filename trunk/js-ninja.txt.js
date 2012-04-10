@@ -1,3 +1,43 @@
+Интересная методика привязки иконок к кнопкам, подписям, и вообще к чему угодно.
+Оно спрятанно в статье, http://habrahabr.ru/post/140816/ см. content: attr(data-icon)
+Иконки взяты с шрифта: http://nodeca.github.com/fontomas/#
+Также можно собрать собственный шрифт: http://www.fontsquirrel.com/fontface/generator
+
+@font-face {
+    font-family: 'FontomasCustomRegular';
+    src: url('fonts/fontomas-webfont.eot');
+    src: url('fonts/fontomas-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/fontomas-webfont.woff') format('woff'),
+         url('fonts/fontomas-webfont.ttf') format('truetype'),
+         url('fonts/fontomas-webfont.svg#FontomasCustomRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+/** магический трюк! **/
+[data-icon]:after {
+    content: attr(data-icon);
+    font-family: 'FontomasCustomRegular';
+    color: rgb(106, 159, 171);
+    position: absolute;
+    left: 10px;	
+    top: 35px;	/* Конкретно в этом примере иконка рисуется на следующей строке */
+    width: 30px;
+}
+
+Использование:
+<label for="username" class="uname" data-icon="u"> Ваш email или логин </label>
+у label должно быть position: relative;
+
+
+
+Красивые графики:
+http://www.humblesoftware.com/envision/index
+http://www.highcharts.com/
+
+
+
+
 // Красивый способ назначения обработчиков событий через handleEvent:
 // http://www.thecssninja.com/javascript/handleevent
 

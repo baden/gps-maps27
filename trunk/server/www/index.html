@@ -29,6 +29,8 @@
 
   <link type="text/css" href="/plugins/jquery-ui-timepicker-0.2.9/jquery.ui.timepicker.css" rel="stylesheet">
 
+  <link type="text/css" href="/stylesheets/sprite-full.css" rel="stylesheet">
+
   <!--script>
 	window.onerror = function (msg, url, line) {
 		alert("Error: " + msg + "\nURL: " + url + "\nLine:" + line);
@@ -173,11 +175,11 @@
 	<button id="report_btn_do_by_day">Отчет за сутки</button>
 	<button id="report_btn_do_by_int">Отчет за интервал</button>
 
-	<h3>Групповой отчет</h3>
+	<!--h3>Групповой отчет</h3>
 	<button id="report_btn_do_by_day_gr">Отчет за сутки</button>
-	<button id="report_btn_do_by_int_gr">Отчет за интервал</button>
+	<button id="report_btn_do_by_int_gr">Отчет за интервал</button-->
 
-	<h3>Расписания отчетов</h3>
+	<!--h3>Расписания отчетов</h3>
 	<button id="reports_table_log_task_show">Показать/обновить</button>
 	<div id="reports_table_log_task" style="display: none;">
 	<table class="ui-widget ui-widget-content tview">
@@ -188,7 +190,7 @@
 		</tbody>
 	</table>
 	<button id="report_btn_task">Добавить задание</button>
-	</div>
+	</div-->
 
 	<!--
 	Cистема: <select id="rep_syslist" name="rep_syslist" style="width:auto;" onchange="purgeReport();"></select>
@@ -576,6 +578,81 @@
 		<tr>
 			<td>alarm start</td><td>Дистанционный запуск тревоги.</td>
 		</tr>
+		</tbody>
+	</table>
+
+	<h3>Точки доступа для различных GSM-операторов</h3>
+	iparam gsm.apn N
+	<table class="ui-widget ui-widget-content tview">
+		<thead>
+		<tr class="ui-widget-header"><th>N</th><th>APN</th><th>пользователь</th><th>пароль</th><th>Оператор</th></tr>
+		</thead>
+		<tbody>
+		<tr><td>0</td><td>www.ab.kyivstar.net</td><td></td><td></td><td>Киевстар, предоплаченный, Ace&Base</td></tr>
+		<tr><td>1</td><td>www.kyivstar.net</td><td></td><td></td><td>Киевстар, контракт</td></tr>
+		<tr><td>2</td><td>www.kyivstar.net</td><td>igprs</td><td>internet</td><td>Киевстар</td></tr>
+		<tr><td>3</td><td>internet</td><td></td><td></td><td>Life, MTC, Екотел</td></tr>
+		<tr><td>4</td><td>internet.beeline.ua</td><td></td><td></td><td>Beeline</td></tr>
+		<tr><td>5</td><td>www.umc.ua</td><td></td><td></td><td>MTC *контрактным абонентам, которые подключились до 25.07.2007</td></tr>
+		<tr><td>6</td><td>www.djuice.com.ua</td><td></td><td></td><td>Djuice</td></tr>
+		<tr><td>7</td><td>3g.utel.ua</td><td></td><td></td><td>Utel (национальный роуминг)</td></tr>
+		<tr><td>8</td><td>3g.kyivstar.net</td><td></td><td></td><td>Киевстар, 3G</td></tr>
+		<tr><td>9</td><td></td><td></td><td></td><td>резерв</td></tr>
+		<tr><td>10</td><td></td><td></td><td></td><td>резерв</td></tr>
+		<tr><td>11</td><td></td><td></td><td></td><td>резерв</tr>
+
+		<tr><td colspan="4">Операторы России</td></tr>
+
+		<tr><td>12</td><td>internet.beeline.ru</td><td>beeline</td><td>beeline</td><td rowspan="21">Росийские</td></tr>
+		<tr><td>13</td><td>internet.mts.ru</td><td></td><td></td></tr>
+		<tr><td>14</td><td>internet.mts.ru</td><td>mts</td><td>mts</td></tr>
+		<tr><td>15</td><td>home.beeline.ru</td><td></td><td></td></tr>
+		<tr><td>16</td><td>internet.beeline.ru</td><td></td><td></td></tr>
+		<tr><td>17</td><td>inet.bwc.ru</td><td></td><td></td></tr>
+		<tr><td>18</td><td>internet.msk</td><td></td><td></td></tr>
+		<tr><td>19</td><td>internet.bashcell.ru</td><td></td><td></td></tr>
+		<tr><td>20</td><td>internet.etk.ru</td><td></td><td></td></tr>
+		<tr><td>21</td><td>internet.kuban</td><td></td><td></td></tr>
+		<tr><td>22</td><td>inet.ycc.ru</td><td></td><td></td></tr>
+		<tr><td>23</td><td>internet.ntc</td><td></td><td></td></tr>
+		<tr><td>24</td><td>internet.primtel.ru</td><td></td><td></td></tr>
+		<tr><td>25</td><td>internet.smarts.ru</td><td></td><td></td></tr>
+		<tr><td>26</td><td>internet.tatincom.ru</td><td></td><td></td></tr>
+		<tr><td>27</td><td>internet.tele2.ru</td><td></td><td></td></tr>
+		<tr><td>28</td><td>internet.usi.ru</td><td></td><td></td></tr>
+		<tr><td>29</td><td>internet.volgogsm.ru</td><td></td><td></td></tr>
+		<tr><td>30</td><td>internet.akos.ru</td><td></td><td></td></tr>
+		<tr><td>31</td><td>liderinternet.smarts.ru</td><td></td><td></td></tr>
+		<tr><td>32</td><td>internet.yo.ru</td><td></td><td></td></tr>
+
+		<tr><td colspan="4">Операторы Испании</td></tr>
+
+		<tr><td>38</td><td>movistar.es</td><td>MOVISTAR</td><td>MOVISTAR</td><td>Movistar</td></tr>
+		<tr><td>39</td><td>movistar.es</td><td>movistar</td><td>movistar</td><td>Telefonica(Movistar)</td></tr> 
+		<tr><td>40</td><td>internet</td><td>web</td><td>web</td><td>Vodafone (Pay monthly / Business)</td></tr>
+		<tr><td>41</td><td>smart</td><td>web</td><td>web</td><td>Vodafone (£5 for 250MB/30 days)</td></tr>
+		<tr><td>42</td><td>airtel.es</td><td>vodafone</td><td>vodafone</td><td>Vodafone</td></tr>
+		<tr><td>43</td><td>airtelnet.es</td><td>vodafone</td><td>vodafone</td><td>Vodafone(Airtel)</td></tr>
+		<tr><td>44</td><td>ac.vodafone.es</td><td>vodafone</td><td>vodafone</td><td>Vodafone</td></tr>
+		<tr><td>45</td><td>internetmas</td><td></td><td></td><td>Masmovil (Standard)</td></tr>
+		<tr><td>46</td><td>int.socialmas</td><td></td><td></td><td>Masmovil (30MB)</td></tr>
+		<tr><td>47</td><td>internet</td><td>orange</td><td>orange</td><td>Orange</td></tr>
+		<tr><td>48</td><td>internet</td><td></td><td></td><td>Yoigo, Digi.Mobil</td></tr>
+		<tr><td>49</td><td>gprs-service.com</td><td></td><td></td><td>Simyo</td></tr>
+		<tr><td>50</td><td>carrefourinternet</td><td></td><td></td><td>Carrefour Móvil</td></tr>
+		<tr><td>51</td><td>internet.euskaltel.mobi</td><td></td><td></td><td>Euskaltel</td></tr>
+		<tr><td>52</td><td>multimedia.lebara.nl</td><td></td><td></td><td>Lebara Mobile</td></tr>
+		<tr><td>53</td><td>purtona.net</td><td></td><td></td><td>Lebara Mobile</td></tr>
+		<tr><td>54</td><td>gprsmov.pepephone.com</td><td></td><td></td><td>Pepephone</td></tr>
+		<tr><td>55</td><td>gprs.eroskimovil.es</td><td>wap@wap</td><td>wap125</td><td>Eroski Móvil</td></tr>
+		<tr><td>56</td><td>internet.bt.es</td><td>bt@internet</td><td>internet</td><td>BT Mobile</td></tr>
+		<tr><td>57</td><td>internet.ono.com</td><td></td><td></td><td>ONO Móvil</td></tr>
+		<tr><td>58</td><td>internet.telecable.es</td><td>telecable</td><td>telecable</td><td>TeleCable</td></tr>
+		<tr><td>59</td><td>internettph</td><td></td><td></td><td>MoviData</td></tr>
+		<tr><td>60</td><td>pc.hitsmobile.es</td><td></td><td></td><td>HITS Mobile</td></tr>
+		<tr><td>61</td><td>tel.hitsmobile.es</td><td></td><td></td><td>HITS Mobile</td></tr>
+		<tr><td>62</td><td>jazzinternet</td><td></td><td></td><td>Jazztel</td></tr>
+		<tr><td>63</td><td>internet</td><td>CLIENTE</td><td>AMENA</td><td>Amena</td></tr>
 		</tbody>
 	</table>
 

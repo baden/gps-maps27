@@ -1,0 +1,5 @@
+GET /l?pos=sF4d145sSe HTTP/1.0
+Host: point.navi.cc
+User-Agent: SIM900
+Connection: keepalive
+

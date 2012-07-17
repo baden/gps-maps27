@@ -138,7 +138,10 @@ class MessagePost(webapp2.RequestHandler):
 				try:
 					_log += 'Send to client: %s\n' % uuid
 					if not DISABLE_CHANNEL:
-						channel.send_message(uuid, json.dumps(messages))
+						try:
+							channel.send_message(uuid, json.dumps(messages))
+						except channel.InvalidMessageError, e:
+							logging.error("Channel error: (%s)." % str(e))
 					_log += 'Send successful.\n'
 				except channel.InvalidChannelClientIdError, e:
 					#logging.error("Channed error: (%s). TBD! Remove uuid from list." % str(e))

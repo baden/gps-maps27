@@ -154,6 +154,9 @@ class DBGeo(db.Model):
 	def get_item(self, offset):
 		return self.u_to_v(struct.unpack_from(PACK_STR, self.bin, offset * PACK_LEN))
 
+	def purge_item(self, offset):
+		self.bin = self.bin[:offset * PACK_LEN] + self.bin[(offset + 1) * PACK_LEN:]
+
 	def get_first(self):
 		return self.get_item(0)
 
@@ -236,6 +239,11 @@ class DBGeo(db.Model):
 		#t = (pdt.hour & 7)*60*60 + pdt.minute * 60 + pdt.second
 		t = pdt.hour*60*60 + pdt.minute*60 + pdt.second
 		return self.get_item(self.find_item_index(t))
+
+	def purge_item_by_dt(self, pdt):
+		#t = (pdt.hour & 7)*60*60 + pdt.minute * 60 + pdt.second
+		t = pdt.hour*60*60 + pdt.minute*60 + pdt.second
+		self.purge_item(self.find_item_index(t))
 
 	@classmethod
 	def key_by_date(cls, pdate):

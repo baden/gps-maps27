@@ -16,6 +16,12 @@ indexes:
   - name: date
     direction: desc
 
+- kind: DBExport
+  ancestor: yes
+  properties:
+  - name: dtfrom
+    direction: desc
+
 - kind: DBFirmware
   properties:
   - name: boot

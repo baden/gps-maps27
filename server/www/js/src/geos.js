@@ -15,10 +15,47 @@
 	var $p = $('#geos_body table tr:first th:last')[0];
 	var skey;
 	var GeosSysList;
+	var date;
 
 	//$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
 
 	config.updater.tabs[3] = function(){
+
+	log('config', config);
+	if(config.admin){
+        tbody.addEventListener('contextmenu', function(ev){
+		if(ev.target.nodeName.toLowerCase() == 'td'){
+			var par = ev.target.parentNode.childNodes;
+			var lat = parseFloat(par[1].innerHTML); //.slice(4,-4)
+			var lon = parseFloat(par[2].innerHTML); //.slice(4,-4)
+			var row = ev.target.parentNode;
+			if(!isNaN(lat) && !isNaN(lon) && (ev.target.innerHTML.search(/\d\d:\d\d:\d\d/)==0)){
+				var dt = ev.target.parentNode.dataset.dt;
+				log('geo purge', lat, lon);
+				var del_popup = document.createElement('div');
+				del_popup.innerHTML = 'Удалить точку ' + par[0].innerHTML;
+				$(del_popup).dialog({
+					modal: true
+					, position: 'left'
+					, buttons: { "Нет": function() { $(this).dialog("close"); }, "Да": function() {
+						config.helper.getJSON('/api/geo/purge?skey=' + skey + '&dt=' + dt, function (data) {
+							if (data.answer && data.answer == 'ok') {
+								log('success purge.');
+							}
+						});
+						
+						row.parentNode.removeChild(row);
+						$(this).dialog("close"); 
+					}}
+					, close: function(event, ui) { $(this).dialog('destroy'); }
+				});
+				event.preventDefault();
+			}
+		}
+	}, false);
+	}
+
+
 		$('#geomap').css('left', $p.offsetLeft+$p.offsetWidth);
 		if(!$gmap){
 			//log('== create');
@@ -113,7 +150,6 @@
 
 		var type = $('#geos_type_last').attr('checked');
 
-		var date;
 		if(type){
 			//date = $.datepicker.formatDate('ymmdd', new Date());
 			date = new Date();
@@ -212,7 +248,7 @@
 				var tbl = [];
 				for(var i=data.points.length-1,l=data.points.length; i>=0; i--){
 					var p = data.points[i];
-					tbl.push('<tr>'+td([dt_to_time(p[0]), p[1].toFixed(5), p[2].toFixed(5), p[3], p[6].toFixed(1), p[4].toFixed(1), p[5].toFixed(2), fsource[p[7]], p[8]])+'</tr>');
+					tbl.push('<tr data-dt="' + p[0] + '">'+td([dt_to_time(p[0]), p[1].toFixed(5), p[2].toFixed(5), p[3], p[6].toFixed(1), p[4].toFixed(1), p[5].toFixed(2), fsource[p[7]], p[8]])+'</tr>');
 				}
 				//tbody.append(tbl.join(''));
 				console.timeEnd('table-string');
@@ -287,7 +323,14 @@
 		//}
 	});
 
-	config.updater.add('geo_change', function(msg) {
+	/*config.updater.add('geo_change', function(msg) {
+		log('GEOS: geo_change: ', msg.data);
+		if(skey == msg.data.skey) {
+			if($('#geos_type_last').attr('checked')) genReport();
+		}
+	});*/
+
+	config.updater.add('geo_change_last', function(msg) {
 		log('GEOS: geo_change: ', msg.data);
 		if(skey == msg.data.skey) {
 			if($('#geos_type_last').attr('checked')) genReport();

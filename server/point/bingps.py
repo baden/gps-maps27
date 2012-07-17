@@ -11,6 +11,7 @@
 import os
 import sys
 import webapp2
+#from google.appengine.ext import webapp
 import logging
 from google.appengine.ext import db
 from google.appengine.api import memcache
@@ -24,6 +25,8 @@ USE_TASK_DATA = True
 USE_BACKUP = False
 IMEI_BLACK_LIST = ('000')
 SERVER_NAME = os.environ['SERVER_NAME']
+
+#os.environ['CONTENT_TYPE'] = "application/octet-stream"
 
 glogal_counter = 0
 
@@ -226,7 +229,7 @@ def SaveGPSPointFromBin(pdata, result):
 		'fsource': fsource,
 		'photo': photo 
 	}
-	logging.info('POINT: %s' % repr(point))
+	#logging.info('POINT: %s' % repr(point))
 
 	return point
 '''
@@ -352,7 +355,11 @@ class BinGpsParse(webapp2.RequestHandler):
 	TBD! Необходимо обработчик обернуть в try: except: чтобы не возвращать приборам мусор с случае исключений.
 	TBD! Необходимо реализовать асинхронное чтение из базы и совместить с предварительным разбором пакета.
 """
+#os.environ['CONTENT_TYPE'] = 'application/octet-stream'
+#os.environ['HTTP_CONTENT_TYPE'] = 'application/octet-stream'
+
 class BinGps(webapp2.RequestHandler):
+#class BinGps(webapp.RequestHandler):
 	def post(self):
 		global glogal_counter
 		import os
@@ -362,16 +369,29 @@ class BinGps(webapp2.RequestHandler):
 		from datamodel.geo import PointWorker, updateLasts
 		from datamodel.configs import DBNewConfig
 		from datamodel.logs import AddLog
+		from urllib import unquote, unquote_plus
 
 		if PROFILER:
 			work_start = profiler_timer()
 
+		os.environ['HTTP_CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
 		os.environ['CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
+
+		pdata = self.request.body
 
 		self.response.headers['Content-Type'] = 'application/octet-stream'	# А это чтобы ответ не чанковался
 
+		logging.info("os.environ: %s" % repr(os.environ))
+		logging.info("headers: %s" % repr(self.request.headers))
 		logging.info("arguments: %s" % self.request.arguments())
 		logging.info("body: %s" % len(self.request.body))
+		logging.info("pbody: %s" % len(pdata))
+		
+		logging.info("Request: %s" % dir(self.request))
+		logging.info("Request info: %s" % str(self.request.content_type))
+		#logging.info("Request info: %s" % str(self.request.copy_body()))
+		self.request.content_type = 'application/octet-stream'
+		logging.info("Request info: %s" % str(self.request.content_type))
 
 		glogal_counter = glogal_counter + 1
 		_log = "\n== BINGPS(%d) [" % glogal_counter
@@ -398,12 +418,21 @@ class BinGps(webapp2.RequestHandler):
 		#logging.warning("system key: %s" % str(skey))
 
 		dataid = int(self.request.get('dataid', '0'), 16)
-		pdata = ''
+		self.response.headers['Content-Type'] = 'application/octet-stream'	# А это чтобы ответ не чанковался
 		if 'Content-Type' in self.request.headers:
-			if self.request.headers['Content-Type'] == 'application/x-www-form-urlencoded':
-				pdata = unquote_plus(self.request.body)
+			if "application/x-www-form-urlencoded" in self.request.headers['Content-Type']:
+				#pdata = unquote_plus(self.request.body.replace('=',''))
+				pdata = unquote_plus(pdata.replace('=&', '&'))
+
+				_log += "\n== headers: %s" % repr(self.request.headers)
+				_log += '\n== pdata len = %d  content-length = %d (%s) ' % (len(pdata), int(self.request.headers['Content_Length']), self.request.headers['Content_Length'])
+
+				if (len(pdata) == (int(self.request.headers['Content_Length']) + 1)) and (pdata[-1] == '='):
+					pdata = pdata[:-1]
+				_log += '\n== data reencoded'
 			else:
-				pdata = self.request.body
+				#pdata = self.request.body
+				_log += '\n== raw data'
 
 		_log += '\n==\tData ID: %d' % dataid
 		_log += '\n==\tBody size: %d' % len(pdata)
@@ -435,10 +464,17 @@ class BinGps(webapp2.RequestHandler):
 
 		if crc!=crc2:
 			_log += '\n==\tWarning! Calculated CRC: 0x%04X but system say CRC: 0x%04X. (Now error ignored.)' % (crc2, crc)
-			_log += '\n==\t\tData (HEX):'
+			_log += '\n==\t\tOriginal data (HEX):'
+			odata = self.request.body
+			for data in odata:
+				_log += ' %02X' % ord(data)
+			logging.info(_log)
+
+			_log = '\n==\t\tEncoded data (HEX):'
 			for data in pdata:
 				_log += ' %02X' % ord(data)
 			logging.info(_log)
+
 			self.response.write('BINGPS: CRCERROR\r\n')
 			return
 		else:

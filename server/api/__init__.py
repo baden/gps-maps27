@@ -22,8 +22,14 @@ imports = [
 	('/api/geo/last*', 'api.geo.Last'),
 	('/api/geo/count*', 'api.geo.Count'),
 	('/api/geo/report*', 'api.geo.Report'),
+	('/api/geo/purge*', 'api.geo.Purge'),		# Удаляет одну точку
 
 	('/api/report/get*', 'api.report.Get'),
+
+	('/api/export/xls*', 'api.export.XLS'),
+	('/api/export/list*', 'api.export.List'),
+	('/api/export/del*', 'api.export.Del'),
+	('/api/export/get/report.xls', 'api.export.Get'),
 
 	('/api/system/add*', 'api.system.Add'),
 	('/api/system/del*', 'api.system.Del'),

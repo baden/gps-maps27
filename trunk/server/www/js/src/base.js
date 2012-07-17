@@ -15,7 +15,11 @@ window.log = function(){
 }
 window.document.onselectstart = function(ev){
 	//log('this', ev.target.getAttribute, ev.target.getAttribute('contenteditable'), ev.target.parentNode, ev.target.parentNode.getAttribute('contenteditable'));
-	if((ev.target.getAttribute && ev.target.getAttribute('contenteditable')) || (ev.target.parentNode && ev.target.parentNode.getAttribute('contenteditable')!=null)) {
+	if(
+		(config.tab == 1) ||
+		(ev.target.getAttribute && ev.target.getAttribute('contenteditable')) ||
+		(ev.target.parentNode && ev.target.parentNode.getAttribute('contenteditable')!=null)
+	) {
 		//log('true');
 		return true;
 	}

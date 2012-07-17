@@ -83,6 +83,8 @@ class AddLog(webapp2.RequestHandler):
 
 		self.response.write('ADDLOG: OK\r\n')
 
+#os.environ['CONTENT_TYPE'] = 'application/octet-stream'
+#os.environ['HTTP_CONTENT_TYPE'] = 'application/octet-stream'
 
 class Config(webapp2.RequestHandler):
 	def post(self):
@@ -92,29 +94,38 @@ class Config(webapp2.RequestHandler):
 		from datamodel.channel import inform
 		#from zlib import compress
 
+		os.environ['HTTP_CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
 		os.environ['CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
+
+		body = self.request.body
+
 		self.response.headers['Content-Type'] = 'application/octet-stream'
 
 		#for k,v in self.request.headers.items():
 		#	logging.info("== header: %s = %s" % (str(k), str(v)))
 
 		imei = self.request.get('imei', 'unknown')
+		phone = self.request.get('phone', u'Не поддерживается')
 		#system = DBSystem.get_or_create(imei, phone=self.request.get('phone', None), desc=self.request.get('desc', None))
 		#TBD! Нет сохранения телефона
 		skey = DBSystem.key_by_imei(imei)
+		system = DBSystem.get(skey)
+
+		if system.phone != phone:
+			system.phone = phone
+			system.put()
 
 		cmd = self.request.get('cmd', '')
 		if cmd == 'save':
 			newconfig = DBConfig.get_by_imei(imei)
 
-			body = ''
 			if 'Content-Type' in self.request.headers:
 				if self.request.headers['Content-Type'] == 'application/x-www-form-urlencoded':
-					body = unquote_plus(self.request.body)
-				else:
-					body = self.request.body
+					#body = unquote_plus(self.request.body)
+					#body = unquote(self.request.body)
+					body = unquote(body)
 
-			#logging.info("== CONFIG_BODY: %s" % body)
+			logging.info("== CONFIG_BODY: %s" % repr(body))
 
 			config = {}
 			for conf in body.split("\n"):

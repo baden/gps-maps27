@@ -22,7 +22,8 @@ API_VERSION = 1.0
 SERVER_NAME = os.environ['SERVER_NAME']
 MAXPOINTS = 100000
 
-PROFILER = True
+#PROFILER = True
+PROFILER = False
 import time
 if sys.platform == "win32":
     # On Windows, the best timer is time.clock()

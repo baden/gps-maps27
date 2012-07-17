@@ -19,6 +19,7 @@ var getGeocode = function(adrlist, i, recur) {
 		if (status == google.maps.GeocoderStatus.OK) {
 			var address = geocode_to_addr(results);
 			$('#'+adrlist[i].id).html(address).attr('title', '');
+			config.reportdata.rows[adrlist[i].report_index].address = address;
 			delete adrlist[i];
 			//console.log(adrlist.some());
 			var empty = true;
@@ -42,6 +43,13 @@ var getGeocode = function(adrlist, i, recur) {
 
 var genReport = function(skey, start, stop, title) {
 	//$(".control").hide();
+	config.reportinfo = {
+		skey: skey,
+		start: start,
+		stop: stop,
+		title: title,
+		tz: new Date().getTimezoneOffset()
+	};
 	for(var i in adrlist) { clearInterval(adrlist[i].cb); adrlist[i].stop = true; }
 
 	$('#report_header').html('Отчет для системы ' + config.account.systems[skey].desc + ' за ' + title + '');
@@ -54,6 +62,11 @@ var genReport = function(skey, start, stop, title) {
 		if (data.answer == 'ok') {
 			//ParcePath(data);
 			log("Show report...");
+			config.reportdata = {
+				rows: [],
+				summary: {}
+			};
+			$('#report_export_xls').button('enable');
 			var fuel = 0;
 			var fm = {
 				0: data.car.fuel_midle * Math.pow(2, data.car.fuel_midle0 / 100.0),
@@ -94,6 +107,14 @@ var genReport = function(skey, start, stop, title) {
 			$('#report_total_stoptime').html(td_to_hms(data.summary.stoptime));
 			$('#report_total_maxspeed').html(data.summary.maxspeed.toFixed(1) + ' км/ч');
 
+			config.reportdata.summary = {
+				'total_dist': data.summary.length,
+				'total_movetime': data.summary.movetime,
+				'total_avspeed': data.summary.speed,
+				'total_stoptime': data.summary.stoptime,
+				'total_maxspeed':data.summary.maxspeed
+			}
+
 			var tbody = $( "#report tbody" );
 			//console.log(tbody);
 			adrlist = [];
@@ -113,19 +134,40 @@ var genReport = function(skey, start, stop, title) {
 						//var f = rec.length * data.car.fuel_midle / 100;
 						var f = rec.length * fuel_middle(rec.speed) / 100;
 						fuel += f;
-						tp = 'Движение</td><td>' + ln_to_km(rec.length) + ', ' + rec.speed.toFixed(1) + ' км/ч, ' + f.toFixed(2) + ' л'; break
+						tp = 'Движение</td><td>' + ln_to_km(rec.length) + ', ' + rec.speed.toFixed(1) + ' км/ч, ' + f.toFixed(2) + ' л';
+						config.reportdata.rows.push({
+							type: 'move',
+							length: rec.length,
+							speed: rec.speed,
+							fuel: f,
+							start: dt_to_datetime(rec.start.time),
+							stop: dt_to_datetime(rec.stop.time),
+							duration: rec.duration
+						});
+						break
 					}
 					case 'stop': {
 						//var rdiv = $('div');
 						//console.log(rdiv);
 						if(rec.duration < 5*60) tp = 'Остановка';
 						else tp = 'Стоянка';
-						adrlist.push({pos: rec.start.pos, id: ad_id, stop: false});
+						adrlist.push({pos: rec.start.pos, id: ad_id, stop: false, report_index: config.reportdata.rows.length});
 
 						tp += '</td><td id="' + ad_id + '" title="Дождитесь окончания обновления">' + rec.start.pos;
+						config.reportdata.rows.push({
+							type: 'stop',
+							start: dt_to_datetime(rec.start.time),
+							stop: dt_to_datetime(rec.stop.time),
+							duration: rec.duration
+						});
 						break
 					}
-					default: {tp = 'Неизвестное событие (' + rec.type + ')'}
+					default: {
+						tp = 'Неизвестное событие (' + rec.type + ')'
+						config.reportdata.rows.push({
+							type: 'unknown'
+						});
+					}
 				}
 
 				var events = '';
@@ -596,10 +638,23 @@ config.updater.tabs[1] = function(){
 		//rows['all'] = JSON.stringify(rows)
 
 		//$.getJSON('/export/xls', {data: 'aaa'}, function (data) {
+		var post = {
+			skey: config.skey,
+			info: config.reportinfo,
+			data: JSON.stringify(rows),
+			src: JSON.stringify(config.reportdata)
+		};
+		config.helper.postJSON('/api/export/xls', post, function (data) {
+			log('ok, data:', data);
+			if (data.answer && data.answer == 'ok') {
+				add_export_line(data.export.key, data.export.info, 1);
+			}
+		});
+		/*
 		$.ajax({
-			url: '/export/xls',
+			url: '/api/export/xls',
 			type: 'post',
-			data: {data: JSON.stringify(rows)},
+			data: {data: JSON.stringify(rows), skey:config.skey},
 			success: function(data, textStatus, jqXHR){
 				//window.location();
 				var val = $.parseJSON(data);
@@ -614,8 +669,46 @@ config.updater.tabs[1] = function(){
 			}
 			//Ext.get('iframe').set({src:result.responseText });
 		});
+		*/
 		//'ext-gen233'
 	});
+	var reps = $("#report_xlss tbody");
+	var skey;
+	if(window.config.account.systems && window.config.account.sys_keys.length>0) {
+		skey = window.config.account.systems[window.config.account.sys_keys[0]].skey;
+	}
+	var ReportsSysList = new SysList('reports_syslist', {
+		select: function(system){
+			console.log('ReportsSysList: selectSys', system);
+			skey = system.skey;
+			//UpdateLog();
+		}
+	});
+	var add_export_line = function(key, r, dest) {
+		var line = $('<tr data-key="'+key+'"><td><a href="/api/export/get/report.xls?key='+key+'">Загрузить</a></td><td>'+dt_to_datetime(r.created)+'</td><td>'+r.title+'</td><td>'+dt_to_datetime(r.start)+'</td><td>'+dt_to_datetime(r.stop)+'</td><td><button>X</button></td></tr>');
+		$(line).find('button').button().click(function(){
+			reps.find('*[data-key="'+key+'"]').remove();
+			config.helper.getJSON('/api/export/del?key='+key, function(data) {
+			});
+		});
+		if(dest == 1) {
+			reps.prepend(line);
+		} else {
+			reps.append(line);
+		}
+	}
+	$('#show_export_xls').button().click(function(){
+		log('Show reports');
+		config.helper.postJSON('/api/export/list', {skey: skey}, function (data) {
+			log('Show reports done', data);
+			reps.empty();
+			for(var i in data.list){
+				var r = data.list[i];
+				add_export_line(i, data.list[i], 0);
+			}
+		});
+	});
+
 	}
 }
 

@@ -1,3 +1,9 @@
+Группировка ярлыков:
+https://github.com/jawj/OverlappingMarkerSpiderfier
+
+
+
+
 Интересная методика привязки иконок к кнопкам, подписям, и вообще к чему угодно.
 Оно спрятанно в статье, http://habrahabr.ru/post/140816/ см. content: attr(data-icon)
 Иконки взяты с шрифта: http://nodeca.github.com/fontomas/#

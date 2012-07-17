@@ -10,6 +10,8 @@ import json
 
 from core import MAXPOINTS
 
+MAXSPEED = 210
+
 class Task_Del(webapp2.RequestHandler):
 	def get(self):
 		from datetime import datetime
@@ -308,6 +310,8 @@ class Get(BaseApi):
 			plon = point['lon']
 
 			if prev_point:
+				if point['speed'] > MAXSPEED:
+					continue
 				dist = distance(point, prev_point)
 				dt = point['time'] - prev_point['time']
 				dt = dt.days * 24 * 3600 + dt.seconds
@@ -642,4 +646,34 @@ class Report(BaseApi):
 			'format': ('datetime', 'lat', 'lon', 'sats', 'vout', 'vin', 'speed', 'photo'),
 			#'points': points[::-1]		# Выдадим в обратной последовательности
 			'points': points
+		}
+
+class Purge(BaseApi):
+	requred = ('admin', 'skey')
+	def parcer(self, **argw):
+		from datetime import datetime
+
+		dt = datetime.strptime(self.request.get("dt"), "%y%m%d%H%M%S")
+		rec = DBGeo.get_by_date(self.skey, dt)
+		rec.purge_item_by_dt(dt)
+		rec.put()
+		#logging.info('API: /api/geo/purge: %s' % repr(0));
+		#DBGeo.DeleteTo(self.skey, dtto)
+
+
+
+		#return {'answer': 'ok', 'result': 'End Task'}
+
+		#if len(qu) < 200:
+		#	logging.info('API: /api/geo/del: finish task');
+		#	return {
+		#		'answer': 'ok',
+		#		'result': 'continue task for delete',
+		#		'dateto': str(dtto),
+		#		'count': len(qu)
+		#	}
+
+		return {
+			'answer': 'ok',
+			'result': 'purge one point',
 		}

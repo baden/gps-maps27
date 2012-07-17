@@ -396,40 +396,6 @@ h3 {
 	cursor: pointer;
    }
 
-   #geos_viewtype .ui-button-text { /*-only .ui-button-text {*/
-	/*padding-top: 10px;
-	padding-bottom: 10px;*/
-	min-height: 22px;
-   }
-
-   #geos_body table td {
-	text-align: right;
-   }
-
-   div#geos_previev {
-	position: absolute;
-	top: 30px;
-	right: 20px;
-	width: 700px;
-	height: 400px;
-	border: 1px solid #000;
-	overflow: hidden;
-   }
-
-   span.showchart {
-	display: inline-block;
-	cursor: pointer;
-	vertical-align: middle;
-   }
-   span.showchart:hover {
-	box-shadow: 1px 1px 6px #999;
-	-moz-box-shadow: 1px 1px 6px #999;
-	-webkit-box-shadow: 1px 1px 6px #999;
-   }
-
-   div.geos_vis {
-	width: 700px; height: 400px;
-   }
    .ui-progressbar-value { background-image: url(images/pbar-ani.gif); }
 
    #progressbar {
@@ -1114,6 +1080,49 @@ div#geos_body {
 	right: 0px;
 	overflow-x: hidden;
 	overflow-y: auto;
+}
+
+   #geos_viewtype .ui-button-text { /*-only .ui-button-text {*/
+	/*padding-top: 10px;
+	padding-bottom: 10px;*/
+	min-height: 22px;
+   }
+
+
+   div#geos_previev {
+	position: absolute;
+	top: 30px;
+	right: 20px;
+	width: 700px;
+	height: 400px;
+	border: 1px solid #000;
+	overflow: hidden;
+   }
+
+   span.showchart {
+	display: inline-block;
+	cursor: pointer;
+	vertical-align: middle;
+   }
+   span.showchart:hover {
+	box-shadow: 1px 1px 6px #999;
+	-moz-box-shadow: 1px 1px 6px #999;
+	-webkit-box-shadow: 1px 1px 6px #999;
+   }
+
+   div.geos_vis {
+	width: 700px; height: 400px;
+   }
+
+
+
+#geos_body table td {
+	text-align: right;
+}
+
+
+#geos_body table td:first-child {
+	cursor: pointer;
 }
 /* config.css */
 #config_sys_list { list-style-type: none; margin: 0; padding: 0; }

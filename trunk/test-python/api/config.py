@@ -1,8 +1,8 @@
 ﻿#
 import httplib, urllib
 
-SERVER = "localhost"
-# SERVER = "point.gps.navi.cc"
+#SERVER = "localhost"
+SERVER = "point.gps.navi.cc"
 SERVER_PORT = 80
 IMEI = "1234"
 
@@ -20,7 +20,8 @@ def rawPOST(url, body):
 	print 'result (%d bytes)\r\n%s' % (len(result), result)
 
 def rawPOST2(url, body):
-	headers = {"Content-type": "application/octet-stream", "Accept": "text/plain"}
+	# headers = {"Content-type": "application/octet-stream", "Accept": "text/plain"}
+	headers = {"Accept": "text/plain"}
 	conn = httplib.HTTPConnection(SERVER, SERVER_PORT)
 	conn.request("POST", url, body, headers)
 

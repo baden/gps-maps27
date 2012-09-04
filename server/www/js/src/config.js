@@ -250,7 +250,7 @@ var bconf = function(){
 		var index = 1;
 		for(var i in data.config){
 			var v = data.config[i];
-			rows += '<tr name="'+v[0]+'"'+ (v[1].desc?'':' class="config_hide"') +'>';
+			rows += '<tr name="'+v[0]+'"'+ (v[1].desc?'':' class="config_hide"') + ' type="' + v[1].type + '">';
 			rows +=	'<td>'+index+'</td>';
 			rows += '<td>'+v[0]+'</td>';
 			if(config.admin){
@@ -261,6 +261,7 @@ var bconf = function(){
 			var title_desc = 'Другой тип';
 			switch(v[1].type){
 				case 'INT': title_desc = '0..32767'; break;
+				case 'LONG': title_desc = '0..2147483647'; break;
 			}
 			rows += '<td title="' + title_desc + '">' + v[1].type + '</td>';
 			rows += '<td class="cfg_changeble'+(v[1].wait?' wait':'')+'">' + v[1].value + '</td>';
@@ -292,17 +293,44 @@ var bconf = function(){
 			}
 		}).next().next().click(function(){
 			var name = $(this).parent().attr('name');
+			var type = $(this).parent().attr('type');
 			var pvalue = $(this).html();
-			var nvalue = prompt("Введите целочисленное значение (0..32000) для '" + name + "'", pvalue);
-			if(!nvalue) return;
-			nvalue = parseInt(nvalue);
-			if(nvalue<0) nvalue = 0;
-			if(nvalue>32767) nvalue = 32767;
+			log('type=', type);
+			switch(type){
+				case 'INT':
+					var nvalue = prompt("Введите целочисленное значение (0..32000) для '" + name + "'", pvalue);
+					if(nvalue == null) return;
+					nvalue = parseInt(nvalue);
+					if(nvalue<0) nvalue = 0;
+					if(nvalue>32767) nvalue = 32767;
+					break;
+				case 'LONG':
+					var nvalue = prompt("Введите целочисленное значение (0..2000000000) для '" + name + "'", pvalue);
+					if(nvalue == null) return;
+					nvalue = parseInt(nvalue);
+					if(nvalue<0) nvalue = 0;
+					if(nvalue>2147783647) nvalue = 2147783647;
+					break;
+				case 'STR16':
+					var nvalue = prompt("Введите строковое значение (не более 16ти символов) для '" + name + "'", pvalue);
+					if(nvalue == null) return;
+					nvalue = nvalue.slice(0, 16);
+					break;
+				case 'STR32':
+					var nvalue = prompt("Введите строковое значение (не более 32x символов) для '" + name + "'", pvalue);
+					if(nvalue == null) return;
+					nvalue = nvalue.slice(0, 32);
+					break;
+				default:
+					alert("Сожалеем, но редактирование данного параметра пока не реализовано.");
+					return;
+					break;
+			}
 			if(nvalue != pvalue){
 				//log('Change value', name);
 				$(this).next().next().html(nvalue);
 				$(this).addClass('wait');
-				sendGet('/api/system/config?cmd=set&skey=' + skey + '&name=' + name + '&value=' + nvalue);
+				sendGet('/api/system/config?cmd=set&skey=' + skey + '&name=' + name + '&value=' + encodeURIComponent(nvalue));
 			}
 		});
 	});

@@ -89,9 +89,10 @@ class AddLog(webapp2.RequestHandler):
 class Config(webapp2.RequestHandler):
 	def post(self):
 		from datamodel.configs import DBConfig
-		from urllib import unquote_plus
+		from urllib import unquote, unquote_plus
 		#from datamodel.channel import inform_account
 		from datamodel.channel import inform
+		from shlex import split
 		#from zlib import compress
 
 		os.environ['HTTP_CONTENT_TYPE'] = "application/octet-stream"		# Патч чтобы SIMCOM мог слать сырые бинарные данные
@@ -129,8 +130,9 @@ class Config(webapp2.RequestHandler):
 
 			config = {}
 			for conf in body.split("\n"):
-				params = conf.strip().split()
-				#logging.info("== PARAM: %s" % repr(params))
+				#params = conf.strip().split()
+				params = split(conf.strip())
+				logging.info("== PARAM: %s" % repr(params))
 				if len(params) == 4:
 					config[params[0]] = (params[1], params[2], params[3])
 

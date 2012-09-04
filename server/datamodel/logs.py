@@ -23,7 +23,7 @@ def AddLog(log):
 	if log.get('mtype') == 'alarm':
 		if text is None:
 			text = u'Нажата тревожная кнопка.'
-		alarmmsg = Alarm.add_alarm(log.get('imei', '-'), log.get('fid', 10), db.GeoPt(log.get('lat',0.0), log.get(lon, 0.0)), log.get('ceng', ''))
+		alarmmsg = Alarm.add_alarm(log.get('imei', '-'), log.get('fid', 10), db.GeoPt(log.get('lat',0.0), log.get('lon', 0.0)), log.get('ceng', ''))
 
 	if log.get('mtype') == 'alarm_confirm':
 		if text is None:

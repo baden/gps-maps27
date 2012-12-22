@@ -9,7 +9,7 @@ imports = [
 	(r'/bingps.*', 'point.bingps.BinGps'),
 	(r'/addlog.*', 'point.main.AddLog'),	# События
 	(r'/config.*', 'point.main.Config'),	# Конфигурация системы
-	(r'/binbackup.*', 'point.main.BinBackup'),
+	#(r'/binbackup.*', 'point.main.BinBackup'),
 	(r'/inform.*', 'point.main.Inform'),
 	(r'/ping.*', 'point.main.Ping'),
 	(r'/firmware.*', 'point.main.Firmware'),

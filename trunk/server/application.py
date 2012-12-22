@@ -2,7 +2,7 @@
 import webapp2
 import logging
 
-#logging.getLogger().setLevel(logging.WARNING)
+#logging.getLogger().setLevel(logging.ERROR)
 
 config = {}
 config['webapp2_extras.sessions'] = {

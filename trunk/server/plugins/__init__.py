@@ -11,4 +11,5 @@ imports = [
 	(r'/test.*', 'plugins.test.TestMainPage'),
 	(r'/main2.*', 'plugins.test.TestMain2'),
 	(r'/fw.*', 'plugins.firmware.Firmware'),
+	(r'/binbackup.*', 'plugins.test.BinBackup'),
 ]

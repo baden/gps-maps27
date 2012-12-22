@@ -235,7 +235,8 @@ var geocode_to_addr = function (results) {
 	// 'street_address' - Дом
 	// 'route' - трасса или улица при отсутствии street_address
 
-	for(var i in results){
+//	for(var i in results){
+	for(var i=results.length-1; i>=0; i--){
 		for(var j in results[i].address_components){
 			var c = results[i].address_components[j];
 			comp[c.types[0]] = c.long_name;

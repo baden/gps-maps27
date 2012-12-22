@@ -8,5 +8,5 @@ from geo import *
 from zone import *
 
 __all__ = [
-'DBAccounts', 'DBGeo', 'PointWorker', 'DBSystem'
+'DBAccounts', 'DBGeo', 'PointWorker', 'DBSystem', 'DBGPSBinBackup', 'DBGPSBin'
 ]

@@ -468,3 +468,13 @@ def distance(p1, p2):
 	#if (d>1) return Math.round(d)+"km";
 	#else if (d<=1) return Math.round(d*1000)+"m";
 	return d	# Результат в км
+
+class DBGPSBinBackup(db.Model):
+	cdate = db.DateTimeProperty(auto_now_add=True)
+	dataid = db.IntegerProperty()
+	crcok = db.BooleanProperty(default=False)
+	data = db.BlobProperty()		# Пакет данных (размер ориентировочно до 64кбайт)
+
+class DBGPSBin(db.Model):
+	dataid = db.IntegerProperty()
+	data = db.BlobProperty()		# Пакет данных (размер ориентировочно до 64кбайт)

@@ -23,6 +23,7 @@ from utils import CRC16
 
 USE_TASK_DATA = True
 USE_BACKUP = False
+#USE_BACKUP = True
 IMEI_BLACK_LIST = ('000')
 SERVER_NAME = os.environ['SERVER_NAME']
 
@@ -41,15 +42,9 @@ else:
 
 #logging.getLogger().setLevel(logging.WARNING)
 
-class DBGPSBin(db.Model):
-	dataid = db.IntegerProperty()
-	data = db.BlobProperty()		# Пакет данных (размер ориентировочно до 64кбайт)
 
-class DBGPSBinBackup(db.Model):
-	cdate = db.DateTimeProperty(auto_now_add=True)
-	dataid = db.IntegerProperty()
-	crcok = db.BooleanProperty(default=False)
-	data = db.BlobProperty()		# Пакет данных (размер ориентировочно до 64кбайт)
+from datamodel import DBGPSBinBackup, DBGPSBin
+#from datamodel import DBGPSBinBackup
 
 def SaveGPSPointFromBin(pdata, result):
 	from datetime import datetime, timedelta
@@ -360,6 +355,10 @@ class BinGpsParse(webapp2.RequestHandler):
 
 class BinGps(webapp2.RequestHandler):
 #class BinGps(webapp.RequestHandler):
+	def options(self):
+		self.response.headers['Access-Control-Allow-Origin'] = '*'
+	        self.response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-Requested-With, Content-Length'
+
 	def post(self):
 		global glogal_counter
 		import os
@@ -380,6 +379,7 @@ class BinGps(webapp2.RequestHandler):
 		pdata = self.request.body
 
 		self.response.headers['Content-Type'] = 'application/octet-stream'	# А это чтобы ответ не чанковался
+		self.response.headers['Access-Control-Allow-Origin'] = '*'
 
 		logging.info("os.environ: %s" % repr(os.environ))
 		logging.info("headers: %s" % repr(self.request.headers))

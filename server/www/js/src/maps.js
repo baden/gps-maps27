@@ -786,7 +786,17 @@ var DrawPlyline = function ()
 		//path: showed_path,
 		strokeColor: config.ui.trackcolor || '#dc00dc',
 		strokeOpacity: 1.0,
-		strokeWeight: 3
+		strokeWeight: 3,
+		icons: [{
+		    icon: {
+		      path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+		      strokeColor: config.ui.trackcolor || '#dc00dc',
+		      strokeWeight: 1,
+		      scale: 2
+		    },
+		    offset: '50px',
+		    repeat: '100px'
+		}],
 	});
 	flightPath.setMap(map);
 

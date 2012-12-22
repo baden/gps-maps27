@@ -1,3 +1,7 @@
 blacklist:
 - subnet: 66.102.13.121
   description: Try to disable prodeagle.
+#- subnet: 195.184.209.130
+#  description: DDoS
+#- subnet: 37.55.117.135
+#  description: DDoS

@@ -7,7 +7,7 @@ import Cookie
 import re
 from google.appengine.ext.appstats import recording
 
-#logging.getLogger().setLevel(logging.WARNING)
+#logging.getLogger().setLevel(logging.ERROR)
 logging.info('Loading %s from %s', __name__, __file__)
 
 #apptrace_URL_PATTERNS  = ['^/$']

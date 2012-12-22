@@ -157,6 +157,7 @@ class BinBackup(BaseHandler):
 	def get(self):
 		from utils import CRC16
 		from datamodel import DBGPSBinBackup, DBGPSBin
+		from datamodel.system import DBSystem
 		#from local import fromUTC
 		from datetime import date, datetime, timedelta
 
@@ -348,7 +349,8 @@ class BinBackup(BaseHandler):
 			allusers = None
 
 			self.response.headers['Content-Type'] = 'text/html'
-			self.write_template({
+			#self.write_template({
+			template_args = {
 				'imei': imei,
 				'dbbindata': dbbindata,
 				'cursor': cursor,
@@ -356,7 +358,8 @@ class BinBackup(BaseHandler):
 				'total': total,
 				'skey': skey,
 				'allusers': allusers
-			})
+			}
+			self.render_template(self.__class__.__name__ + '.html', **template_args)
 			return
 
 		else:
@@ -376,7 +379,8 @@ class BinBackup(BaseHandler):
 		self.response.headers['Content-Type'] = 'text/html'
 		#path = os.path.join(os.path.dirname(__file__), 'templates', self.__class__.__name__ + '.html')
 		#self.response.out.write(template.render(path, template_values))
-		self.write_template({
+		#self.write_template({
+		template_args = {
 			'imei': imei,
 			'dbbindata': dbbindata,
 			'total': total,
@@ -384,5 +388,6 @@ class BinBackup(BaseHandler):
 			'allusers': allusers,
 			'oldest': oldest,
 			'coldest': coldest,
-		})
+		}
 
+		self.render_template(self.__class__.__name__ + '.html', **template_args)

@@ -3,6 +3,7 @@ from core import BaseApi
 import webapp2
 from google.appengine.ext import db
 from datamodel import DBGeo
+from datamodel import geo
 from google.appengine.api.labs import taskqueue
 import gc
 import logging
@@ -139,13 +140,13 @@ class GetO(webapp2.RequestHandler):
 
 				#if point['speed'] < 1.0:
 
-				if point['fsource'] in (2, 3, 7):
+				if point['fsource'] in (geo.FSOURCE_STOPACC, geo.FSOURCE_TIMESTOPACC, geo.FSOURCE_TIMESTOP):
 					if stop_start is None:
 						stop_start = {}
 						stop_start['ind'] = ind
 						stop_start['lat'] = plat
 						stop_start['lon'] = plon
-				if point['fsource'] == 6:
+				if point['fsource'] == geo.FSOURCE_START:
 					if stop_start is not None:
 						stops.append({
 							'i': stop_start['ind'],
@@ -304,6 +305,8 @@ class Get(BaseApi):
 
 		maxp = MAXPOINTS
 		for point in DBGeo.get_items_by_range(self.skey, dtfrom, dtto, maxp):
+			if point['fsource'] in [geo.FSOURCE_DU, geo.FSOURCE_UMAX]:
+				continue
 			#logging.info('point=%s' % repr(point))
 			d = max(MS, max(abs(plat - point['lat']), abs(plon - point['lon'])))
 			plat = point['lat']
@@ -324,30 +327,43 @@ class Get(BaseApi):
 				cspeed = 0
 
 			prev_point = point
-				
-			points.append([
-				#point['time']).strftime("%d/%m/%Y %H:%M:%S",
-				point['time'].strftime("%y%m%d%H%M%S"),
-				plat, #point['lat'],
-				plon, #point['lon'],
-				int(point['course']),
-				#20,
-				int(round(log(DS/d, 2), 0)),
-				#{'dist': dist, 'speed': point['speed'], 'dt': dt, 'speed2': cspeed},
-			])
+
+			if stop_start is None:
+				points.append([
+					#point['time']).strftime("%d/%m/%Y %H:%M:%S",
+					point['time'].strftime("%y%m%d%H%M%S"),
+					plat, #point['lat'],
+					plon, #point['lon'],
+					int(point['course']),
+					#20,
+					int(round(log(DS/d, 2), 0)),
+					#{'dist': dist, 'speed': point['speed'], 'dt': dt, 'speed2': cspeed},
+				])
+			else:
+				points.append([
+					#point['time']).strftime("%d/%m/%Y %H:%M:%S",
+					point['time'].strftime("%y%m%d%H%M%S"),
+					stop_start['lat'],
+					stop_start['lon'],
+					int(point['course']),
+					#20,
+					int(round(log(DS/d, 2), 0)),
+					#{'dist': dist, 'speed': point['speed'], 'dt': dt, 'speed2': cspeed},
+				])
+
 			l_lat.append((plat, ind))
 			#l_lon.append((plon, ind))
 
 			#if point['speed'] < 1.0:
 
-			if point['fsource'] in (2, 3, 7):
+			if point['fsource'] in (geo.FSOURCE_STOPACC, geo.FSOURCE_TIMESTOPACC, geo.FSOURCE_TIMESTOP):
 				if stop_start is None:
 					stop_start = {}
 					stop_start['ind'] = max(0, ind-1)
 					#stop_start['ind'] = ind
 					stop_start['lat'] = plat
 					stop_start['lon'] = plon
-			if point['fsource'] == 6:
+			elif point['fsource'] == geo.FSOURCE_START:
 				if stop_start is not None:
 					stops.append({
 						'i': stop_start['ind'],
@@ -355,6 +371,8 @@ class Get(BaseApi):
 						's': ind,
 					})
 					stop_start = None
+			else:
+				stop_start = None
 			"""
 			if point['fsource'] in (2, 3, 7):
 				if stop_start is None:

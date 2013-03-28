@@ -64,6 +64,25 @@ def repr_middle(point):
 
 """
 
+FSOURCE_UNKNOWN		= 0
+FSOURCE_SUDDENSTOP	= 1
+FSOURCE_STOPACC		= 2
+FSOURCE_TIMESTOPACC	= 3
+FSOURCE_SLOW		= 4
+FSOURCE_TIMEMOVE	= 5
+FSOURCE_START		= 6
+FSOURCE_TIMESTOP	= 7
+FSOURCE_ANGLE		= 8
+FSOURCE_DELTALAT	= 9
+FSOURCE_DELTALONG	= 10
+FSOURCE_DELTA		= 11
+FSOURCE_DU		= 12 	# Фиксация по дельте изменения внешнего напряжения
+FSOURCE_UMAX		= 13 	# Фиксация по превышению внешнего напряжения установленного порога
+FSOURCE_SUDDENSTART	= 14	# Это признак возможных проблем с акселерометром
+FSOURCE_SUDDENPOS	= 15	# Это признак возможных проблем с акселерометром
+FSOURCE_TIMEINIT	= 16	# Фиксация точек при первоначальной запитке
+
+
 FSOURCE = {
 	0: "-",
 	1: "SUDDENSTOP",
@@ -79,7 +98,11 @@ FSOURCE = {
 	11: "DELTA",
 	12: "DU",
 	13: "UMAX",
+	14: "SUDDENSTART",
+	15: "SUDDENPOS",
+	16: "TIMEINIT"
 }
+
 
 #PACK_STR = 'iffffffBBBBiiiiiiii'
 PACK_STR = 'iffffffBBBBi'
@@ -430,6 +453,9 @@ def getGeoLast(skeys):
 			if req is not None:
 				point = req.get_last()
 				value = {'point': repr_middle(point)}
+				# ----------------------------------------------------------------------------------------------------<<<<<<<<<<<
+				if point['fsource'] in (FSOURCE_SUDDENSTOP, FSOURCE_STOPACC, FSOURCE_TIMESTOPACC, FSOURCE_TIMESTOP):
+					value['point']['speed'] = 0.0
 				#value = {'key': str(skey), 'skey': str(skey), 'last':{'point': repr_middle(point)}}
 				memcache.add("geoLast:%s" % str(skey), value)
 				values[str(skey)] = value
@@ -448,6 +474,9 @@ def updateLasts(skey, point, points):
 	imei = skey.name()
 	try:
 		value = {'key': str(skey), 'skey': str(skey), 'last':{'point': repr_middle(point)}}
+
+		if point['fsource'] in (FSOURCE_SUDDENSTOP, FSOURCE_STOPACC, FSOURCE_TIMESTOPACC, FSOURCE_TIMESTOP):
+			value['last']['point']['speed'] = 0.0
 	except:
 		value = {'key': str(skey), 'skey': str(skey), 'last': 0}
 	#memcache.set("geoLast:%s" % imei, value)

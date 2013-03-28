@@ -149,7 +149,7 @@ var genReport = function(skey, start, stop, title) {
 					case 'stop': {
 						//var rdiv = $('div');
 						//console.log(rdiv);
-						if(rec.duration < 5*60) tp = 'Остановка';
+						if(rec.duration < 3*60) tp = 'Остановка';
 						else tp = 'Стоянка';
 						adrlist.push({pos: rec.start.pos, id: ad_id, stop: false, report_index: config.reportdata.rows.length});
 

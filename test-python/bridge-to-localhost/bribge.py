@@ -12,7 +12,8 @@ from datetime import datetime, date
 
 # Where got data
 #GETFROM = "127.0.0.1:80"
-GETFROM = "gps-maps.appspot.com:80"
+#GETFROM = "gps-maps.appspot.com:80"
+GETFROM = "gps-maps27.appspot.com:80"
 
 COUNT = 1
 # Where send to...

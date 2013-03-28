@@ -202,7 +202,7 @@ var ParcePath = function(data){
 		//console.log('src:' + data.points[data.stops[i].s][0] + ' , ' + data.points[data.stops[i].i][0]);
 		//console.log('dt=', dt, ' ', d1, '(', d1.getTime(), '-', d2, '(', d2.getTime());
 
-		if(dt > 5*60) {
+		if(dt > 3*60) {
 			tp = 'стоянка ';
 			icon = $.gmap.images['stop'];
 		} else {

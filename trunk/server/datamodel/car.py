@@ -99,15 +99,15 @@ class DBCar(db.Model):
 				'drivers': [],
 				'casco': '',
 				'comments': '',
-				'fuel_midle': 0.0,
-				'fuel_stop': 0.0,
-				'fuel_midle0': 0,
-				'fuel_midle20': 0,
+				'fuel_midle': 10.0,
+				'fuel_stop': 1.0,
+				'fuel_midle0': 168,
+				'fuel_midle20': 68,
 				'fuel_midle40': 0,
-				'fuel_midle60': 0,
+				'fuel_midle60': -32,
 				'fuel_midle80': 0,
-				'fuel_midle100': 0,
-				'fuel_midle120': 0,
+				'fuel_midle100': 33,
+				'fuel_midle120': 68,
 			}
 		return car
 

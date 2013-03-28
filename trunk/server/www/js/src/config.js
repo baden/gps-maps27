@@ -231,6 +231,7 @@ var bconf = function(){
 
 	if($('#config_params').length === 0){
 		var div = $('body').append(
+//			'<div id="config_params"><div id="config_params_body">Загрузка данных с сервера...</div><br>Примечание: Изменения применяются автоматически. Установите требуемые параметры и закройте окно кнопкой "Закрыть".</div>'
 			'<div id="config_params"><div id="config_params_body">Загрузка данных с сервера...</div></div>'
 		);
 	} else {
@@ -340,6 +341,31 @@ var bconf = function(){
 
 	$('div#config_params_body').css('max-height', $(window).height() - 200);
 
+	var buttons = [
+		{
+			text: 'Отменить задание на изменение параметров',
+			click: function() {
+				sendGet('/api/system/config?cmd=cancel&skey=' + skey);
+				$(this).dialog('close');
+			},
+		},
+		{
+			text: 'Применить',
+			click: function() {
+				$(this).dialog('close');
+			}
+		}
+	];
+	if(config.admin){
+		buttons.splice(0, 0, {
+			text: 'Поставить в очередь на обновление ПО',
+			click: function() {
+				sendGet('/api/system/config?cmd=fwupdate&skey=' + skey);
+				$(this).dialog('close');
+			}
+		});
+	}
+
 	$('#config_params').dialog({
 		width: '90%',
 		/*height: '60%',*/
@@ -348,15 +374,11 @@ var bconf = function(){
 		autoOpen: true,
 		title: desc,
 		//position: ['left','top'],
-		buttons: {
-			'Отменить задание на изменение параметров': function() {
-				sendGet('/api/system/config?cmd=cancel&skey=' + skey);
-				$(this).dialog('close');
-			},
-			'Закрыть': function() {
-				$(this).dialog('close');
-			}
-		}
+		buttons: buttons,
+		open: function() {
+      			//$(this).parents('.ui-dialog-buttonpane button:eq(0)').focus(); 
+      			$(this).parent().find('.ui-dialog-buttonset button:last-child').focus(); 
+    		}
 	});
 }
 
@@ -629,6 +651,11 @@ config.updater.tabs[4] = function(){
 
 		ConfigList = new SysList('config_sys_list', {
 			element: function(s){
+				log('ConfigList:', s, config.account.systems);
+				if(!config.account.systems[s.key]) {
+					log('== Fatal', s, config.account.systems);
+					return;
+				}
 				var li = document.createElement('li');
 				li.className = 'ui-widget ui-widget-content ui-widget-header';
 				//li.style.width = '200px';
@@ -774,7 +801,8 @@ config.updater.tabs[4] = function(){
 					} else if(result == "already"){
 						if(cb && cb.already) cb.already(imei);
 					} else if(result == "added") {
-						log('manual add', data.system);
+						log('manual add', data.system, data.system.key);
+						window.config.account.systems[data.system.skey] = data.system;
 						ConfigList.handlers.additem.call(ConfigList, data.system);
 						if(cb && cb.add) cb.add(imei);
 					}

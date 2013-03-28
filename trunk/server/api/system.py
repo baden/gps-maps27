@@ -30,8 +30,15 @@ class Add(BaseApi):
 			DBAdmin.addOperation(self.akey, u'Пользователь пытался добавить несуществующую систему.', {'imei': self.imei})
 			return {'answer': 'no', 'result': 'not found'}
 
-		self.account.systems_key.append(system.key())
-		self.account.put()
+		def transaction(key, add_value):
+			obj = db.get(key)
+			obj.systems_key.append(add_value)
+			obj.put()
+
+		db.run_in_transaction(transaction, self.account.key(), system.key())
+
+		#self.account.systems_key.append(system.key())
+		#self.account.put()	# TODO!!! Обязательно переделать на изменение через транзакцию!!!
 
 		DBAdmin.addOperation(self.akey, u'Пользователь добавил систему.', {'imei': self.imei})
 		rsystem = system.todict()
@@ -45,7 +52,9 @@ class Add(BaseApi):
 			}
 		}, akeys=[self.akey], domain=private())
 		"""
-		inform_account(self.akey, 'change_slist', {'type': 'Adding', 'system': rsystem})
+
+		# Временно (или уже навсегда) убираем возможность работать в несколько окон
+		#inform_account(self.akey, 'change_slist', {'type': 'Adding', 'system': rsystem})
 
 		return {'answer': 'yes', 'result': 'added', 'system': rsystem}
 
@@ -55,14 +64,29 @@ class Del(BaseApi):
 		from datamodel.channel import inform_account
 		#from datamodel.namespace import private
 
+		"""
 		res = self.account.DelSystem(self.skey)
 		if res == 0:
 			return {'answer': 'no', 'result': 'not found'}		# Этот ответ больше не поддерживается
 		elif res == 2:
 			return {'answer': 'no', 'result': 'already'}
+		"""
+
+		if self.skey not in self.account.systems_key:
+			return {'answer': 'no', 'result': 'already'}
+
+		def transaction(key, value):
+			obj = db.get(key)
+			obj.systems_key.remove(value)
+			obj.put()
+
+		db.run_in_transaction(transaction, self.account.key(), self.skey)
+
 		#inform_account('change_slist', self.account, {'type': 'Deleting'})
 		#send_message({'msg': 'change_slist', 'data':{'type': 'Deleting'}}, akeys=[self.akey], domain=private())
-		inform_account(self.akey, 'change_slist', {'type': 'Deleting', 'skey': str(self.skey)})
+
+		# Временно (или уже навсегда) убираем возможность работать в несколько окон
+		#inform_account(self.akey, 'change_slist', {'type': 'Deleting', 'skey': str(self.skey)})
 		return {'answer': 'yes', 'result': 'deleted'}
 
 class Sort(BaseApi):
@@ -78,12 +102,19 @@ class Sort(BaseApi):
 		#	slist = self.account.systems_key
 		logging.info('=== Sort %s' % repr(slist))
 
-		if self.account.systems_key != slist:
-			self.account.systems_key = slist
-			self.account.put()
+		#if self.account.systems_key != slist:
+		#	self.account.systems_key = slist
+		#	self.account.put()	# TODO!!! Обязательно переделать на изменение через транзакцию!!!
 
-			inform_account(self.akey, 'change_slist', {'type': 'Sorting', 'slist': [str(s) for s in slist]})
-			#inform_account(self.akey, 'change_slist', {'type': 'Sorting', 'data': []})
+		def transaction(key, value):
+			obj = db.get(key)
+			obj.systems_key = value
+			obj.put()
+
+		db.run_in_transaction(transaction, self.account.key(), slist)
+
+			# Временно (или уже навсегда) убираем возможность работать в несколько окон
+			#inform_account(self.akey, 'change_slist', {'type': 'Sorting', 'slist': [str(s) for s in slist]})
 
 		return {'result': 'ok', 'slist': [str(s) for s in slist]}
 
@@ -302,6 +333,11 @@ class Config(BaseApi):
 			newconfigs.config = {}
 			newconfigs.put()
 			memcache.set("update_config_%s" % self.skey.name(), "no")
+
+		if cmd == 'fwupdate':
+			memcache.set("fwupdate_%s" % self.skey.name(), "yes")
+
+			#inform.send_by_imei(self.imei, 'CONFIGUP')
 
 		return {'result': 'ok'}
 

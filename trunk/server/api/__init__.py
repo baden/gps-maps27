@@ -46,6 +46,8 @@ imports = [
 
 	('/api/logs/get*', 'api.logs.Get'),
 	('/api/logs/del*', 'api.logs.Del'),
+	('/api/logs/purge*', 'api.logs.Purge'),
+	('/api/logs/count*', 'api.logs.Count'),
 
 
 	('/api/zone/add*', 'api.zone.Add'),

@@ -16,12 +16,20 @@ admin_console:
   - name: Appstats
     url: /stats
 
+builtins:
+- remote_api: on
+
 handlers:
 
 # 0. Служебные
 
 - url: /stats.*
   script: google.appengine.ext.appstats.ui.app
+
+- url: /admin/.*
+  script: google.appengine.ext.admin.application
+  login: admin
+
 
 #- url: /_ah/queue/deferred
 #  script: libs.deferred.app

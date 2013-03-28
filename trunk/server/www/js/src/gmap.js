@@ -25,7 +25,7 @@ function GMap() {
 	this._defaults = { // Global defaults for all the gmap widget instances
 		pos: new google.maps.LatLng(48.370848,32.717285), // Default position - Ukraine
 		zoom: 6,
-		maxZoom: 17,		// TODO: Временная борьба с тормозами на большом зуме, когда почитят - убрать
+		maxZoom: 19,		// TODO: Временная борьба с тормозами на большом зуме, когда почитят - убрать
 		maptype: google.maps.MapTypeId.ROADMAP,
 		//maptype: 'Quest',	// С 1м апреля!
 		marker: 'none',
@@ -385,7 +385,7 @@ $.extend(GMap.prototype, {
 		mapOptions = {
 			center: inst.settings.pos || new google.maps.LatLng(48.5000, 34.599)
 			, zoom: inst.settings.zoom
-			, maxZoom: 17		// TODO: Временная борьба с тормозами на большом зуме
+			, maxZoom: 19		// TODO: Временная борьба с тормозами на большом зуме
 			, streetViewControl: false
 			, mapTypeId: inst.settings.maptype || google.maps.MapTypeId.ROADMAP
 			//, mapTypeId: inst.settings.maptype || 'Quest'	// С 1м апреля
@@ -456,7 +456,7 @@ $.extend(GMap.prototype, {
                 },
                 tileSize: new google.maps.Size(256, 256),
                 name: "Google",
-		maxZoom: 17		// (17) TODO: Временная борьба с тормозами на большом зуме
+		maxZoom: 19		// (17) TODO: Временная борьба с тормозами на большом зуме
             }));
 
 		map.mapTypes.set('YMAP', yandexMapType);

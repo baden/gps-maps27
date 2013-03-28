@@ -203,8 +203,9 @@ SysList.prototype.default_handlers = {
 		});
 	},
 	additem: function(s){
+		log('SysList:additem', this, s, s.key);
 		var el = this.handlers.element.call(this, s);
-		//log('SysList:additem', el, this);
+		log('SysList:additem', el, this);
 		/*if(el.dataset){		// TDB! Как-то ведь можно применить polyfills? (http://addyosmani.com/blog/writing-polyfills/)
 			el.dataset.skey = s.key;
 			el.dataset.imei = s.imei;

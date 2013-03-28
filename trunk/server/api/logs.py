@@ -56,3 +56,57 @@ class Del(BaseApi):
 		return {
 			"answer": "ok",
 		}
+
+class Purge(BaseApi):
+	requred = ('nologin')
+	def parcer(self):
+		from google.appengine.ext import db
+		from datamodel import DBSystem
+		from datamodel.logs import GPSLogs
+
+		imei = self.request.get("imei", None)
+		if imei is None:
+			return {
+				"answer": "error",
+				"reason": "require IMEI"
+			}
+			
+
+		limit = int(self.request.get("limit", "1000"))
+
+		skey = DBSystem.imei2key(imei)
+		q = GPSLogs.all(keys_only=True).ancestor(skey).order('-date')
+
+
+		db.delete(q.fetch(limit))
+		'''
+		results = q.fetch(limit)
+		while results:
+		  db.delete(results)
+		  results = q.fetch(limit)
+		'''
+		return {
+			"answer": "done",
+			"len": q.count()
+		}
+
+class Count(BaseApi):
+	requred = ('nologin')
+	def parcer(self):
+		from datamodel import DBSystem
+		from datamodel.logs import GPSLogs
+
+		imei = self.request.get("imei", None)
+		if imei is None:
+			return {
+				"answer": "error",
+				"reason": "require IMEI"
+			}
+			
+		skey = DBSystem.imei2key(imei)
+		q = GPSLogs.all(keys_only=True).ancestor(skey)
+
+		return {
+			"answer": "done",
+			"len": q.count()
+		}

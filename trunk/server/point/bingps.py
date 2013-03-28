@@ -573,6 +573,12 @@ class BinGps(webapp2.RequestHandler):
 			else:
 				memcache.set("update_config_%s" % imei, "no")
 
+		value = memcache.get("fwupdate_%s" % imei)
+		if value is not None:
+			if value == "yes":
+				self.response.out.write('FWUPDATE\r\n')
+			memcache.delete("fwupdate_%s" % imei)
+
 		if PROFILER:
 			self.response.write('SAVED: %d\r\n' % points)
 			self.response.write('TIME: %.1f ms\r\n' % ((profiler_timer() - work_start)*1000.0))

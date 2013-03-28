@@ -347,7 +347,7 @@ LastMarker.prototype.draw = function() {
 		//div.classList.add('sprite-car');
 		var classcolor = '';
 
-		if(dt >= 10*60) {	// Пока значение фиксированное - 10 минут
+		if(dt >= 12*60) {	// Пока значение фиксированное - 10 (+2 для дрейфа) минут
 			div.style.backgroundColor = '#ccc';
 			classcolor = 'spritecolor-yellow';
 		} else if(this.point.speed < 1.0) {

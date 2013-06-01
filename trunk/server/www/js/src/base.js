@@ -585,7 +585,7 @@ config.helper = {
 		}
 	},
 */
-	exdialog: function(dialog_url, api_url, ext_data, ext) {
+	exdialog: function(dialog_url, api_url, ext_data, ext, callback) {
 		config.helper.getJSON(api_url+'&cmd=get', function(data){
 			//log('/api/system/car?get', data);
 			var info = data.info;
@@ -615,6 +615,9 @@ config.helper = {
 					log(api_url+'&cmd=set', data);
 					config.helper.postJSON(api_url+'&cmd=set', data, function(data){
 						//log('/api/system/car', data);
+						if(callback){
+							callback(data);
+						}
 					});
 					$(this).dialog('close');
 				}

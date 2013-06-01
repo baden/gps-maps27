@@ -1,6 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 from core import BaseApi
 import json
+import logging
 
 from google.appengine.ext import db
 
@@ -100,6 +101,23 @@ class Info(BaseApi):
 				}
 		elif self.request.get('cmd', '') == 'set':
 			info = {'set': 'set', 'params': self.request.POST.items()}
+			z = DBZone.get(zkey)
+			items = dict(self.request.POST.items())
+			logging.info("set zone datas: %s" % repr(items))
+			if z is not None:
+				logging.info("z: %s" % repr(z))
+				if 'name' in items:
+					z.name = items["name"]
+				if 'address' in items:
+					z.address = items["address"]
+				if 'desc' in items:
+					z.desc = items["desc"]
+				if 'comments' in items:
+					z.comments = items["comments"]
+				
+				z.save()
+				#for (k, v) in items.iteritems():
+				#	pass
 			"""
 			DBZone.set( self.skey,
 				number = self.request.POST['number'],

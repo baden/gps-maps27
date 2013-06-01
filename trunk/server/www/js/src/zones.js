@@ -18,6 +18,106 @@ var selectedColor;
 var colorButtons = {};
 var zonelist = document.getElementById('map_zones_list');
 
+
+function TxtOverlay(pos, txt, cls, map){
+
+	// Now initialize all properties.
+	this.pos = pos;
+	this.txt_ = txt;
+	this.cls_ = cls;
+	this.map_ = map;
+
+	// We define a property to hold the image's
+	// div. We'll actually create this div
+	// upon receipt of the add() method so we'll
+	// leave it null for now.
+	this.div_ = null;
+
+	// Explicitly call setMap() on this overlay
+	this.setMap(map);
+}
+TxtOverlay.prototype = new google.maps.OverlayView();
+TxtOverlay.prototype.onAdd = function(){
+	// Note: an overlay's receipt of onAdd() indicates that
+	// the map's panes are now available for attaching
+	// the overlay to the map via the DOM.
+
+	// Create the DIV and set some basic attributes.
+	var div = document.createElement('DIV');
+	div.className = this.cls_;
+
+	div.innerHTML = this.txt_;
+
+	// Set the overlay's div_ property to this DIV
+	this.div_ = div;
+	var overlayProjection = this.getProjection();
+	var position = overlayProjection.fromLatLngToDivPixel(this.pos);
+	div.style.position = "absolute";
+	div.style.left = position.x + 'px';
+	div.style.top = position.y + 'px';
+	// We add an overlay to a map via one of the map's panes.
+
+	var panes = this.getPanes();
+	panes.floatPane.appendChild(div);
+}
+
+TxtOverlay.prototype.setText = function(text){
+	this.txt_ = text;
+	this.div_.innerHTML = this.txt_;
+	this.draw();
+}
+
+TxtOverlay.prototype.draw = function(){
+
+	var overlayProjection = this.getProjection();
+
+	// Retrieve the southwest and northeast coordinates of this overlay
+	// in latlngs and convert them to pixels coordinates.
+	// We'll use these coordinates to resize the DIV.
+	var position = overlayProjection.fromLatLngToDivPixel(this.pos);
+
+	var div = this.div_;
+	div.style.left = position.x + 'px';
+	div.style.top = position.y + 'px';
+
+}
+
+//Optional: helper methods for removing and toggling the text overlay.  
+TxtOverlay.prototype.onRemove = function(){
+	this.div_.parentNode.removeChild(this.div_);
+	this.div_ = null;
+}
+
+TxtOverlay.prototype.hide = function(){
+	if (this.div_) {
+		this.div_.style.visibility = "hidden";
+	}
+}
+
+TxtOverlay.prototype.show = function(){
+	if (this.div_) {
+		this.div_.style.visibility = "visible";
+	}
+}
+
+TxtOverlay.prototype.toggle = function(){
+	if (this.div_) {
+		if (this.div_.style.visibility == "hidden") {
+			this.show();
+		} else {
+			this.hide();
+		}
+	}
+}
+
+TxtOverlay.prototype.toggleDOM = function(){
+	if (this.getMap()) {
+		this.setMap(null);
+	} else {
+		this.setMap(this.map_);
+	}
+}
+
 function clearSelection() {
 	if (selectedShape) {
 		selectedShape.setEditable(false);
@@ -158,7 +258,12 @@ var update_zone_list = function(){
 		var zkey = $(this).parent().attr('zkey');
 		log('Edit Geo-zone information', zkey);
 
-		config.helper.exdialog('/html/dialogs/zoneinfo.html', '/api/zone/info?zkey='+zkey, null, {});
+		config.helper.exdialog('/html/dialogs/zoneinfo.html', '/api/zone/info?zkey='+zkey, null, {}, function(data){
+			console.log(['callback=', data, zones]);
+			var zone = zones[zkey];
+			zone.name = data.info.params[0][1];
+			zone.txt.setText(zone.name);
+		});
 
 		/*config.helper.getJSON('/api/zone/info?cmd=get&zkey='+zkey, function(data){
 			log('/api/zone/info?get', data);
@@ -454,7 +559,15 @@ function SaveZoneToServer(overlay) {
 					zones[data.zkey]['overlay'] = overlay;
 					zones[data.zkey]['zkey'] = data.zkey;
 					zones[data.zkey]['type'] = overlay.type;
+					zones[data.zkey].name = "Задайте имя зоны";
+
+					var pos = overlay.getBounds().getCenter();
+					var txt = new TxtOverlay(pos, zones[data.zkey].name, "customBox", window.config.map );
+					zones[data.zkey].txt = txt;
+					console.log(["txt=", txt]);
+
 					update_zone_list();
+
 					//newShape['zkey'] = zone.zkey;
 					//newShape['type'] = zone.type;
 				}
@@ -560,7 +673,16 @@ var zones_show = function(){
 	zone_showed = true;
 	$('#map_zone_show>span').css('background-color', 'lime');
 	for(var i in zones){
-		zones[i].overlay.setMap(window.config.map);
+		//console.log(["zone=", zone]);
+		var zone = zones[i];
+		zone.overlay.setMap(window.config.map);
+
+		if(!zone.txt){
+			var pos = zone.overlay.getBounds().getCenter();
+			var txt = new TxtOverlay(pos, zone.name, "customBox", window.config.map );
+			zone.txt = txt;
+			console.log(["txt=", txt]);
+		}
 	}
 }
 
@@ -568,7 +690,12 @@ var zones_hide = function(){
 	zone_showed = false;
 	$('#map_zone_show>span').css('background-color', '');
 	for(var i in zones){
-		zones[i].overlay.setMap(null);
+		var zone = zones[i];
+		zone.overlay.setMap(null);
+		if(zone.txt){
+			zone.txt.setMap(null);
+			zone.txt = null;
+		}
 	}
 }
 

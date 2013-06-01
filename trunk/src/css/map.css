@@ -550,3 +550,15 @@ input#input_map_address:hover {
 	width: 500px;
 	-webkit-transition: all 0.3s ease-out;
 }
+
+.customBox {
+	position: absolute;
+	margin-left: -100px;
+	margin-top: -8px;
+	width: 200px;
+	/*background-color: white;*/
+	text-align: center;
+	color: white;
+	/*font-weight: bold;*/
+	text-shadow: 1px 1px 3px black;
+}

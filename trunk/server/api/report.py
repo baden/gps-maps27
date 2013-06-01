@@ -103,7 +103,10 @@ class Get(BaseApi):
 			check_point(point, slf)
 
 			if slf['prev_point']:
-				d = distance(point, slf['prev_point'])
+				if point['fsource'] in (2, 3, 7):
+					d = 0
+				else:
+					d = distance(point, slf['prev_point'])
 				td = point['time'] - slf['prev_point']['time']
 				td = td.days * 24 * 3600 + td.seconds
 				if td > 0:

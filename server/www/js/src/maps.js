@@ -954,7 +954,7 @@ var Map_SysList = function (list){
 	$.datepicker.setDefaults( $.datepicker.regional[ "ru" ] );
 	$("#datepicker").datepicker({altField: "#alternate",
 		altFormat: "yymmdd",
-		minDate: '-12m +0w',
+		minDate: '-36m +0w',
 		maxDate: '+0m +0w',
 		hideIfNoPrevNext: true,
 		onSelect: function(dateText, inst) {

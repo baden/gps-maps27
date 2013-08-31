@@ -5,7 +5,6 @@ import os
 import Cookie
 #from google.appengine.api import namespace_manager
 import re
-from google.appengine.ext.appstats import recording
 
 #logging.getLogger().setLevel(logging.ERROR)
 logging.info('Loading %s from %s', __name__, __file__)
@@ -14,18 +13,23 @@ logging.info('Loading %s from %s', __name__, __file__)
 #apptrace_TRACE_MODULES = ['api.py']
 
 # Пока запретис статистику
+
+#def webapp_add_wsgi_middleware(app):
+#    app = recording.appstats_wsgi_middleware(app)
+#    return app
 '''
 def webapp_add_wsgi_middleware(app):
+    from google.appengine.ext.appstats import recording
     app = recording.appstats_wsgi_middleware(app)
     return app
 '''
-
 #os.environ['ROOT_NAMESPACE'] = 'point'
 
 appstats_DEBUG = False
 appstats_TZOFFSET = -2*3600
 appstats_DUMP_LEVEL = -1
 appstats_FILTER_LIST = [{'PATH_INFO': '!^/favicon\.ico$'}]
+appstats_CALC_RPC_COSTS = True
 
 
 """

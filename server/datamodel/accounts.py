@@ -4,6 +4,7 @@ from google.appengine.ext import db
 from datetime import datetime, timedelta
 import struct
 from system import DBSystem
+from google.appengine.api import memcache
 #import zlib
 #import pickle
 
@@ -117,6 +118,7 @@ class DBAccounts(db.Model):
 		if skey in self.systems_key:
 			self.systems_key.remove(skey)
 			self.put()
+			memcache.delete("DBUpdater:skeys:%s" % str(self.key()))
 			return 1
 		return 2
 

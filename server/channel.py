@@ -84,6 +84,16 @@ class MessagePost(webapp2.RequestHandler):
 
 		#dump = json.dumps(messages_bc)
 		olduuids = []
+
+		#akeys = [DBAccounts.key_from_user_id(parts[0], domain=parts[2]) for ]
+		# Оптимизация запроса memcache
+		akeys = []
+		for uuid in uuids:
+			parts = uuid.split(':')		# user_id:uniq:domain
+			akeys.append(str(DBAccounts.key_from_user_id(parts[0], domain = parts[2])))
+
+		skeys_cached = memcache.get_multi(akeys, key_prefix = "DBUpdater:skeys:")
+
 		for uuid in uuids:
 			_log = 'Messages for: %s\n' % uuid
 			# Сообщения по "akey" (асинхронный запрос, мелочь а даст немного экономии)
@@ -97,7 +107,16 @@ class MessagePost(webapp2.RequestHandler):
 				continue
 				
 			#account_future = DBAccounts.get_async(akey)
-			account_future = db.get_async(akey)
+			# TODO!!! Заменить на массовую загрузку get_multi(keys, key_prefix='', namespace=None)
+
+			#skeys = memcache.get("DBUpdater:skeys:%s" % str(akey))
+			#if skeys is None:
+
+			if str(akey) in skeys_cached:
+				skeys = skeys_cached[str(akey)]
+			else:
+				account_future = db.get_async(akey)
+				skeys = None
 
 			# Сообщения "всем"
 			#messages = messages_bc[:]
@@ -114,13 +133,15 @@ class MessagePost(webapp2.RequestHandler):
 
 			#logging.warning('uuid: %s, akey: %s (%s)' %(uuid, uuid.split('_')[0], str(akey)))
 
-			account = account_future.get_result()
-			if account is None:
-				#logging.error('Error accont. (uuid=%s)' % uuid)
-				olduuids.append(uuid)
-				continue
+			if skeys is None:
+				account = account_future.get_result()
+				if account is None:
+					#logging.error('Error accont. (uuid=%s)' % uuid)
+					olduuids.append(uuid)
+					continue
 			
-			skeys = account.systems_key
+				skeys = account.systems_key
+				memcache.set("DBUpdater:skeys:%s" % str(akey), skeys)
 
 			# Сообщения по "skey"
 			for skey in skeys:

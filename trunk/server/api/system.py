@@ -4,6 +4,7 @@ from core import BaseApi
 
 from google.appengine.ext import db
 from datamodel import DBAccounts, DBSystem
+from google.appengine.api import memcache
 import logging
 import json
 
@@ -34,6 +35,7 @@ class Add(BaseApi):
 			obj = db.get(key)
 			obj.systems_key.append(add_value)
 			obj.put()
+			memcache.delete("DBUpdater:skeys:%s" % str(key))
 
 		db.run_in_transaction(transaction, self.account.key(), system.key())
 
@@ -79,6 +81,7 @@ class Del(BaseApi):
 			obj = db.get(key)
 			obj.systems_key.remove(value)
 			obj.put()
+			memcache.delete("DBUpdater:skeys:%s" % str(key))
 
 		db.run_in_transaction(transaction, self.account.key(), self.skey)
 
@@ -110,6 +113,7 @@ class Sort(BaseApi):
 			obj = db.get(key)
 			obj.systems_key = value
 			obj.put()
+			memcache.delete("DBUpdater:skeys:%s" % str(key))
 
 		db.run_in_transaction(transaction, self.account.key(), slist)
 

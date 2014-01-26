@@ -4,6 +4,7 @@ rem dev_appserver.py --port=80 --debug --use_sqlite --datastore_path=./gps-maps_
 path=c:\python27\;%path%
 set gae=C:\Program Files\Google\google_appengine
 rem python.exe "%gae%\dev_appserver.py" --port=80 --debug --datastore_path=./gps-maps27_datastore --history_path=./gps-maps27_history --high_replication --use_sqlite ./server/
+set CURRENT_VERSION_ID=10001
 python.exe "%gae%\dev_appserver.py" --port=8080 --datastore_path=var\gps-maps27_datastore --history_path=var\gps-maps27_history --high_replication --use_sqlite ./server/
 rem log_level
 

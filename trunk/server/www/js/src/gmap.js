@@ -385,7 +385,7 @@ $.extend(GMap.prototype, {
 		mapOptions = {
 			center: inst.settings.pos || new google.maps.LatLng(48.5000, 34.599)
 			, zoom: inst.settings.zoom
-			, maxZoom: 19		// TODO: Временная борьба с тормозами на большом зуме
+			, maxZoom: 16		// TODO: Временная борьба с тормозами на большом зуме
 			, streetViewControl: false
 			, mapTypeId: inst.settings.maptype || google.maps.MapTypeId.ROADMAP
 			//, mapTypeId: inst.settings.maptype || 'Quest'	// С 1м апреля
@@ -456,7 +456,7 @@ $.extend(GMap.prototype, {
                 },
                 tileSize: new google.maps.Size(256, 256),
                 name: "Google",
-		maxZoom: 19		// (17) TODO: Временная борьба с тормозами на большом зуме
+		maxZoom: 16		// (17) TODO: Временная борьба с тормозами на большом зуме
             }));
 
 		map.mapTypes.set('YMAP', yandexMapType);

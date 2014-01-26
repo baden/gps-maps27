@@ -391,3 +391,13 @@ class BinBackup(BaseHandler):
 		}
 
 		self.render_template(self.__class__.__name__ + '.html', **template_args)
+
+class DBAdmin(BaseHandler):
+	@login_required
+	def get(self):
+		from google.appengine.ext import db
+
+		q = db.GqlQuery("SELECT __key__ FROM DBMessages")
+                assert q.count()
+                db.delete(q.fetch(1000))
+		self.response.out.write("OK")

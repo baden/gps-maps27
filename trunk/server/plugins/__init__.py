@@ -12,4 +12,5 @@ imports = [
 	(r'/main2.*', 'plugins.test.TestMain2'),
 	(r'/fw.*', 'plugins.firmware.Firmware'),
 	(r'/binbackup.*', 'plugins.test.BinBackup'),
+	('/dbadmin/delete.*', 'plugins.test.DBAdmin')
 ]

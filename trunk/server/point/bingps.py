@@ -26,6 +26,7 @@ USE_BACKUP = False
 #USE_BACKUP = True
 IMEI_BLACK_LIST = ('000')
 SERVER_NAME = os.environ['SERVER_NAME']
+DB_ASYNC = True
 
 #os.environ['CONTENT_TYPE'] = "application/octet-stream"
 
@@ -381,17 +382,17 @@ class BinGps(webapp2.RequestHandler):
 		self.response.headers['Content-Type'] = 'application/octet-stream'	# А это чтобы ответ не чанковался
 		self.response.headers['Access-Control-Allow-Origin'] = '*'
 
-		logging.info("os.environ: %s" % repr(os.environ))
-		logging.info("headers: %s" % repr(self.request.headers))
-		logging.info("arguments: %s" % self.request.arguments())
-		logging.info("body: %s" % len(self.request.body))
-		logging.info("pbody: %s" % len(pdata))
+		#logging.info("os.environ: %s" % repr(os.environ))
+		#logging.info("headers: %s" % repr(self.request.headers))
+		#logging.info("arguments: %s" % self.request.arguments())
+		#logging.info("body: %s" % len(self.request.body))
+		#logging.info("pbody: %s" % len(pdata))
 		
-		logging.info("Request: %s" % dir(self.request))
-		logging.info("Request info: %s" % str(self.request.content_type))
+		#logging.info("Request: %s" % dir(self.request))
+		#logging.info("Request info: %s" % str(self.request.content_type))
 		#logging.info("Request info: %s" % str(self.request.copy_body()))
 		self.request.content_type = 'application/octet-stream'
-		logging.info("Request info: %s" % str(self.request.content_type))
+		#logging.info("Request info: %s" % str(self.request.content_type))
 
 		glogal_counter = glogal_counter + 1
 		_log = "\n== BINGPS(%d) [" % glogal_counter
@@ -539,12 +540,13 @@ class BinGps(webapp2.RequestHandler):
 				logging.warning(_warn)
 				offset += 1
 
-		worker.Flush()
+		future = worker.Flush()
 
+		future_last = None
 		if points > 0 and (last_point is not None):
 			_log += '\n==\tSaved points: %d\n' % points
 			#logging.warning('skey=%s, point=%s, points=%s' % (repr(skey), repr(point), repr(points)))
-			updateLasts(skey, last_point, points)
+			future_last = updateLasts(skey, last_point, points)
 		else:
 			logging.error("Packet has no data or data is corrupted.\n")
 
@@ -582,6 +584,13 @@ class BinGps(webapp2.RequestHandler):
 		if PROFILER:
 			self.response.write('SAVED: %d\r\n' % points)
 			self.response.write('TIME: %.1f ms\r\n' % ((profiler_timer() - work_start)*1000.0))
+
+		if DB_ASYNC:
+			if future is not None:
+				future.get_result()
+			if future_last is not None:
+				future_last.get_result()
+
 		self.response.write('BINGPS: OK\r\n')
 
 		'''

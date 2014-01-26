@@ -127,12 +127,12 @@ assert(struct.calcsize(PACK_STR) == PACK_LEN)
 
 class DBGeo(db.Model):
 	date = db.DateTimeProperty()				# Дата/время смещения
-	bin = db.BlobProperty(default=None)			# Упакованные данные
+	bin = db.BlobProperty(default=None)	# Упакованные данные
 	# Остальные параметры, возможно будут использоваться только на этапе отладки и в продакшине будут убраны.
-	i_count = db.IntegerProperty(default=0)			# Кол-во точек в пакете
-	i_first = db.DateTimeProperty()				# Время первой точки
-	i_last = db.DateTimeProperty()				# Время последней точки
-	extend = db.ListProperty(unicode, default=None)		# Дополнительная информация за текущий период
+	#i_count = db.IntegerProperty(default=0)	# Кол-во точек в пакете
+	#i_first = db.DateTimeProperty()		# Время первой точки
+	#i_last = db.DateTimeProperty()		# Время последней точки
+	#extend = db.ListProperty(unicode, default=None)		# Дополнительная информация за текущий период
 
 	@property
 	def count(self):
@@ -225,7 +225,7 @@ class DBGeo(db.Model):
 		#logging.info('--------  add_point --------------')
 		if self.count == 0:
 			self.bin = self.v_to_p(point)
-			self.i_count = 1
+			#self.i_count = 1
 			return True
 
 		t = point['seconds']
@@ -234,7 +234,7 @@ class DBGeo(db.Model):
 		
 		if t > self.time(self.count-1):
 			self.bin += self.v_to_p(point)
-			self.i_count += 1
+			#self.i_count += 1
 			return True
 
 		#if t in self.timelist():	# Это не очень оптимальная процедура (возможно стоит ее совместить с поиском)
@@ -255,7 +255,7 @@ class DBGeo(db.Model):
 
 		#self.test_4_sort()
 		
-		self.i_count += 1
+		#self.i_count += 1
 		return True
 
 	def get_item_by_dt(self, pdt):
@@ -362,7 +362,9 @@ class PointWorker(object):
 		#logging.info('PointWorker: Add_point(%s)' % pkey)
 		if pkey != self.last_pkey:
 			if self.last_pkey is not None:
-				self.Flush()
+				future = self.Flush()
+				if future is not None:
+					future.get_result()	# Sync write
 			self.last_pkey = pkey
 			self.rec = DBGeo.get_by_key_name(pkey, parent=self.system_key)
 			if self.rec is None:
@@ -386,15 +388,21 @@ class PointWorker(object):
 			self.rec_changed = True
 
 	def Flush(self):
+		future = None
 		logging.info('PointWorker: Flush (%d recs)' % self.nrecs)
 		if (self.rec is not None) and self.rec_changed:
-			self.rec.put()
+			#self.rec.put()
+			future = db.put_async(self.rec)
+			#db.put_async(self.rec)
 		self.rec = None
 		self.rec_changed = False
 		self.nrecs = 0
+		return future
 
 	def __del__(self):
-		self.Flush()
+		future = self.Flush()
+		if future is not None:
+			future.get_result()
 
 """ Сохранение последних известных координат объектов """
 
@@ -481,8 +489,8 @@ def updateLasts(skey, point, points):
 		value = {'key': str(skey), 'skey': str(skey), 'last': 0}
 	#memcache.set("geoLast:%s" % imei, value)
 	memcache.set("geoLast:%s" % str(skey), value['last'])
-	logging.warning('== geo.updateLasts(%s, %s, %s)' % (skey, repr_middle(point), points))
-	inform(skey, 'geo_change_last', value)
+	#logging.warning('== geo.updateLasts(%s, %s, %s)' % (skey, repr_middle(point), points))
+	return inform(skey, 'geo_change_last', value)
 
 """
 	Измерение расстояния между двумя точками

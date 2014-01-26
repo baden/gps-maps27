@@ -11,6 +11,90 @@
 		<p style="font-size: 24px;">Если длительное время ничего не происходит, попробуйете перезагрузить страницу (F5).</p>
 	</div>
 
+
+<div id="ads_div" style="position: absolute; overflow: auto; left:0px; top:0px; right:0px; bottom:0px; background-color: rgb(0, 168, 162); font-family: Verdana; font-size: 16px; color: #000; display: table-cell; vertical-align: middle; z-index: 1001; padding: 20px">
+
+<h3>Уважаемый пользователь!</h3>
+
+<br/>
+
+<h2><strong>Веб-сервис <script>document.write(location.hostname);</script> прекращает свою работу.</strong></h2>
+
+<br/>
+
+<p>Из-за нестабильной работы ключевых компонентов сервиса Google мы были вынуждены организовать новый Веб-сервис, свободный от “облачных” технологий.</p>
+
+<br/>
+
+
+
+<p>Для перевода трекера на новый сервис, необходимо:</p>
+
+<ol>
+
+  <li>Обновить прошивку, отправив на телефонный номер SIM-карты трекера SMS: <strong>fwupdate</strong></li>
+  <li>Если оператор не Киевстар - отправить на трекер SMS с точкой входа своего оператора:
+	<ul>
+		<li><strong>param gsm.apn internet</strong> - для карточек Life и новых карточек МТС</li>
+		<li><strong>param gsm.apn www.umc.ua</strong> - для старых карточек МТС</li>
+		<li><strong>param gsm.apn 3g.utel.ua</strong> - для карточек Укртелеком</li>
+	</ul>
+  </li>
+
+  <li>
+	Зарегистрироваться на Интернет-сайте:
+	<script>
+		if(location.hostname.match(/gsmcontrol.org/)) {
+			document.write('<a href="http://new.navi.cc">http://new.navi.cc</a>');
+		} else {
+			document.write('<a href="http://www.piligrim-gps.com">http://www.piligrim-gps.com</a>');
+		}
+	</script>
+  </li>
+  <li>Зайти на Веб-сервис и добавить IMEI своего трекера.</li>
+</ol>
+
+<p><strong>Примечание 1:</strong> Для того, чтобы IMEI трекера успешно добавился, необходимо, чтобы трекер предварительно сделал хотя бы одну отправку данных на новый Веб-сервис.</p>
+<p><strong>Примечание 2:</strong> В случае, если на момент перевода трекера на новый Веб-сервис он находился в покое, то до отправки данных может пройти до 10 минут.</p>
+
+<br/>
+
+<div style="background-color: #9cf;padding:8px;margin:-8px">
+	<h4>График отключения старого Веб-сервиса поддержки трекеров:</h4>
+	<br/>
+	<p><strong style="color:red">15.12.2013</strong> - Ограниченный режим работы: период обновления информации - 15 минут.</p>
+	<p><strong style="color:red">01.01.2014</strong> - Полное отключение Веб-сервиса.</p>
+</div>
+
+<br/>
+
+<p>
+Если у Вас возникли какие-либо проблемы с переходом на новый Веб-сервис или он Вас по 
+каким-либо объективным причинам не устраивает - обращайтесь, пожалуйста, к администрации Веб-сервиса по электронной почте:
+	<script>
+		if(location.hostname.match(/gsmcontrol.org/)) {
+			document.write('<a href="mailto:gsmcontrolorg@gmail.com">gsmcontrolorg@gmail.com</a>')
+		} else {
+			document.write('<a href="mailto:gpsnavicc@gmail.com">gpsnavicc@gmail.com</a>')
+		}
+	</script>
+
+</p>
+
+<p>
+В индивидуальном порядке мы рассмотрим возможность использования Вами старого Веб-сервиса до того момента,
+пока на новом сервисе не будут реализованы все необходимые Вам возможности старого сервиса.
+</p>
+
+
+
+<br/>
+<button id="ads_close"> Закрыть сообщение и продолжить работу </button>
+</div>
+
+
+
+
   <script defer src="/js/init_start.js"></script>
   <!--
 	TBD!
@@ -58,6 +142,17 @@ s.parentNode.insertBefore(ga, s);
   <script>document.write('<script defer type="text/javascript" src="/api/info.js?hash='+(new Date()).getTime().toString(36)+Math.floor(Math.random() * 2147483648).toString(36)+'"><\/script>')</script>
 
   <script defer src="/js/init_finish.js"></script>
+
+  <script>
+	document.addEventListener('DOMContentLoaded', function() {
+		console.log('ready');
+		document.getElementById('ads_close').onclick = function(){
+			console.log('remove');
+			document.body.removeChild(document.getElementById('ads_div'));
+			$('').remove();
+		};
+	}, true);
+  </script>
 
 </body>
 </html>

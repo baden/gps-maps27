@@ -4,9 +4,9 @@ runtime: python27
 api_version: 1
 threadsafe: true
 
-automatic_scaling:
-  max_idle_instances: 8
-  min_pending_latency: 6.0s
+##automatic_scaling:
+#  max_idle_instances: 8
+#  min_pending_latency: 6.0s
 
 libraries:
 - name: jinja2

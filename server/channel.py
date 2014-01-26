@@ -11,7 +11,10 @@ from google.appengine.api import channel
 from datamodel.accounts import DBAccounts
 from datamodel.channel import DBUpdater, DBMessages, DISABLE_CHANNEL, register, handle_connection, handle_disconnection, send_message
 
+from globals import DB_ASYNC
+
 #logging.getLogger().setLevel(logging.WARNING)
+#DB_ASYNC = False
 
 from api.core import BaseApi
 
@@ -73,6 +76,10 @@ class MessagePost(webapp2.RequestHandler):
 				messages_bc.append((value, mesg.domain))
 			mkeys.append(mesg.key())
 			#mesg.delete()
+
+		delete_future = None
+		if DB_ASYNC:
+			delete_future = db.delete_async(mkeys)
 
 		uuids = memcache.get('DBUpdater:root')
 		if uuids is None:
@@ -189,8 +196,11 @@ class MessagePost(webapp2.RequestHandler):
 					
 		"""
 
-		db.delete(mkeys)
 		memcache.delete('DBMessages:lazzy_run')
+		if DB_ASYNC:
+			delete_future.get_result()
+		else:
+			db.delete(mkeys)
 
 class Message(BaseApi):
 	def parcer(self):

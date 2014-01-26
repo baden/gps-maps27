@@ -7,6 +7,7 @@ from google.appengine.api import channel
 
 from accounts import DBAccounts
 from namespace import private
+import pickle
 
 # В 1.6.0 наблюдаются проблемы с channel api.
 #DISABLE_CHANNEL = True
@@ -14,7 +15,7 @@ DISABLE_CHANNEL = False
 
 # Сообщения при поступлении ставятся в очередь и отправляются через указанный интервал. Если в течение этого времени приходит еще сообщение, то при
 # отправке они объединяются.
-DEFAULT_TIMEOUT = 3
+DEFAULT_TIMEOUT = 4
 
 class DBUpdater(db.Model):
 	uuids = db.ListProperty(str, default=None)	# Список всех подключенных клиентов, которые наблюдают за этой системой (стек)
@@ -95,11 +96,18 @@ def handle_disconnection(client_id):
 		by_akey - Сообщение всем подключенным клиентам для выбранного пользователя (если на одном компьютере открыть несколько копий приложения)
 """
 class DBMessages(db.Model):
-	#dest_uuid = db.ListProperty(str, default=None)			# Список адресов - получателей. На данном этапе не используется
-	akeys = db.ListProperty(db.Key)				# Заполняется если указан получатель по пользователю
-	skeys = db.ListProperty(db.Key)				# Заполняется если указан получатель по владению системой
-	domain = db.StringProperty(default="")			# Заполняется если сообщение должно быть ограничено доменом
-	message = db.TextProperty(default=u"")
+	#dest_uuid = db.ListProperty(str, default=None)		# Список адресов - получателей. На данном этапе не используется
+	akeys = db.ListProperty(db.Key, indexed=False)		# Заполняется если указан получатель по пользователю
+	skeys = db.ListProperty(db.Key, indexed=False)		# Заполняется если указан получатель по владению системой
+	#domain = db.StringProperty(default="")			# Заполняется если сообщение должно быть ограничено доменом
+	domain = db.TextProperty(default=u"", indexed=False)	# Заполняется если сообщение должно быть ограничено доменом
+	message = db.TextProperty(default=u"", indexed=False)
+
+#class DBMessages2(db.Model):
+#	akeys = db.BlobProperty(default = pickle.dumps([]))	# Заполняется если указан получатель по пользователю
+#	skeys = db.BlobProperty(default = pickle.dumps([]))	# Заполняется если указан получатель по владению системой
+#	domain = db.StringProperty(default="")			# Заполняется если сообщение должно быть ограничено доменом
+#	message = db.TextProperty(default=u"")
 
 def send_message(message, akeys=[], skeys=[], domain="", timeout=DEFAULT_TIMEOUT):
 	from google.appengine.api.labs import taskqueue
@@ -110,22 +118,32 @@ def send_message(message, akeys=[], skeys=[], domain="", timeout=DEFAULT_TIMEOUT
 	#messagedb = DBMessages(parent = collect_key, message = pickle.dumps(message, protocol=pickle.HIGHEST_PROTOCOL))
 	#logging.warning('\n\nRepr: parent:[%s]\nakeys:[%s]\nskeys:[%s]\ndomain:[%s]\nmessage:[%s]' % (repr(collect_key), repr(akeys), repr(skeys), repr(domain), repr(message)))
 	messagedb = DBMessages(parent = collect_key, akeys=akeys, skeys=skeys, domain=domain, message = repr(message))
-	messagedb.put()
+	#messagedb.put()
+	rpc = db.put_async(messagedb)
+
+	#akeys2 = pickle.dumps(["1","2","3"])
+	#skeys2 = pickle.dumps(["2","5","10"])
+	
+	#messagedb = DBMessages2(parent = collect_key, akeys=akeys2, skeys=skeys2, domain=domain, message = repr(message))
+	#messagedb.put()
+
 	#lazzy_run()
 	lazzyrun = memcache.get('DBMessages:lazzy_run')
 	if lazzyrun is None:
 		memcache.set('DBMessages:lazzy_run', 'wait', time=timeout*2)
 		taskqueue.add(url='/channel/message', countdown=timeout)
 
+	return rpc
+
 def inform(skey, msg, data, domain=""):
-	send_message({
+	return send_message({
 		'msg': str(msg),
 		'skey': str(skey),
 		'data': data
 	}, skeys=[skey], domain=domain)
 
 def inform_account(akey, msg, data):
-	send_message({
+	return send_message({
 		'msg': str(msg),
 		'akey': str(akey),
 		'data': data

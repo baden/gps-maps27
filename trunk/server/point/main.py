@@ -431,3 +431,16 @@ class Ping(webapp2.RequestHandler):
 #	('/test.*', TestPage),
 #	('/', MainPage),
 #], debug=True, config=config)
+
+class ManualDel(webapp2.RequestHandler):
+	def get(self):
+		from datamodel import DBGeo
+		from datetime import datetime
+		from datetime import timedelta
+
+		count = int(self.request.get('count', '200'))
+
+		dtto = datetime.now() - timedelta(days=365)
+		DBGeo.DeleteAllTo(dtto, count)
+
+		self.response.out.write("DELETE OK\r\n")

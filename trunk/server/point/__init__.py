@@ -14,4 +14,5 @@ imports = [
 	(r'/ping.*', 'point.main.Ping'),
 	(r'/firmware.*', 'point.main.Firmware'),
 	(r'/params.*', 'point.main.Params'),	# Запрос параметров системы, например localhost/params?cmd=check&imei=353358019726996
+	(r'/manualdel.*', 'point.main.ManualDel'),
 ]

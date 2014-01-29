@@ -97,6 +97,25 @@
 
 		//var $p = $('#geos_body table tr:first th:last')[0];
 		//$('#geomap').resize();
+
+		/*$('#geos_viewtype').buttonset({
+		}).change(function(){
+			log('===> geo: buttonset_change');
+			genReport();
+		});*/
+		$('#geos_datepicker').datepicker({
+			dateFormat: 'dd.mm.yy',
+			onSelect: function( selectedDate ) {
+				genReport();
+			}
+		});
+
+		$('#geos_datepicker').datepicker("setDate", new Date());
+
+		setTimeout(function(){
+			genReport();
+		}, 500);
+
 	}
 
 
@@ -148,18 +167,11 @@
 		log('GEOS: Update report');
 		//skey = $('#geos_syslist').val();
 
-		var type = $('#geos_type_last').attr('checked');
-
-		if(type){
-			//date = $.datepicker.formatDate('ymmdd', new Date());
-			date = new Date();
-		} else {
-			//date = $.datepicker.formatDate('ymmdd', $('#geos_datepicker').datepicker('getDate'));
-			date = $('#geos_datepicker').datepicker('getDate');
-			if(!date) return;
-			log('date', date);
-			//if(date == '') return;
-		}
+		//date = $.datepicker.formatDate('ymmdd', $('#geos_datepicker').datepicker('getDate'));
+		date = $('#geos_datepicker').datepicker('getDate');
+		if(!date) return;
+		log('date', date);
+		//if(date == '') return;
 
 //		$.getJSON('/api/geo/report', {skey: skey, from: date+'000000', to: date+'235959'}, function (data) {
 //		$.getJSON('/api/geo/report', {skey: skey, from: Date_to_url(Date_to_daystart(date)), to: Date_to_url(Date_to_daystop(date))}, function (data) {
@@ -348,12 +360,6 @@
 	if(config.skey) genReport();
 	*/
 
-	$('#geos_viewtype').buttonset({
-	}).change(function(){
-		//log('geo: buttonset_change');
-		genReport();
-	});
-	$('#geos_datepicker').datepicker();
 
 
 })();

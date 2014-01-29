@@ -49,6 +49,26 @@ class Del(BaseApi):
 			'result': 'add task for delete',
 		}
 
+class Task_DelAll(webapp2.RequestHandler):
+	def get(self):
+		from datetime import datetime
+
+		dtto = datetime.strptime(self.request.get("to"), "%y%m%d%H%M%S")
+		DBGeo.DeleteAllTo(dtto)
+
+class DelAll(BaseApi):
+	requred = ('admin')
+	def parcer(self, **argw):
+		logging.info('API: /api/geo/taskdelall: create task');
+		url = "/api/geo/taskdelall?to=%s" % (self.request.get('to',''))
+		countdown=0
+		taskqueue.add(url = url, method="GET", countdown=countdown)
+
+		return {
+			'answer': 'ok',
+			'result': 'add task for delete all' ,
+		}
+
 class GetO(webapp2.RequestHandler):
 	def get(self):
 		from math import log

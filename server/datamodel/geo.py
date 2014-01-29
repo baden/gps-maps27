@@ -342,6 +342,11 @@ class DBGeo(db.Model):
 	def DeleteTo(cls, skey, dtto):
 		db.delete(DBGeo.all(keys_only=True).filter('date <', dtto).order('date').ancestor(skey).fetch(200))	# Максимум 200 записей (дней) за раз
 
+	# Удаляет все записи всех систем до указанной даты
+	@classmethod
+	def DeleteAllTo(cls, dtto, count = 200):
+		db.delete(DBGeo.all(keys_only=True).filter('date <', dtto).order('date').fetch(count))	# Максимум 200 записей (дней) за раз
+
 """
 	TBD! Необходимо реализовать асинхронное чтение из базы и совместить с предварительным разбором пакета.
 """

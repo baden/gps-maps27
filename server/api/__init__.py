@@ -16,6 +16,7 @@ imports = [
 
 	('/api/geo/del.*', 'api.geo.Del'),
 	('/api/geo/taskdel.*', 'api.geo.Task_Del'),
+	('/api/geo/taskdelall.*', 'api.geo.Task_DelAll'),
 	('/api/geo/get*', 'api.geo.Get'),
 	('/api/geo/dates*', 'api.geo.Dates'),
 	('/api/geo/info*', 'api.geo.Info'),

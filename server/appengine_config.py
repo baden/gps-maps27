@@ -17,12 +17,12 @@ logging.info('Loading %s from %s', __name__, __file__)
 #def webapp_add_wsgi_middleware(app):
 #    app = recording.appstats_wsgi_middleware(app)
 #    return app
-'''
+
 def webapp_add_wsgi_middleware(app):
     from google.appengine.ext.appstats import recording
     app = recording.appstats_wsgi_middleware(app)
     return app
-'''
+
 #os.environ['ROOT_NAMESPACE'] = 'point'
 
 appstats_DEBUG = False
